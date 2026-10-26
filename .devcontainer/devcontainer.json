@@ -1,0 +1,29 @@
+// VS Code "Reopen in Container": a Linux shell on the project's own image, where
+// rasterio, pyogrio, rasterstats and tiktoken load. On this Windows machine the
+// application-control policy refuses their DLLs, so this is the in-editor
+// alternative to the WSL venv for tests and raster work.
+//
+// It adds a separate `dev` service and leaves `app` and `api` untouched.
+{
+	"name": "flood-policy-kit (Linux, geospatial stack)",
+	"dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+	"service": "dev",
+	"runServices": ["dev"],
+	"workspaceFolder": "/workspaces/flood-policy-kit",
+	"shutdownAction": "stopCompose",
+	"features": {
+		// The image is python:3.12-slim, which has no git; VS Code's Source Control needs it.
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+	// Streamlit and the API, when started from the container's terminal.
+	"forwardPorts": [8501, 8010],
+	"customizations": {
+		"vscode": {
+			"extensions": ["ms-python.python", "ms-python.debugpy"],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.testing.pytestEnabled": true
+			}
+		}
+	}
+}

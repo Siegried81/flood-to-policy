@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "flood-policy-kit: NUTS3 river flood exposure for Europe, from the JRC hazard maps to a policy brief"
+abstract: >-
+  A screening toolkit that computes the population exposed to river flooding in
+  each of the 1,345 NUTS3 regions of Europe for nine return periods (RP10 to
+  RP500), by combining the JRC river flood hazard maps with the GHS-POP population
+  grid, and qualifies each figure with the Member States' Article 5 declarations
+  served by the EEA, the WFD river basin districts and the Copernicus CDS river
+  discharge projections. It ships a Streamlit and a React choropleth, a JSON API,
+  a grounded cite-or-refuse drafting workflow over a sourced policy corpus with a
+  human approval gate, and a policy answer built around Directive 2007/60/EC; it
+  is not a substitute for the statutory flood hazard and risk maps reported by
+  the Member States under that Directive.
+authors:
+  - family-names: Camus
+    given-names: Siegried
+keywords:
+  - floods-directive
+  - directive-2007-60-ec
+  - NUTS3
+  - flood-exposure
+  - flood-hazard
+  - EU-policy
+  - river-flooding
+  - JRC
+  - GHS-POP
+  - policy-brief
+  - responsible-ai
+license: MIT
+repository-code: https://github.com/Siegried81/flood-to-policy
+version: 0.1.0
+date-released: 2026-10-08

@@ -1,0 +1,85 @@
+# What the code actually imports. Pinned loosely: a hackathon needs installs that
+# work today, not reproducibility to the patch.
+
+# Geospatial
+geopandas>=1.2.0
+rasterio>=1.5.2
+rasterstats>=0.21.0
+shapely>=2.2.0
+# PINNED, and the cap is load-bearing - do not "fix" it by unpinning, and note
+# that dependabot has already tried twice: once with a bump that deleted this
+# cap, this comment and the pyproj line below, and once on 2026-10-07 that kept
+# the comment while raising the floor ABOVE the cap it describes, so the file
+# contradicted itself with every CI check green. Both packages are now in the
+# `ignore` list of .github/dependabot.yml, which carries the same reasoning.
+# On this Windows machine Smart App Control blocks three of pyogrio 0.13.0's
+# bundled DLLs and three of pyproj 3.8.0's extensions (WinError 4551, matched on
+# file content: the same DLL copied elsewhere under another name is still
+# refused). These are the newest cp314 builds the policy permits. Measured
+# 2026-10-06. Smart App Control is a one-way switch - turning it off to raise
+# these pins cannot be undone without reinstalling Windows.
+#
+# THE POLICY MOVES BOTH WAYS, so measure before believing either state. It
+# escalated to enforcement on 2026-10-07 at 08:01 and refused rasterio's own GDAL
+# build - `import rasterio` failing with "DLL load failed while importing _base",
+# logged as CodeIntegrity 3077/3089/3118, with no pin that fixed it - and by
+# 2026-10-08 around 11:00 it allowed the same wheel again with nothing
+# reinstalled. Measured 2026-10-12: it blocks `import rasterio` again, and the
+# WHOLE suite runs in WSL2, <!-- numbers:tests_collected -->1,023<!-- /numbers --> passed
+# and nothing deselected (the count is written by scripts/docs_numbers.py).
+#
+# Keep the WSL2 venv (`~/venvs/flood-policy-kit` on Ubuntu) anyway: it is the only
+# route that does not depend on the policy's mood, it is where a continental
+# raster build belongs, and the five raster test modules are exactly what disappears
+# when the policy flips. The pins below still matter for the Windows venv. It is
+# a uv venv with no pip of its own:
+# `uv pip install --python ~/venvs/flood-policy-kit/bin/python -r requirements.txt`.
+#
+# pyproj is pinned EXPLICITLY although geopandas pulls it in transitively,
+# because its failure is the silent one: geopandas still imports, loses all CRS
+# support, and returns crs=None with a warning - which would compute every
+# zonal statistic against unreprojected polygons. The NUTS3 boundaries are
+# EPSG:3035 and the hazard rasters EPSG:4326, so that is the whole analysis
+# landing in the wrong place. The test suite does not detect it;
+# scripts/build_exposure.py asserts the CRS before opening a raster.
+pyogrio>=0.9,<0.13    # fast vector IO backend for geopandas
+pyproj>=3.7,<3.8      # CRS engine; see the note above before changing this
+osmnx>=2.1.1          # critical infrastructure via Overpass
+cdsapi>=0.7.7         # ONLY scripts/fetch_cds_member.py, a pre-event errand;
+                      # the demo and the test suite never import it
+
+# Analysis
+pandas>=3.0.6
+numpy>=2.5.4
+xarray>=2026.9.0      # src/efas.py, src/hera.py: lazy NetCDF slices, never a whole file
+netCDF4>=1.7.5        # the NetCDF-4/HDF5 engine xarray reads EFAS and HERA files with
+
+# App + maps
+streamlit>=1.66.0
+folium>=0.20.0
+streamlit-folium>=0.27.4
+matplotlib>=3.11.2
+
+# LLM layer
+tiktoken>=0.14.0
+requests>=2.34.2
+anthropic>=1.15.0      # Claude, asked first when ANTHROPIC_API_KEY is set
+pyyaml>=6.0.3
+python-dotenv>=1.2.4    # reads .env, so an unset key means "unavailable" and not "unread"
+
+# Dev
+pytest>=9.1.1
+jsonschema>=4.26.0     # scripts/validate_bi_report.py: the Power BI files against Microsoft's schemas
+
+# API for the React UI
+fastapi>=0.146.0
+uvicorn>=0.54.0
+pypdf>=6.21.1          # the policy corpus includes PDFs
+pyarrow>=26.0.0       # parquet round-trips dtypes exactly; CSV loses a NUTS code's leading zero
+
+# Workflow + optional tracing
+langgraph>=1.2.16
+langchain-core>=1.6.12
+
+# Agent access: intent-based MCP tools (api/mcp_server.py). Pure Python.
+mcp>=2.3.0

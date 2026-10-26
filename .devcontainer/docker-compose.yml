@@ -1,0 +1,26 @@
+# Overlay read with ../docker-compose.yml by devcontainer.json. Paths are relative
+# to the FIRST compose file, i.e. the repository root.
+services:
+  dev:
+    build:
+      context: .
+      target: app
+    image: flood-policy-kit:latest
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # The workspace, not the copy baked into the image, is what gets imported.
+      PYTHONPATH: /workspaces/flood-policy-kit
+      OLLAMA_URL: ${OLLAMA_URL_IN_DOCKER:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # The whole checkout, data/ included: edits are live, nothing is rebuilt.
+      - .:/workspaces/flood-policy-kit:cached
+    working_dir: /workspaces/flood-policy-kit
+    # Keeps the container up for VS Code; the image's default command is Streamlit.
+    command: sleep infinity
+    # The image's healthcheck probes Streamlit, which this service does not run.
+    healthcheck:
+      disable: true

@@ -1,0 +1,1570 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "exposure.return_period": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "return_period"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Return period (1 in ... years)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Return period": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.expected_annual_exposure": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Expected annual exposure"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Expected annual exposure (people a year, lower bound)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Expected annual exposure (lower bound)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.exposed_population": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Exposed population"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "No defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "people live where the 1-in-100 river flood reaches": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "People exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "People exposed, no defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "People exposed (1-in-100)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.return_period_label": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Return period label"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Figures shown for": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.share_exposed": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Share exposed"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Share of residents exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Share exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Share of residents": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.share_in_shared_basins": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Share in shared basins"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "of the exposed live in a river basin shared with another country": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Of them, in a basin shared with another country": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Share of all the exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Exposed in a shared basin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.population": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Population"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Residents": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.exposed_in_shared_basins": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Exposed in shared basins"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "People exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "People exposed in a shared basin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.partner_countries": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Partner countries"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Shares its rivers with": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.regions_in_shared_basins": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Regions in shared basins"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Regions with area in a shared basin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.share_over_65": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Share over 65"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Residents aged 65+": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.poverty_rate": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Poverty rate"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "At-risk-of-poverty rate": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.declared_share_of_area": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Declared share of area"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Declared share of the region's area": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Declared risk area, share of area": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.residual_exposed": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Residual exposed"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Still exposed behind them": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "still do, behind the design standards of local defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Still exposed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Behind the defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Still exposed behind the defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.held_by_defences": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Held by defences"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Share held": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Share held by the design standards": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Held by the design standards": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Held by the defences": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.hospitals_behind_defences": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Hospitals behind defences"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Hospitals still in the RP100 footprint": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.schools_behind_defences": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Schools behind defences"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Schools still in the RP100 footprint": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.builtup_added_since_2010_km": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Built-up added since 2010 (km²)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "km² more built in the 1-in-100 floodplain since 2010": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Built-up added in the footprint since 2010, km²": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_area_km": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint area (km²)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Footprint area, km² (CORINE)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_homes": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: homes"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Homes": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_farmland": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: farmland"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "of the land the flood reaches is farmland - room the river can take": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Farmland": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_natural_land": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: natural land"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Natural land": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_water": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: water"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Water": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_industry_and_commerce": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: industry and commerce"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Industry and commerce": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_other_artificial": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: other artificial"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Other artificial": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_transport": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint: transport"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Transport": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_sealed_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint sealed share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Floodplain sealed": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.median_change_in_discharge_20412070": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Median change in discharge 2041-2070"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Median change, %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.lower_quartile_change_in_discharge_20412070": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Lower quartile change in discharge 2041-2070"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Lower quartile, %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.upper_quartile_change_in_discharge_20412070": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Upper quartile change in discharge 2041-2070"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Upper quartile, %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.simulations_agree_on_direction_20412070": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Simulations agree on direction 2041-2070"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "80 % of simulations agree on direction": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.region_shown": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Region shown"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.main_shared_basin": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "main_shared_basin"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Basin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Main shared basin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.region": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "region"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.country_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "country_name"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Country": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.efas_2021_max_rp_exceeded": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "efas_2021_max_rp_exceeded"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Highest level passed (1 in ... yr)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.efas_2021_cells_over_rp100": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "efas_2021_cells_over_rp100"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Cells past 1-in-100": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.efas_2021_river_cells": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "efas_2021_river_cells"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "River cells": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.nuts_id": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "nuts_id"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "NUTS3 code": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "regions.shared_with": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Regions",
+			          "ConceptualProperty": "shared_with"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Shares a basin with": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.held_by_defences_people": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Held by defences (people)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Held by the design standards": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.residual_expected_annual_exposure": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Residual expected annual exposure"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "people a year behind the defences, weighted by probability": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "A year behind the defences (JRC: ~160,000)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.regions_measured": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Regions measured"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Regions": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "NUTS3 regions": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.builtup_growth_since_2010": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Built-up growth since 2010"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Growth of the built-up footprint, 2010-2025": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_under_homes_km": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint under homes (km²)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Footprint under homes, km²": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.footprint_under_industry_km": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Footprint under industry (km²)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Under industry and commerce, km²": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.region_sealed_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Region sealed share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Whole region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.floodplain_sealed_above_region": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Floodplain sealed above region"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap, points": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.median_declared_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Median declared share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Median declared share": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Declared risk area, median region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.regions_with_a_declared_risk_area": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Regions with a declared risk area"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Regions with a declared area": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.flood_days_trend_per_decade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Flood days trend per decade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Days above bankfull, change per decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Flood days, /decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.river_peak_trend_per_decade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "River peak trend per decade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Peak, %/decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Annual peak, % per decade (median region)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.river_cells_with_rising_peaks": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "River cells with rising peaks"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Cells rising": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "River cells with a significant rise": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.winter_peak_share": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Winter peak share"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Winter peaks": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Years peaking in October-March (median region)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.peak_timing_shift_per_decade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Peak timing shift per decade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Timing, days/decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Peak date shift, days per decade (+ = later)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.flood_days_per_year": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Flood days per year"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Flood days/yr": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.winter_peak_trend_per_decade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Winter peak trend per decade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Winter peak, % per decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.summer_peak_trend_per_decade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Summer peak trend per decade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Summer peak, % per decade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "exposure.place_shown": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Exposure",
+			          "ConceptualProperty": "Place shown"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Place": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

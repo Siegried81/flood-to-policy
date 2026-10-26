@@ -1,0 +1,61 @@
+# Data: large, re-downloadable from config/sources.yaml via src/fetch.py - except
+# the frozen tables. Those are the measurement itself, a few hundred KB, and
+# rebuilding them takes the 5.6 GiB of rasters and about 20 GB of RAM, so a clone,
+# a teammate's laptop and the CI runner read the same frozen figures. Every
+# rebuild therefore shows up as a diff: committing it is freezing it. Backups and
+# caches beside them stay out. `data/*` rather than `data/`, because git cannot
+# re-include a file inside an excluded directory.
+data/*
+!data/.gitkeep
+!data/processed/
+data/processed/*
+!data/processed/exposure.parquet
+!data/processed/context.parquet
+!data/processed/DATA_NOTICE.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+web/dist/
+
+# Local working state, never committed: see _build/STATE.md
+_build/
+
+# Streamlit's dataframe toolbar writes `<timestamp>_export.csv`, and the browser
+# drops it wherever it drops downloads - often the repo root. It is a view of a
+# frozen table at one return period, never a source: `data/processed/` holds the
+# tables and `config/sources.yaml` the inputs.
+*_export.csv
+
+# Key files dropped in the repo by hand must never reach git: a CLMS service
+# key (JSON with a private key) sat untracked at the root on 2026-10-24.
+key_*
+*service_key*.json
+*.pem
+.cdsapirc
+
+# Power BI: the CSVs are regenerated from the frozen tables by
+# scripts/export_bi.py, and the TopoJSON is a copy of GISCO geometry (see
+# data/processed/DATA_NOTICE.md). Desktop's local cache and settings stay local.
+bi/data/
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+*.pbix
+
+# Private preparation and the full decision log: kept locally, never committed or linked.
+docs/perso/
+# Working rules and the running AI log: local only.
+docs/ai_usage_log.md

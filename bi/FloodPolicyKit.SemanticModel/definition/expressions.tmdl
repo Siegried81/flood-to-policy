@@ -1,0 +1,6 @@
+/// Folder holding regions.csv and exposure.csv, written by scripts/export_bi.py. Ends with a backslash.
+expression DataFolder = "C:\flood-to-policy\bi\data\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: a567a904-325e-547b-aa3c-fb4082d00c4d
+
+	annotation PBI_ResultType = Text
+

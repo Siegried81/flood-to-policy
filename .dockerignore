@@ -1,0 +1,45 @@
+# What must not reach the build context, and why.
+#
+# Note what is NOT here: data/. The `portable` stage in the Dockerfile copies the
+# whole 6.4 GiB data tree (measured 2026-10-23) into the image on purpose, so the tree has to stay in
+# the context. BuildKit only transfers the files a COPY actually asks for, so the
+# `app` stage - which never copies data/ - does not pay for it.
+#
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Host environments and caches. The .venv in particular holds Windows wheels
+# whose DLLs this image exists to escape, so copying it in would be worse than
+# useless.
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.git/
+.github/
+
+# Built on the host, never in the image: there is no Node toolchain in here.
+web/node_modules/
+
+# A download that was still in flight when the image was built. `src.fetch`
+# streams to <name>.part and renames only on success, so baking one in would put
+# a truncated raster in the image under a name that looks complete - the failure
+# mode the fetcher's temp-file dance exists to prevent.
+**/*.part
+# A file an earlier run stored and a later run refused as not-a-document (a WAF
+# page under HTTP 200, a stub). `src.fetch` keeps it beside the real file as
+# evidence; it is not data and must not travel in the portable image.
+**/*.rejected
+
+# Runtime output, not input: the approved brief accumulates as the demo is used,
+# and a previous session's approvals showing up in a fresh container would be
+# read as this session's work.
+data/processed/approved.md
+
+# Exploration, not the deliverable.
+notebooks/

@@ -1,0 +1,23 @@
+{
+	// Installed packages and generated caches: git already ignores them, and
+	// listing them buries the project's own files in the explorer and search.
+	"files.exclude": {
+		"**/.venv": true,
+		"**/venv": true,
+		"**/__pycache__": true,
+		"**/.pytest_cache": true,
+		"**/node_modules": true,
+		"web/dist": true
+	},
+	"search.exclude": {
+		"data/": true
+	},
+	// Pylance reports on installed packages too unless told not to.
+	"python.analysis.exclude": [
+		"**/.venv",
+		"**/venv",
+		"**/__pycache__",
+		"**/node_modules",
+		"data"
+	]
+}

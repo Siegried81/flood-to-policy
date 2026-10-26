@@ -1,0 +1,6 @@
+web/public/team9/flood_map.html filter=lfs diff=lfs merge=lfs -text
+web/public/team9/priority_map.html filter=lfs diff=lfs merge=lfs -text
+team9/shelter_candidates.geojson filter=lfs diff=lfs merge=lfs -text
+team9/priority_ranking.csv filter=lfs diff=lfs merge=lfs -text
+team9/shelter_candidates.csv filter=lfs diff=lfs merge=lfs -text
+docs/hackathon/policy_brief_team9.docx filter=lfs diff=lfs merge=lfs -text
