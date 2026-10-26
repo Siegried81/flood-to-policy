@@ -134,18 +134,19 @@ rebuilt. The findings and recommendations themselves are in
 - **The observed record does not yet show the projected rise.** In HERA v2
   (1991-2020), annual peak discharge fell in 727 of the 1,220 regions it
   covers (median −1.4 % a decade, EU-27 −1.8 %), in 428 of the 709 regions with
-  river cells and a robust projected rise by 2041-2070, and in 47 of the 80 regions of the
-  planning list; only 4.7 % of the 210,574 river cells rise significantly
+  river cells and a robust projected rise by 2041-2070, and in 42 of the 69 regions of the
+  EU-27 planning list (47 of 80 over 37 countries); only 4.7 % of the 210,574 river cells rise significantly
   (Mann-Kendall, 5 %), and the rank correlation with the projected 2041-2070
   change is −0.01. HERA is a reanalysis forced by ERA5-Land, with reservoirs in
   it, not gauged flow, and 30 years is short. Say it as: the projection is a
   future RCP 8.5 signal that the last 30 years neither confirm nor contradict.
   [`src/hera.py`](../src/hera.py) module docstring,
   [`policy_answer.md` §4.4](policy_answer.md#44-the-reference-discharge-is-rising-where-people-already-live-in-the-way).
-- **The planning list is read on undefended exposure.** Its 80 regions hold
-  7,321,480 people exposed at RP100 if no dyke held but 1,008,369 behind the
-  PESETA IV design standards; the same rule on the residual share gives 77
-  regions with 2,771,048, and only 17 regions are on both lists. Quote both.
+- **The planning list is read on undefended exposure.** Its 69 EU-27 regions
+  hold 6,545,666 people exposed at RP100 if no dyke held but 865,518 behind the
+  PESETA IV design standards; the same rule on the residual share gives 68
+  regions with 2,634,226, and only 13 regions are on both lists. Quote both.
+  Over all 37 countries the lists are 80 and 77 regions, 17 on both.
   [`policy_answer.md` §4.4](policy_answer.md#44-the-reference-discharge-is-rising-where-people-already-live-in-the-way).
 - **It is discharge, not depth, and not a headcount.** A change in a 50-year
   flow cannot be layered onto the inundation maps; what travels is the direction

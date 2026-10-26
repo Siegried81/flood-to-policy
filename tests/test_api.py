@@ -949,7 +949,7 @@ def test_the_react_context_panel_cannot_render_a_direction_from_one_chain():
 def test_the_react_app_offers_the_context_tab_next_to_the_figure_it_qualifies():
     """Ordered, not just present: a climate caveat met after the brief is written
     is a caveat that changed nothing."""
-    source = (ROOT / "web" / "src" / "App.jsx").read_text(encoding="utf-8")
+    source = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
     assert "ContextPanel" in source
     tabs = source.split("const TABS = [", 1)[1].split("]", 1)[0]
     names = [part.strip().strip('"') for part in tabs.split(",")]
