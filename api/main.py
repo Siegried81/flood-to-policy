@@ -24,6 +24,9 @@ Two things it deliberately does NOT do:
   as SVG in the browser. No tile provider, no API key, nothing to fail on a
   hackathon network — and the map still works with the Wi-Fi unplugged.
 
+With `HOSTED=1` (the public demo) every route that would call a model or write
+the brief answers 403 before touching a provider; `GET /api/config` tells the UI.
+
 Run with `uvicorn api.main:app --port 8010`.
 """
 
@@ -38,7 +41,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -56,6 +59,7 @@ EXPOSURE = ROOT / "data" / "processed" / "exposure.parquet"
 CONTEXT = ROOT / "data" / "processed" / "context.parquet"
 GEOMETRY = ROOT / "data" / "processed" / "regions.geojson"
 APPROVED = ROOT / "data" / "processed" / "approved.md"
+EVENT_WEB = ROOT / "data" / "processed" / "event_2021_web.json"
 WEB_DIST = ROOT / "web" / "dist"
 DEV_ORIGINS = ["http://localhost:5190", "http://127.0.0.1:5190"]
 
@@ -182,6 +186,58 @@ def _one_return_period(
 @app.get("/api/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+#: The message every model or write route returns in the hosted demo.
+HOSTED_REFUSAL = ("{what} is disabled in the hosted demo: it would call a language model "
+                  "or write files on a shared server. Run the kit locally to use it.")
+
+
+def hosted() -> bool:
+    """True when the env says this is the public demo (`HOSTED=1`).
+
+    Read on every request rather than at import, so a test (or an operator)
+    flips it without reloading the app. Anything but "1"/"true"/"yes" is off,
+    so an unset variable keeps the local behaviour.
+    """
+    return os.environ.get("HOSTED", "").strip().lower() in {"1", "true", "yes"}
+
+
+def _refuse_if_hosted(what: str) -> None:
+    """403 before any provider is touched, when running as the hosted demo.
+
+    A public demo with a model behind it spends the owner's quota for every
+    visitor and lets anyone write to the brief, so those routes are switched
+    off rather than rate-limited. 403, not 404: the route exists, this
+    deployment refuses it, and the UI can say so.
+    """
+    if hosted():
+        raise HTTPException(status_code=403, detail=HOSTED_REFUSAL.format(what=what))
+
+
+@app.get("/api/config")
+def config() -> dict:
+    """What this deployment allows, so the UI greys out what it would refuse."""
+    on = not hosted()
+    return {"hosted": not on, "llm_enabled": on, "approve_enabled": on,
+            "event2021_available": EVENT_WEB.exists()}
+
+
+@app.get("/api/event2021")
+def event2021() -> Response:
+    """The precomputed July 2021 story (`scripts/export_event_web.py`), as is.
+
+    Served byte for byte: the file is already compact JSON, and re-parsing a
+    few hundred kB of map data on every request would only cost time.
+    """
+    if not EVENT_WEB.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="event_2021_web.json is missing. Build it with "
+                   "`python scripts/export_event_web.py` (needs the raw EMS layers "
+                   "and hazard rasters).",
+        )
+    return Response(content=EVENT_WEB.read_bytes(), media_type="application/json")
 
 
 @app.get("/api/meta")
@@ -579,6 +635,7 @@ def draft(req: DraftRequest) -> dict:
     for numbers - the model was handed them - but the question is not: a figure
     that only the asker typed is not evidence.
     """
+    _refuse_if_hosted("Drafting")
     passages = rag.search(req.question, k=5)
     if not passages:
         return {"refused": True, "draft": None, "passages": []}
@@ -679,6 +736,10 @@ def ask(req: AskRequest) -> dict:
     """
     if (req.question is None) == (req.spec is None):
         raise HTTPException(status_code=400, detail="Send exactly one of `question` or `spec`.")
+    if req.question is not None:
+        # Only the free-text form calls a model; a `spec` runs on pandas alone
+        # and stays available in the hosted demo.
+        _refuse_if_hosted("Asking in free text")
     df = _table()
     try:
         if req.spec is not None:
@@ -717,6 +778,7 @@ def translate_section(req: TranslateRequest) -> dict:
     English section is unaffected either way - it stays the record, because it is
     the text whose figures were checked against the table.
     """
+    _refuse_if_hosted("Translation")
     try:
         result = translate.translate(req.text, req.language)
     except ValueError as exc:
@@ -801,6 +863,7 @@ def approve(
     can be a reasonable human edit, so they are written into the record beside
     the text and returned, and the decision stays the human's.
     """
+    _refuse_if_hosted("Approving")
     _check_approver(x_approve_token)
     passages = None
     if req.passages is not None:

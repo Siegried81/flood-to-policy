@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "flood-policy-kit: NUTS3 river flood exposure for Europe, from the JRC hazard maps to a policy brief"
+title: "Flood to policy: NUTS3 river flood exposure for Europe, from the JRC hazard maps to a policy brief"
 abstract: >-
   A screening toolkit that computes the population exposed to river flooding in
   each of the 1,345 NUTS3 regions of Europe for nine return periods (RP10 to

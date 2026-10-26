@@ -211,7 +211,7 @@ def _calendar(times, nt: int):
         stamps = pd.DatetimeIndex(values)
     else:
         stamps = pd.Timestamp("2001-01-01") + pd.to_timedelta(np.arange(nt) * 6, unit="h")
-    return stamps.month.to_numpy(), stamps.dayofyear.to_numpy()
+    return stamps.month.to_numpy(), stamps.day_of_year.to_numpy()
 
 
 def flood_threshold(lat, lon, path=THRESHOLD_FILE):
