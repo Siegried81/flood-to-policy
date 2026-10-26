@@ -1069,3 +1069,12 @@ def test_approve_without_sources_says_what_it_could_not_check(tmp_path, monkeypa
     assert response.status_code == 200
     assert response.json()["verification"]["unsupported_numbers"] is None
     assert "sources not supplied" in (tmp_path / "approved.md").read_text(encoding="utf-8")
+
+
+def test_the_europe_view_opens_on_the_1_in_100_year_flood():
+    """The brief and the pitch quote RP100; the React view must open there too,
+    falling back to the rarest period only when the table has no RP100."""
+    source = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    assert "export const DEFAULT_RETURN_PERIOD = 100;" in source
+    assert "setReturnPeriod(defaultReturnPeriod(m.return_periods))" in source
+    assert "return periods.at(-1) ?? null;" in source

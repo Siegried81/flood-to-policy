@@ -263,12 +263,27 @@ def test_the_ranking_is_built_on_the_selected_period_and_names_it():
     always RP10's - whatever the slider said - and nothing on the page mentioned a
     period at all.
     """
-    app_test = _run(_nested_table())
+    with _frozen(_nested_table()):
+        app_test = AppTest.from_file(str(APP), default_timeout=60).run()
+        app_test.select_slider[0].set_value(500).run()
     said = _texts(app_test)
-    # The slider defaults to the rarest period, like the React UI.
     assert "1-in-500 year" in said
     ranking = app_test.dataframe[-1].value
     assert ranking["nuts_id"].tolist() == ["BE31", "BE33", "BE32"]
+
+
+def test_the_slider_opens_on_the_1_in_100_year_flood():
+    """The brief and the pitch quote RP100, so the page opens on it, like the
+    React UI; the rarest period is one move away, never the first figure seen."""
+    app_test = _run(_nested_table())
+    assert app_test.select_slider[0].value == 100
+    assert "1-in-100 year" in _texts(app_test)
+
+
+def test_a_table_without_rp100_opens_on_its_rarest_period():
+    table = _nested_table()
+    app_test = _run(table[table["return_period"] != 100])
+    assert app_test.select_slider[0].value == 500
 
 
 def test_moving_the_slider_moves_the_ranking():
@@ -312,18 +327,18 @@ def test_the_return_period_is_placed_in_the_directives_own_classes():
         assert app_test.exception == []
         assert "Article 6(3)" in said
         assert "likely return period ≥ 100 years" in said
-        # The default is the rarest period, which is the kit's reading only.
-        assert "RP500 is 'low probability / extreme'" in said
+        # The default is RP100, the one class the Directive puts a number on.
+        assert "RP100 is 'medium probability'" in said
+        assert "the one class the Directive puts a number on" in said
         assert "is this kit's, not the Directive's" in said
         assert "fixes no return period for either class" in said
         # The fixture's periods, read off the table rather than restated.
         assert "Reading RP10 as 'high probability' (6(3)(c))" in said
         assert "RP500 as 'low probability / extreme' (6(3)(a))" in said
 
-        app_test.select_slider[0].set_value(100).run()
+        app_test.select_slider[0].set_value(500).run()
         said = _texts(app_test)
-        assert "RP100 is 'medium probability'" in said
-        assert "the one class the Directive puts a number on" in said
+        assert "RP500 is 'low probability / extreme'" in said
 
         app_test.select_slider[0].set_value(10).run()
         said = _texts(app_test)
@@ -515,10 +530,12 @@ def test_the_climate_layer_is_absent_without_a_context_table():
 
 
 def test_the_total_is_one_period_not_the_sum_of_all_three():
-    """1500 + 6000 + 14000 = 21500 is the core floodplain counted three times."""
+    """1500 + 6000 + 14000 = 21500 is the core floodplain counted three times.
+
+    The page opens on RP100, so the total is that period's 6,000 alone."""
     app_test = _run(_nested_table())
     totals = {m.label: m.value for m in app_test.metric}
-    assert totals["Exposed, total"] == "14,000"
+    assert totals["Exposed, total"] == "6,000"
     assert totals["Regions covered"] == "3"
 
 
@@ -544,7 +561,7 @@ def test_an_unknown_column_rides_along_without_changing_a_figure():
     app_test = _run(table)
     assert app_test.exception == []
     assert "share_without_a_car" in app_test.multiselect[0].options
-    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "14,000"
+    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "6,000"
 
 
 def test_the_raster_coverage_columns_are_not_offered_as_vulnerability_indicators():
@@ -563,7 +580,7 @@ def test_the_raster_coverage_columns_are_not_offered_as_vulnerability_indicators
     offered = app_test.multiselect[0].options
     assert "cells_counted" not in offered
     assert "hazard_coverage" not in offered
-    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "14,000"
+    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "6,000"
 
 
 def test_a_table_without_periods_still_renders():
@@ -1311,11 +1328,11 @@ def test_a_typed_spec_is_answered_with_no_model(monkeypatch):
 
     assert app_test.exception == [], app_test.exception
     answer = app_test.dataframe[-2].value
-    # Answered for the period selected on the page (the rarest, RP500), with
+    # Answered for the period selected on the page (the default, RP100), with
     # the identifier added although the spec did not ask for it.
     assert list(answer["nuts_id"]) == ["BE31"]
-    assert list(answer["exposed_pop"]) == [7000.0]
-    assert "1-in-500 year" in _texts(app_test)
+    assert list(answer["exposed_pop"]) == [3000.0]
+    assert "1-in-100 year" in _texts(app_test)
     definitions = app_test.dataframe[-1].value
     assert "exposed_pop" in list(definitions["column"])
 
