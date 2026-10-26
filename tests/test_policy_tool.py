@@ -2,9 +2,9 @@
 
 The page is e-mailed to a jury and opened offline, so the tests check what
 would break that or mislead a reader: no network reference in any src/href,
-no external script or stylesheet, headline numbers equal to the table values,
-NaN printed as "n/a" and never 0, and no personal names (Annexes 3 and 7 allow
-"Team N" only). Nothing here reads the real data or touches the network.
+no external script or stylesheet, hero and per-place numbers equal to the table
+values, NaN printed as "n/a" and never 0, and no personal names (Annexes 3 and
+7 allow "Team N" only). Nothing here reads the real data or touches the network.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import math
 import re
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -32,46 +33,60 @@ def _countries() -> pd.DataFrame:
             rows.append({
                 "country": iso, "extent_basis": basis,
                 "observed_km2": 10.0 * scale, "residents_observed": res * scale,
+                "residents_outside_rp100": res * scale * out100,
                 "share_residents_outside_rp10": out100 + 0.05,
                 "share_residents_outside_rp100": out100,
                 "share_residents_outside_rp500": NAN if iso == "NL" else out100 - 0.02,
-                "buildings_observed": bld, "buildings_within_25m_of_observed": bld * 2,
-                "graded_destroyed": destroyed, "graded_damaged": NAN if math.isnan(destroyed) else 802.0,
+                "buildings_observed": bld,
+                "graded_destroyed": destroyed * scale, "graded_damaged": NAN,
             })
     return pd.DataFrame(rows)
 
 
+def _product(**kw) -> dict:
+    base = {"residential_buildings_observed": 10, "non_residential_buildings_observed": 2,
+            "detection_method": "Semi-automatic extraction", "graded_destroyed": NAN,
+            "graded_damaged": NAN, "graded_possibly_damaged": NAN, "observed_km2": 1.0,
+            "residents_outside_rp100": NAN, "buildings_observed": 0}
+    return {**base, **kw}
+
+
 def _products() -> pd.DataFrame:
-    base = {
-        "residential_buildings_observed": 10, "non_residential_buildings_observed": 2,
-        "detection_method": "Semi-automatic extraction",
-    }
     return pd.DataFrame([
-        {**base, "country": "BE", "product_id": "EMSR518_AOI01_DEL_PRODUCT_v1", "emsr": "EMSR518",
-         "aoi": "AOI01", "product_type": "DEL", "product_kind": "PRODUCT", "locality": "Liege",
-         "observed_km2": 7.52, "residents_observed": 1355.7, "share_residents_outside_rp100": 0.129,
-         "buildings_observed": 138, "graded_destroyed": NAN, "graded_damaged": NAN,
-         "graded_possibly_damaged": NAN},
-        {**base, "country": "DE", "product_id": "EMSR517_AOI15_GRA_PRODUCT_v1", "emsr": "EMSR517",
-         "aoi": "AOI15", "product_type": "GRA", "product_kind": "PRODUCT",
-         "locality": "Bad Neuenahr-Ahrweiler", "observed_km2": 4.81, "residents_observed": 3739.3,
-         "share_residents_outside_rp100": 0.505, "buildings_observed": 3287,
-         "graded_destroyed": 336.0, "graded_damaged": 687.0, "graded_possibly_damaged": 2791.0},
-        {**base, "country": "DE", "product_id": "EMSR517_AOI15_GRA_MONIT01_v3", "emsr": "EMSR517",
-         "aoi": "AOI15", "product_type": "GRA", "product_kind": "MONIT01",
-         "locality": "Bad Neuenahr-Ahrweiler", "observed_km2": 10.79, "residents_observed": NAN,
-         "share_residents_outside_rp100": NAN, "buildings_observed": 7031,
-         "graded_destroyed": 753.0, "graded_damaged": 5078.0, "graded_possibly_damaged": 1175.0},
+        _product(country="BE", product_id="EMSR518_AOI01_DEL_PRODUCT_v1", emsr="EMSR518",
+                 aoi="AOI01", product_type="DEL", product_kind="PRODUCT", locality="Liege",
+                 observed_km2=7.52, residents_observed=1355.7,
+                 share_residents_outside_rp100=0.129, buildings_observed=138),
+        _product(country="DE", product_id="EMSR517_AOI15_GRA_PRODUCT_v1", emsr="EMSR517",
+                 aoi="AOI15", product_type="GRA", product_kind="PRODUCT",
+                 locality="Bad Neuenahr-Ahrweiler", observed_km2=4.81, residents_observed=3739.3,
+                 residents_outside_rp100=1889.1, share_residents_outside_rp100=0.505,
+                 buildings_observed=3287, residential_buildings_observed=3257,
+                 graded_destroyed=336.0, graded_damaged=687.0, graded_possibly_damaged=2791.0),
+        _product(country="DE", product_id="EMSR517_AOI15_GRA_MONIT01_v3", emsr="EMSR517",
+                 aoi="AOI15", product_type="GRA", product_kind="MONIT01",
+                 locality="Bad Neuenahr-Ahrweiler", observed_km2=10.79, residents_observed=NAN,
+                 share_residents_outside_rp100=NAN, buildings_observed=7031,
+                 graded_destroyed=753.0),
+        # Small: below both thresholds, so not offered as a place.
+        _product(country="DE", product_id="EMSR517_AOI20_GRA_PRODUCT_v1", emsr="EMSR517",
+                 aoi="AOI20", product_type="GRA", product_kind="PRODUCT", locality="Garzweiler",
+                 residents_observed=4.1, share_residents_outside_rp100=1.0),
+        # Large and unnamed: offered after the named places.
+        _product(country="DE", product_id="EMSR517_AOI06_DEL_PRODUCT_v1", emsr="EMSR517",
+                 aoi="AOI06", product_type="DEL", product_kind="PRODUCT", locality="Duisburg",
+                 residents_observed=7142.2, share_residents_outside_rp100=0.061),
     ])
 
 
 def _exposure() -> pd.DataFrame:
     return pd.DataFrame({
-        "nuts_id": ["DEB12", "BE332", "NL423", "XX000"],
-        "region": ["Ahrweiler", "Liège", "Noord-Limburg", "Nowhere"],
-        "return_period": [100, 100, 100, 100],
-        "exposed_pop": [11_000.0, 30_000.0, 120_000.0, NAN],
-        "total_pop": [100_000.0, 600_000.0, 600_000.0, 50_000.0],
+        "nuts_id": ["DEB12", "BE335", "NL423", "XX000", "CH011"],
+        "country": ["DE", "BE", "NL", "XX", "CH"],
+        "region": ["Ahrweiler", "Verviers", "Noord-Limburg", "Nowhere", "Vaud"],
+        "return_period": [100, 100, 100, 100, 100],
+        "exposed_pop": [11_000.0, 3_000.0, 120_000.0, NAN, 999_999.0],
+        "total_pop": [100_000.0, 200_000.0, 600_000.0, 50_000.0, 1_000_000.0],
     })
 
 
@@ -81,27 +96,31 @@ def _square(code: str, lon: float, lat: float) -> dict:
             "geometry": {"type": "Polygon", "coordinates": [ring]}}
 
 
-def _layers() -> dict:
-    box = {"type": "Polygon", "coordinates": [[[0, 0], [5000, 0], [5000, 5000], [0, 5000], [0, 0]]]}
-    return {"bounds": (-1000.0, -1000.0, 20_000.0, 20_000.0), "nuts": [("DEB12 Ahrweiler", box)],
-            "borders": [], "labels": [("GERMANY", 8000.0, 8000.0)], "observed": [box],
-            "monit": [box], "aoi": {"EMSR517_AOI15": box}}
+def _layer() -> dict:
+    return {"png": "data:image/png;base64,iVBORw0KGgo=", "width": 400, "height": 300,
+            "outline": "M0 0L10 0L10 10", "nuts": "", "towns": [("Altenahr (Ahr)", 390.0, 20.0)],
+            "scale": (2, 100.0), "pixel_m": 20.0}
 
 
 @pytest.fixture(scope="module")
 def page() -> str:
     return P.render_page(
         countries=_countries(), products=_products(), exposure=_exposure(),
-        event_layers=_layers(),
-        europe_features=[_square("DEB12", 6, 50), _square("BE332", 5, 50),
+        place_layers={"EMSR517_AOI15": _layer()},
+        locator={"width": 600, "height": 400, "borders": "M0 0L1 1", "labels": [],
+                 "aoi": {"EMSR517_AOI15": "M0 0L5 0L5 5Z"}},
+        europe_features=[_square("DEB12", 6, 50), _square("BE335", 5, 50),
                          _square("NL423", 6, 51), _square("XX000", 7, 51)],
     )
 
 
+# --- offline and anonymous ------------------------------------------------------
+
 def test_no_network_reference_in_any_src_or_href(page):
-    """A citation may mention a site in text; nothing may be loaded from one."""
+    """A citation may name a site in text; nothing may be loaded from one."""
     for attr in re.findall(r'\b(?:src|href|xlink:href)\s*=\s*["\']([^"\']*)', page, re.I):
         assert not attr.lower().startswith(("http://", "https://", "//")), attr
+        assert attr.startswith("data:"), attr
     assert "url(http" not in page.lower()
     assert "@import" not in page
 
@@ -109,76 +128,13 @@ def test_no_network_reference_in_any_src_or_href(page):
 def test_no_external_script_or_stylesheet(page):
     assert not re.search(r"<script[^>]*\bsrc\s*=", page, re.I)
     assert not re.search(r"<link[^>]*\bhref\s*=", page, re.I)
-    assert not re.search(r"<(?:img|iframe)\b", page, re.I)
+    assert not re.search(r"<iframe\b", page, re.I)
 
 
 def test_no_ai_service_or_fetch_in_the_page(page):
     """Annex 3: the tool calls no AI service. No fetch or XHR at all, then."""
     for token in ("fetch(", "XMLHttpRequest", "WebSocket", "api.anthropic", "openai"):
         assert token not in page
-
-
-def test_headline_numbers_equal_the_table_values(page):
-    countries = _countries()
-    first = countries[countries["extent_basis"] == "product"].set_index("country")
-    checks = {"residents": ("residents_observed", P.fmt_people),
-              "outside_rp100": ("share_residents_outside_rp100", P.fmt_share),
-              "buildings": ("buildings_observed", P.fmt_count),
-              "destroyed": ("graded_destroyed", P.fmt_count)}
-    found = re.findall(r'data-headline="([^"]+)" data-country="([^"]+)" data-value="([^"]*)">([^<]+)<', page)
-    assert len(found) == 4 * 3
-    for card, iso, raw, shown in found:
-        column, fmt = checks[card]
-        value = first.loc[iso, column]
-        assert shown == fmt(value)
-        if pd.isna(value):
-            assert raw == ""
-        else:
-            assert float(raw) == pytest.approx(float(value))
-    # The shown strings themselves, so a formatter change is a visible failure.
-    assert 'data-country="DE" data-value="32561.889">32,600<' in page
-    assert ">38%<" in page and ">9,286<" in page and ">375<" in page
-
-
-def test_monitoring_figures_are_read_from_the_monit_rows(page):
-    assert "DE 65,100" in page  # 32561.889 x 2, rounded to three figures
-
-
-def test_nan_renders_as_na_never_zero(page):
-    destroyed = re.findall(r'data-headline="destroyed" data-country="(BE|NL)" data-value="">([^<]+)<', page)
-    assert destroyed == [("BE", "n/a"), ("NL", "n/a")]
-    # NL has no RP500 share: n/a beside the bar, no bar width invented.
-    assert P.fmt_share(NAN) == "n/a" and P.fmt_count(None) == "n/a"
-    assert P.fmt_people(NAN) == "n/a" and P.fmt_km2(NAN) == "n/a"
-    chart = P.hazard_chart_svg(P.outside_shares(_countries()))
-    assert chart.count(">n/a<") == 1
-    # A DEL product has no grading: n/a, not 0.
-    liege = next(r for r in P.aoi_records(_products()) if r["key"] == "EMSR518_AOI01")
-    assert liege["first"]["Graded destroyed"] == "n/a"
-    # The monitoring pass with no residents figure says so.
-    ahr = next(r for r in P.aoi_records(_products()) if r["key"] == "EMSR517_AOI15")
-    assert ahr["monit"]["Residents in it"] == "n/a"
-    assert ahr["first"]["Graded destroyed"] == "336"
-
-
-def test_rounding_is_honest():
-    assert P.fmt_people(32561.889) == "32,600"
-    assert P.fmt_people(1355.7) == "1,360"
-    assert P.fmt_people(638.3) == "640"
-    assert P.fmt_people(4.1) == "4"
-    assert P.fmt_share(0.003) == "<1%"
-    assert P.fmt_share(0.0) == "0%"
-    assert P.fmt_share(1.0) == "100%"
-    assert P.fmt_km2(0.01) == "<0.1"
-
-
-def test_europe_share_is_exposed_over_total_and_keeps_nan():
-    shares = P.europe_shares(_exposure())
-    assert shares["NL423"] == pytest.approx(0.2)
-    assert shares["XX000"] is None
-    caption = P.europe_caption(shares, _exposure())
-    assert "Of 3 measured regions" in caption
-    assert "Ahrweiler (DEB12)" in caption and "1 regions rank higher" in caption
 
 
 def test_no_names_beyond_team_n(page):
@@ -196,6 +152,119 @@ def test_no_names_beyond_team_n(page):
     assert "github" not in page.lower()
 
 
+# --- numbers read from the tables ---------------------------------------------------
+
+def _hero_values(page: str) -> dict[str, tuple[str, str]]:
+    found = re.findall(r'data-hero="([^"]+)" data-value="([^"]*)">([^<]+)<', page)
+    return {k: (raw, shown) for k, raw, shown in found}
+
+
+def test_hero_numbers_equal_the_table_values(page):
+    hero = _hero_values(page)
+    assert set(hero) == {"missed", "harm", "europe", "when"}
+    ahr = _products().iloc[1]
+    assert float(hero["missed"][0]) == pytest.approx(ahr["share_residents_outside_rp100"])
+    assert hero["missed"][1] == P.fmt_share(ahr["share_residents_outside_rp100"]) == "50 %"
+    de = _countries().query("extent_basis == 'product' and country == 'DE'").iloc[0]
+    assert float(hero["harm"][0]) == de["graded_destroyed"]
+    assert hero["harm"][1] == "375"
+    # EU-27 only: DE, BE and NL count; XX (NaN) and CH (not EU) do not.
+    assert float(hero["europe"][0]) == pytest.approx(11_000 + 3_000 + 120_000)
+    assert hero["europe"][1] == "0.1 million"
+    assert hero["when"] == ("", "22 Dec 2027")
+
+
+def test_hero_lines_carry_headcounts_from_the_tables(page):
+    assert "About half of the people" in page
+    assert "1,890 of 3,740 residents" in page                     # Ahr, read not multiplied
+    assert "about 32,600 residents there; 12,200 of them" in page  # DE residents_outside_rp100
+    assert "bring it to 750" in page                               # DE with later passes
+
+
+def test_country_strip_equals_the_table(page):
+    for iso, shown, share in (("BE", "1,990", "12 %"), ("DE", "32,600", "38 %"),
+                              ("NL", "2,450", "12 %")):
+        cell = re.search(rf'data-strip="{iso}">(.*?)</span>', page).group(1)
+        assert shown in cell and share in cell
+
+
+def test_place_figures_equal_the_table():
+    places = {p["key"]: p for p in P.place_records(_products())}
+    ahr = places["EMSR517_AOI15"]
+    assert ahr["figures"]["residents"] == "3,740"
+    assert ahr["figures"]["share"] == "50 %" and ahr["figures"]["share_words"] == "about half"
+    assert ahr["figures"]["residential"] == "3,257"
+    assert ahr["figures"]["destroyed"] == "336"
+    assert ahr["later"]["residents"] == "n/a"  # the later pass has no residents figure
+
+
+def test_places_named_first_then_large_ones_only():
+    keys = [p["key"] for p in P.place_records(_products())]
+    assert keys == ["EMSR517_AOI15", "EMSR518_AOI01", "EMSR517_AOI06"]
+    labels = [p["label"] for p in P.place_records(_products())]
+    assert labels[:2] == ["Ahr valley", "Liège (Meuse–Vesdre)"]
+
+
+def test_nan_renders_as_na_never_zero(page):
+    liege = next(p for p in P.place_records(_products()) if p["key"] == "EMSR518_AOI01")
+    assert liege["figures"]["destroyed"] == "n/a"
+    assert P.fmt_share(NAN) == "n/a" and P.fmt_count(None) == "n/a"
+    assert P.fmt_people(NAN) == "n/a" and P.fmt_km2(NAN) == "n/a"
+    assert P.share_words(NAN) == "n/a" and P.fmt_millions(None) == "n/a"
+    chart = P.chart_html(P.outside_shares(_countries()))
+    assert chart.count('<span class="v">n/a</span>') == 1  # NL at 1-in-500
+    assert 'data-value=""' in chart
+    # A place without a map image says so instead of drawing nothing.
+    assert "No map image" in page
+
+
+def test_rounding_is_honest():
+    assert P.fmt_people(32561.889) == "32,600"
+    assert P.fmt_people(1355.7) == "1,360"
+    assert P.fmt_people(638.3) == "640"
+    assert P.fmt_people(4.1) == "4"
+    assert P.fmt_share(0.003) == "<1 %"
+    assert P.fmt_share(0.0) == "0 %"
+    assert P.fmt_millions(25_737_004) == "25.7 million"
+    assert P.share_words(0.505) == "about half"
+    assert P.share_words(0.124) == "about 1 in 8"
+    assert P.share_words(0.376) == "about 2 in 5"
+
+
+def test_chart_heading_is_written_from_the_shares():
+    heading = P.chart_heading(P.outside_shares(_countries()))
+    assert heading == ("Germany: 38 % lived outside the 1-in-100-year zone; "
+                       "Belgium and the Netherlands: about 1 in 8")
+
+
+def test_europe_classes_and_highlights(page):
+    shares = P.europe_shares(_exposure())
+    assert shares["XX000"] is None
+    assert P.europe_class(0.01) == 0 and P.europe_class(0.05) == 2 and P.europe_class(0.2) == 3
+    assert P.europe_class(None) is None
+    assert "Ahrweiler 11 %" in page and "Verviers 2 %" in page
+    assert "low: under 2 %" in page and "not measured" in page
+
+
+def test_story_map_overlay_keeps_labels_inside_the_frame():
+    html = P.story_map_html({"label": "Ahr valley"}, _layer())
+    assert 'text-anchor="end"' in html  # the town at x=390 of 400 runs leftward
+    assert 'src="data:image/png;base64,' in html
+
+
+def test_reduce_classes_never_tips_a_tie_to_outside():
+    from src.story_maps import reduce_classes
+
+    observed = np.array([[1, 1], [0, 0]], dtype=bool)
+    wet = np.array([[1, 0], [0, 0]], dtype=bool)
+    aoi = np.ones((2, 2), dtype=bool)
+    assert reduce_classes(observed, wet, aoi, 2).tolist() == [[3]]   # 1 in, 1 out: inside
+    wet[0, 0] = False
+    assert reduce_classes(observed, wet, aoi, 2).tolist() == [[4]]   # 0 in, 2 out: outside
+    none = np.zeros((2, 2), dtype=bool)
+    assert reduce_classes(none, none, none, 1).tolist() == [[0, 0], [0, 0]]
+
+
 def test_placeholders_are_present_by_default(page):
     for slot in ("[TITLE]", "[DECISION QUESTION]", "[RECOMMENDATION]", "[NAMED ACTOR]"):
         assert slot in page
@@ -205,9 +274,3 @@ def test_user_text_is_escaped():
     out = P.render_page(countries=_countries(), products=_products(), exposure=_exposure(),
                         title="<script>x</script>")
     assert "<script>x</script>" not in out
-
-
-def test_event_map_draws_aoi_and_water():
-    svg = P.event_map_svg(_layers(), P.aoi_records(_products()))
-    assert 'data-aoi="EMSR517_AOI15"' in svg
-    assert 'class="observed"' in svg and "M" in svg

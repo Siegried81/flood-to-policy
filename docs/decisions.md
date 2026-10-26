@@ -367,3 +367,18 @@ Each entry keeps the same four-line shape: date, decision, why, effect.
 - **Decision:** `rag.SYSTEM_PROMPT` and the workflow prompt ask for exactly "I DON'T KNOW: I can't answer that with the information I have." where the passages do not support a claim; `rag.unknown_claims` lists those sentences, `verify` returns them and `verdict_line` counts them.
 - **Why:** "say so" let the model hedge in free words that no check could tell from a claim; one phrase can be found, and an honest unknown is not counted as an uncited sentence.
 - **Effect:** `verify` gains `unknown_claims`; `uncited_sentences` skips sentences with the phrase ("I don't know" or "I can't answer ... with the info(rmation) I have"); a hedge in other words is still listed as uncited.
+
+### 2026-10-26 — July 2021 view in the React app, hosted and static modes
+- **Decision:** The React app opens on a "July 2021" view read from `data/processed/event_2021_web.json` (`scripts/export_event_web.py`, same code as the policy tool; also copied to `web/public/`). `HOSTED=1` makes the model and write routes answer 403; `VITE_STATIC=1` builds an API-free variant with the July 2021 view only.
+- **Why:** A hosted clone has no raw data, and a public demo must not spend a model quota or write to the brief.
+- **Effect:** No figure changed (hero 51 %, 375 / 792, 25.7 million, 22 Dec 2027); EMSR518 AOI01 is labelled "Liège (Meuse–Vesdre)". The committed JSON is built with `--no-nuts`, so it carries no GISCO-derived geometry (see `data/processed/DATA_NOTICE.md`); the locator map shows the mapped areas without borders.
+
+### 2026-10-26 — Public demo as a static Hugging Face Space
+- **Decision:** The `VITE_STATIC=1` build of `web/` is served as a static Space under a team organisation, not a person; the API and the model routes are not hosted.
+- **Why:** A static page costs nothing, needs no secret, cannot spend a model quota and shows only figures already in the policy tool; the jury can open it without installing anything.
+- **Effect:** The July 2021 view is public; Europe, Ask and Draft stay local (`uvicorn` + `npm run dev`). A rebuild is uploaded by hand (see README, "Live demo").
+
+### 2026-10-26 — Planning lists read on the EU-27
+- **Decision:** The two planning lists in `policy_answer.md` and `limitations.md` take the top decile among the 1,165 EU-27 regions; the 37-country lists stay beside them as context.
+- **Why:** The brief and every headline figure are EU-27 and the Floods Directive binds only Member States, yet the lists ranked all 1,345 regions and named Serbian and Albanian regions among their leaders.
+- **Effect:** Undefended list 80 → 69 regions (11 → 8 unanimous; 7,321,480 → 6,545,666 people; 1,008,369 → 865,518 residual); residual list 77 → 68 (15 → 13 unanimous; 2,771,048 → 2,634,226); on both 17 → 13; HERA peaks fell in 47 of 80 → 42 of 69. Hamburg leaves the list (EU-27 decile threshold 12.6 % → 12.8 %). No code or table changed.

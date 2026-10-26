@@ -82,3 +82,33 @@ export const translate = (text, language) =>
 // is a secret every visitor of the page holds.
 export const approve = (text, token) =>
   post("/api/approve", { text }, token ? { "X-Approve-Token": token } : {});
+
+// What this deployment allows (GET /api/config): in the hosted demo the model
+// and write routes answer 403, and the UI greys them instead of failing on click.
+export const getConfig = () => request("/api/config");
+
+// True in a static build (`VITE_STATIC=1 npm run build`): no API behind the
+// page, so only views that run from files shipped in dist/ are offered.
+export const STATIC_BUILD = import.meta.env.VITE_STATIC === "1";
+
+// The July 2021 story. The static file Vite copied from web/public/ comes
+// first, resolved against the page base so a sub-path deployment
+// (VITE_BASE=/flood-to-policy/) finds it too; the API route is the fallback for
+// a server whose dist/ was built before the file existed. A static build has no
+// fallback to try.
+export async function getEvent2021() {
+  const file = `${import.meta.env.BASE_URL}event_2021_web.json`;
+  try {
+    const resp = await fetch(file);
+    if (resp.ok && (resp.headers.get("content-type") || "").includes("json")) {
+      return await resp.json();
+    }
+  } catch {
+    /* fall through to the API */
+  }
+  if (STATIC_BUILD) {
+    throw new Error("event_2021_web.json is missing from this build. Run "
+      + "`python scripts/export_event_web.py`, then rebuild.");
+  }
+  return request("/api/event2021");
+}
