@@ -14,12 +14,21 @@ pass on. `python scripts/build_geometry.py` rebuilds it in seconds from the
 boundary file `python -m src.fetch` downloads, and a hosted Streamlit app that
 has neither downloads that file from GISCO and builds it on first use.
 
+`event_2021_web.json` (and its copy in `web/public/`) is committed for the same
+reason without any GISCO line: its locator map draws the country borders from
+Natural Earth, which is public domain. `scripts/export_event_web.py --full`
+writes a richer local copy with the GISCO borders and NUTS3 lines to
+`event_2021_web.full.json`, which git ignores.
+
 ## Sources and required credits
 
 - **Region codes and names (NUTS 2024)** — Source: Eurostat/GISCO. Any map drawn
   from the boundaries must show: "© EuroGeographics for the administrative
   boundaries" (non-commercial use; commercial use needs a EuroGeographics
   licence). <https://ec.europa.eu/eurostat/web/gisco/geodata/administrative-units>
+- **Country borders on the July 2021 locator map** — Natural Earth 1:10m
+  admin-0 countries v5.1, public domain; credit given as a courtesy.
+  <https://www.naturalearthdata.com/>
 - **Flood hazard** — JRC / Copernicus Emergency Management Service, river flood
   hazard maps for Europe v3.1.1, doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81.
   © European Union, CC BY 4.0.
