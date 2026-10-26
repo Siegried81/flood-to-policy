@@ -7,10 +7,11 @@ import Event2021 from "./components/Event2021.jsx";
 // people the 1-in-100-year map missed, and the date to act by. "Europe" holds
 // the kit's exposure, vulnerability and drafting tabs as before.
 //
-// A static build has no API, and every Europe tab reads one, so the Europe view
-// is not offered there rather than offered broken; the July 2021 view runs from
-// the JSON file shipped in dist/.
-const VIEWS = STATIC_BUILD ? ["July 2021"] : ["July 2021", "Europe"];
+// A static build has no API: both views read files shipped in dist/ (the July
+// 2021 JSON, and the Europe view's frozen API answers), and the tabs that call
+// a language model are switched off as in the hosted demo.
+const VIEWS = ["July 2021", "Europe"];
+const STATIC_CONFIG = { hosted: true, llm_enabled: false };
 
 export default function App() {
   const [view, setView] = useState(VIEWS[0]);
@@ -56,7 +57,7 @@ export default function App() {
       </header>
 
       {view === "July 2021" && <Event2021 />}
-      {view === "Europe" && <EuropeView config={config} />}
+      {view === "Europe" && <EuropeView config={STATIC_BUILD ? STATIC_CONFIG : config} />}
     </main>
   );
 }
