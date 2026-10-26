@@ -119,6 +119,16 @@ def test_png_palette_is_the_raster_classes():
 
 
 @pytest.mark.parametrize("path", [X.OUT, X.WEB_OUT], ids=["data", "web-public"])
+def test_the_committed_artefact_carries_no_gisco_line(path):
+    if not path.exists():
+        pytest.skip(f"{path.name} not built here")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert not data["locator"]["nuts_d"]
+    assert all(not (p["map"] or {}).get("nuts_d") for p in data["places"])
+    assert "EuroGeographics" not in data["attribution"]
+
+
+@pytest.mark.parametrize("path", [X.OUT, X.WEB_OUT], ids=["data", "web-public"])
 def test_the_built_artefact_is_compact_and_well_formed(path):
     if not path.exists():
         pytest.skip(f"{path.name} not built here")
@@ -129,3 +139,37 @@ def test_the_built_artefact_is_compact_and_well_formed(path):
     for place in data["places"]:
         if place["map"]:
             assert place["map"]["png"].startswith("data:image/png;base64,")
+
+
+def test_public_locator_credits_natural_earth_not_gisco():
+    loc = {"width": 600, "height": 400, "borders_d": "M0 0L1 1", "nuts_d": "", "labels": [], "aoi": {}}
+    assert X.attribution(loc) == "Country borders: Natural Earth (public domain)"
+    assert X.attribution({**loc, "borders_d": ""}) == ""
+    assert X.attribution(None) == ""
+
+
+def test_full_build_goes_to_an_ignored_file_only():
+    import subprocess
+
+    assert X.FULL_OUT not in (X.OUT, X.WEB_OUT)
+    rel = X.FULL_OUT.relative_to(ROOT).as_posix()
+    ignored = subprocess.run(["git", "check-ignore", "-q", rel], cwd=ROOT)
+    if ignored.returncode == 128:
+        pytest.skip("not a git checkout")
+    assert ignored.returncode == 0, f"{rel} must be gitignored: it carries GISCO geometry"
+
+
+def test_border_lines_label_large_countries_and_skip_the_frame_edge():
+    shapely = pytest.importorskip("shapely")
+    from scripts.build_policy_tool import border_lines
+
+    frame = shapely.box(0, 0, 100_000, 100_000)
+    countries = {"BE": shapely.box(-50_000, -50_000, 50_000, 150_000),
+                 "DE": shapely.box(50_000, -50_000, 150_000, 150_000),
+                 "FR": shapely.box(-50_000, -50_000, 150_000, 2_000)}
+    d, labels = border_lines(countries, frame, lambda x, y: (x / 1000, (100_000 - y) / 1000))
+    assert d.startswith("M")
+    assert {name for name, _, _ in labels} == {"BELGIUM", "GERMANY"}
+    assert "M50.0 " in d and " 98.0" in d  # the BE-DE border and the FR edge are drawn
+    coords = [float(v) for v in d.replace("M", " ").replace("L", " ").split()]
+    assert all(0 < v < 100 for v in coords)  # nothing runs along the frame itself

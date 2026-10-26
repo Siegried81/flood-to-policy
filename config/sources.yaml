@@ -688,6 +688,19 @@ geodata:
       Pick ONE vintage and build the crosswalk, or communes drop silently.
     verified: 2026-10-06
 
+  - id: natural_earth_countries
+    url: https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip
+    access: download
+    crs: EPSG:4326
+    purpose: >
+      Natural Earth 1:10m admin-0 countries, v5.1, 4.9 MB, public domain. Only
+      the country borders of the public July 2021 locator map: GISCO's terms
+      keep its geometry out of a public artefact, Natural Earth's do not.
+    caveat: >
+      Generalised at 1:10 million (about 1 km), so it is drawn, never measured
+      against. ISO_A2 is "-99" for a few disputed units; key on ADM0_A3.
+    verified: 2026-10-26
+
   - id: eea_floods_directive_apsfr
     url: https://water.discomap.eea.europa.eu/arcgis/rest/services/FloodsDirective/FloodsDirective_AreasOfPotentialSignificantFloodRisk_WM/MapServer
     landing: https://sdi.eea.europa.eu/

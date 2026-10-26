@@ -382,3 +382,8 @@ Each entry keeps the same four-line shape: date, decision, why, effect.
 - **Decision:** The two planning lists in `policy_answer.md` and `limitations.md` take the top decile among the 1,165 EU-27 regions; the 37-country lists stay beside them as context.
 - **Why:** The brief and every headline figure are EU-27 and the Floods Directive binds only Member States, yet the lists ranked all 1,345 regions and named Serbian and Albanian regions among their leaders.
 - **Effect:** Undefended list 80 → 69 regions (11 → 8 unanimous; 7,321,480 → 6,545,666 people; 1,008,369 → 865,518 residual); residual list 77 → 68 (15 → 13 unanimous; 2,771,048 → 2,634,226); on both 17 → 13; HERA peaks fell in 47 of 80 → 42 of 69. Hamburg leaves the list (EU-27 decile threshold 12.6 % → 12.8 %). No code or table changed.
+
+### 2026-10-26 — July 2021 locator borders from Natural Earth in the public build
+- **Decision:** `scripts/export_event_web.py` builds the public artefact by default, with country borders from Natural Earth (public domain, `natural_earth_countries` in `config/sources.yaml`); `--full` (replacing `--no-nuts`) adds the GISCO borders and NUTS3 lines and writes `event_2021_web.full.json` only, which git ignores and the API serves first unless `HOSTED=1`.
+- **Why:** The `--no-nuts` build left the locator with no border and no country name, so the public map no longer showed Belgium or Germany; and a plain run wrote GISCO geometry into the tracked files.
+- **Effect:** Public locator: borders 0 → 5,814 path characters, labels BELGIUM and GERMANY, credit "Natural Earth (public domain)"; no figure changed (only `locator` and `attribution` differ in the JSON); tests 1,052 → 1,059.
