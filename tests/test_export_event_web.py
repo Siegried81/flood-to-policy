@@ -126,6 +126,7 @@ def test_the_committed_artefact_carries_no_gisco_line(path):
     assert not data["locator"]["nuts_d"]
     assert all(not (p["map"] or {}).get("nuts_d") for p in data["places"])
     assert "EuroGeographics" not in data["attribution"]
+    assert not any("GISCO" in s or "EuroGeographics" in s for s in data["sources"])
 
 
 @pytest.mark.parametrize("path", [X.OUT, X.WEB_OUT], ids=["data", "web-public"])
@@ -139,6 +140,13 @@ def test_the_built_artefact_is_compact_and_well_formed(path):
     for place in data["places"]:
         if place["map"]:
             assert place["map"]["png"].startswith("data:image/png;base64,")
+
+
+def test_sources_name_gisco_only_when_its_lines_are_drawn(payload):
+    assert X.GISCO_SOURCE in payload["sources"]
+    public = X.sources({**payload["locator"], "nuts_d": ""})
+    assert not any("GISCO" in s or "EuroGeographics" in s for s in public)
+    assert X.PUBLIC_BOUNDARY_SOURCE in public and len(public) == len(P.SOURCES)
 
 
 def test_public_locator_credits_natural_earth_not_gisco():

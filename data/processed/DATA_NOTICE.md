@@ -14,6 +14,10 @@ pass on. `python scripts/build_geometry.py` rebuilds it in seconds from the
 boundary file `python -m src.fetch` downloads, and a hosted Streamlit app that
 has neither downloads that file from GISCO and builds it on first use.
 
+The static Europe view draws its map from GISCO's own NUTS file, which the
+viewer's browser downloads from GISCO at page load; neither the repository nor
+the published site holds a copy.
+
 `event_2021_web.json` (and its copy in `web/public/`) is committed for the same
 reason without any GISCO line: its locator map draws the country borders from
 Natural Earth, which is public domain. `scripts/export_event_web.py --full`

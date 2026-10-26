@@ -453,7 +453,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,059<!-- /numbers --> tests, offline**: no network, no model, no key. Measured 12 October 2026 in
+**<!-- numbers:tests_collected -->1,068<!-- /numbers --> tests, offline**: no network, no model, no key. Measured 12 October 2026 in
 WSL2: every test then collected passed, nothing deselected; the same day Windows
 blocked `rasterio` again. Re-run on 14 October 2026: still blocked on Windows
 (the five raster modules, 59 tests, do not collect), and in WSL2 all 702 pass
@@ -547,7 +547,7 @@ zonal statistic is the right arithmetic on the wrong piece of Europe. Measured o
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,059<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,068<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 84 files, ≈6.96 GiB | `src.fetch.expand()` over `config/sources.yaml`; the bytes measured on disk on 25 October, all 84 files present |
 | <!-- numbers:sources_declared -->79<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->71<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->38<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |

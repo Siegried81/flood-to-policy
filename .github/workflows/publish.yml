@@ -38,7 +38,7 @@ jobs:
         # target     : multi-stage target, "" for the last stage
         # port/health: what the smoke test calls once the container is up
         include:
-          - { image: flood-policy-kit, dockerfile: Dockerfile, target: "app", port: 8501, health: /_stcore/health }
+          - { image: flood-to-policy, dockerfile: Dockerfile, target: "app", port: 8501, health: /_stcore/health }
     env:
       # Copied into env so `if:` can test it (secrets cannot be read in `if:`).
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
