@@ -16,13 +16,18 @@ tool: `src.policy_tool` for every number and every formatted string,
 `src.story_maps`). Nothing is re-derived, so the two renderings cannot
 disagree.
 
-The NUTS context lines are GISCO-derived (see `data/processed/DATA_NOTICE.md`);
-`--no-nuts` writes the file without them.
+Both committed copies are the public build: country borders from Natural
+Earth (public domain) and no GISCO-derived line, because GISCO's terms keep
+its geometry out of a public artefact (see `data/processed/DATA_NOTICE.md`).
+`--full` draws the GISCO borders and NUTS3 lines instead and writes them to
+`data/processed/event_2021_web.full.json` only, which git ignores and the API
+serves in its place when present. The safe build is the default, so a plain
+run can never put GISCO geometry into a tracked file.
 
 Run:
 
-    python scripts/export_event_web.py
-    python scripts/export_event_web.py --no-nuts
+    python scripts/export_event_web.py          # public, committed
+    python scripts/export_event_web.py --full   # local only, with NUTS3 lines
 """
 
 from __future__ import annotations
@@ -47,6 +52,7 @@ from src import story_maps
 PROCESSED = ROOT / "data" / "processed"
 OUT = PROCESSED / "event_2021_web.json"
 WEB_OUT = ROOT / "web" / "public" / "event_2021_web.json"
+FULL_OUT = PROCESSED / "event_2021_web.full.json"
 SCHEMA_VERSION = 1
 #: The artefact is committed and shipped to every browser: keep it small.
 MAX_BYTES = 3_000_000
@@ -119,8 +125,17 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
         "how_we_counted": list(P.HOW_WE_COUNTED),
         "limits": list(P.LIMITS),
         "sources": list(P.SOURCES),
-        "attribution": "© EuroGeographics for the administrative boundaries" if loc and loc["nuts_d"] else "",
+        "attribution": attribution(loc),
     })
+
+
+def attribution(loc: dict[str, Any] | None) -> str:
+    """The boundary credit the locator's lines require: GISCO's is mandatory, Natural Earth's a courtesy."""
+    if loc and loc["nuts_d"]:
+        return "© EuroGeographics for the administrative boundaries"
+    if loc and loc["borders_d"]:
+        return "Country borders: Natural Earth (public domain)"
+    return ""
 
 
 def write(payload: dict[str, Any], paths: tuple[Path, ...] = (OUT, WEB_OUT)) -> int:
@@ -134,13 +149,15 @@ def write(payload: dict[str, Any], paths: tuple[Path, ...] = (OUT, WEB_OUT)) -> 
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Read the tables, rasterise each place, write both copies, print the size."""
+    """Read the tables, rasterise each place, write the copies, print the size."""
     from scripts.build_policy_tool import locator, place_layer
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--no-nuts", action="store_true", help="leave out GISCO-derived lines")
+    parser.add_argument("--full", action="store_true",
+                        help=f"GISCO borders and NUTS3 lines, written to {FULL_OUT.name} only (never committed)")
     args = parser.parse_args(argv)
-    with_nuts = not args.no_nuts
+    with_nuts = args.full
+    paths = (FULL_OUT,) if args.full else (OUT, WEB_OUT)
 
     products = pd.read_parquet(PROCESSED / "event_2021_products.parquet")
     countries = pd.read_parquet(PROCESSED / "event_2021_countries.parquet")
@@ -155,9 +172,10 @@ def main(argv: list[str] | None = None) -> int:
     payload = build_payload(products, countries, exposure, layers,
                             locator(products, with_nuts=with_nuts),
                             built=dt.date.today().isoformat())
-    size = write(payload)
-    print(f"{OUT}  {size / 1e6:.2f} MB")
-    print(f"{WEB_OUT}  (same bytes)")
+    size = write(payload, paths)
+    print(f"{paths[0]}  {size / 1e6:.2f} MB")
+    for path in paths[1:]:
+        print(f"{path}  (same bytes)")
     if size > MAX_BYTES:
         print(f"WARNING: above the {MAX_BYTES / 1e6:.0f} MB budget")
         return 1

@@ -60,6 +60,9 @@ CONTEXT = ROOT / "data" / "processed" / "context.parquet"
 GEOMETRY = ROOT / "data" / "processed" / "regions.geojson"
 APPROVED = ROOT / "data" / "processed" / "approved.md"
 EVENT_WEB = ROOT / "data" / "processed" / "event_2021_web.json"
+#: The local build with GISCO borders and NUTS3 lines (`export_event_web.py --full`):
+#: git ignores it, so it exists only on a machine holding the raw boundaries.
+EVENT_WEB_FULL = ROOT / "data" / "processed" / "event_2021_web.full.json"
 WEB_DIST = ROOT / "web" / "dist"
 DEV_ORIGINS = ["http://localhost:5190", "http://127.0.0.1:5190"]
 
@@ -220,7 +223,7 @@ def config() -> dict:
     """What this deployment allows, so the UI greys out what it would refuse."""
     on = not hosted()
     return {"hosted": not on, "llm_enabled": on, "approve_enabled": on,
-            "event2021_available": EVENT_WEB.exists()}
+            "event2021_available": EVENT_WEB.exists() or (on and EVENT_WEB_FULL.exists())}
 
 
 @app.get("/api/event2021")
@@ -228,8 +231,12 @@ def event2021() -> Response:
     """The precomputed July 2021 story (`scripts/export_event_web.py`), as is.
 
     Served byte for byte: the file is already compact JSON, and re-parsing a
-    few hundred kB of map data on every request would only cost time.
+    few hundred kB of map data on every request would only cost time. Locally
+    the `--full` build wins when present; the hosted demo always serves the
+    public one, whose geometry may be redistributed.
     """
+    if not hosted() and EVENT_WEB_FULL.exists():
+        return Response(content=EVENT_WEB_FULL.read_bytes(), media_type="application/json")
     if not EVENT_WEB.exists():
         raise HTTPException(
             status_code=404,
