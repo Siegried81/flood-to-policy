@@ -1,0 +1,4 @@
+relationship 7d24624d-6dd5-5e5b-bcd3-a6a8a5c841df
+	fromColumn: Exposure.nuts_id
+	toColumn: Regions.nuts_id
+

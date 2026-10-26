@@ -1,0 +1,163 @@
+# Flood policy kit in Linux: Streamlit map, JSON API, the offline check, the tests.
+#
+#   docker compose up --build                            # Streamlit on :8501, data bind-mounted
+#   docker compose --profile api up --build              # + JSON API / React UI on :8010
+#   docker compose --profile tools run --rm check        # is this machine demo-ready offline?
+#   docker compose --profile tools run --rm test         # the full suite, geospatial included
+#   docker compose --profile portable up --build         # the self-contained demo image
+#   docker compose --profile local-llm up --build        # + a bundled Ollama
+#   docker compose --profile agent run --rm -T mcp       # MCP tools for an agent, over stdio
+#
+# Why the container exists at all: on the Windows host, rasterio, pyogrio,
+# rasterstats and tiktoken cannot load their native DLLs (an application-control
+# policy blocks them), so the geospatial half of the kit runs here or nowhere.
+#
+# **Data: mounted by default, copied for the demo.** The `app` and `api` services
+# bind-mount ./data, which keeps the image at ~2 GiB and means a finished download
+# is visible without a rebuild - the right trade while the fetch is still running
+# and the code is still changing. The `portable` service builds the image with the
+# 6.4 GiB inside it instead: that one runs on a borrowed laptop with no network
+# and no copy of this repo, which is the only version that survives the venue.
+# Build it once the fetch is complete, and check it with the `check` service
+# before trusting it.
+#
+# **Read-write, not read-only.** Unlike a pure corpus, this data directory is
+# written to while the demo runs: src/rdh.py caches Risk Data Hub responses under
+# data/processed/rdh_cache/, and POST /api/approve appends to
+# data/processed/approved.md. Mounting it :ro would turn the approve button into a
+# traceback.
+#
+# **Secrets stay outside the image.** .env is read at run time and is excluded
+# from the build context. RDH_BEARER_TOKEN cannot be baked in even in principle -
+# it expires after 10 hours - so on the day it is pasted into .env, or passed per
+# run:  docker compose run --rm -e RDH_BEARER_TOKEN=... check
+
+x-app-common: &app-common
+  build:
+    context: .
+    # The code-only stage. `portable` below overrides this with the stage that
+    # carries the data.
+    target: app
+  # build + image: `docker compose up --build` builds from source and tags it with the
+  # Docker Hub name; `docker compose pull` downloads the published image instead.
+  image: ${DOCKERHUB_USERNAME:-siegried}/flood-to-policy:latest
+  # Secrets and provider settings come from .env, never from the image. Optional,
+  # so `docker compose config` and a key-less offline demo both still work.
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    # Inside a container "localhost" is the container, so an OLLAMA_URL written
+    # for the host points nowhere. Default to the bundled `ollama` service by its
+    # Compose DNS name. To use the Ollama already running on this Windows machine
+    # - the zero-download path, since the model is already pulled there - set
+    # OLLAMA_URL_IN_DOCKER=http://host.docker.internal:11434.
+    OLLAMA_URL: ${OLLAMA_URL_IN_DOCKER:-http://ollama:11434}
+  extra_hosts:
+    # Makes host.docker.internal resolve on Linux too (built in on Docker Desktop).
+    - "host.docker.internal:host-gateway"
+  volumes:
+    - ./data:/app/data
+
+services:
+  app:
+    <<: *app-common
+    ports:
+      - "127.0.0.1:8501:8501"  # like the API: it spends the model key and writes the brief
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+        # Only enforced when the `local-llm` profile is active; without it the app
+        # starts alone and talks to a host Ollama, or to Groq.
+        required: false
+
+  # JSON API for the React UI (api/main.py). It also serves web/dist when that
+  # folder was built on the host before `docker compose build`, since the image
+  # has no Node toolchain. Port 8010, matching web/vite.config.js's proxy and the
+  # README, so the same URL works inside and outside the container.
+  api:
+    <<: *app-common
+    profiles: ["api"]
+    command: ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8010"]
+    ports:
+      - "127.0.0.1:8010:8010"  # API reachable from this machine only
+    restart: unless-stopped
+    healthcheck:
+      # The image's own healthcheck probes Streamlit on 8501; this one probes the API.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8010/api/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    depends_on:
+      ollama:
+        condition: service_healthy
+        required: false
+
+  # Intent-based MCP tools (api/mcp_server.py) for an AI agent. stdio, so it is
+  # `run -T` by the MCP client rather than `up`: no port, nothing listening.
+  mcp:
+    <<: *app-common
+    profiles: ["agent"]
+    command: ["python", "-m", "api.mcp_server"]
+    stdin_open: true
+
+  # The demo image: same code, data baked in, no bind mount. Carry it on a USB
+  # stick (`docker save flood-policy-kit:portable | gzip > kit.tar.gz`) and it
+  # runs on a machine that has never seen this repo.
+  portable:
+    <<: *app-common
+    profiles: ["portable"]
+    build:
+      context: .
+      target: portable
+    image: flood-policy-kit:portable
+    # Explicitly empty: the point of this service is that nothing is mounted, so
+    # what runs is exactly what is inside the image.
+    volumes: []
+    ports:
+      - "127.0.0.1:8501:8501"  # like the API: it spends the model key and writes the brief
+    restart: unless-stopped
+
+  # Does this machine still work with the network unplugged? One-shot, and its
+  # exit code is the answer, so it can be the last thing run before closing the
+  # laptop on 28 October. Arguments are appended, so that last run is
+  # `run --rm check --strict`: a WARN (a Groq key still set) then blocks too.
+  check:
+    <<: *app-common
+    profiles: ["tools"]
+    entrypoint: ["python", "scripts/check_offline_readiness.py"]
+    restart: "no"
+
+  # The full suite, including the geospatial tests that cannot run on the host at
+  # all. Arguments after the service name are appended, e.g.
+  # `run --rm test -k rdh`.
+  test:
+    <<: *app-common
+    profiles: ["tools"]
+    entrypoint: ["python", "-m", "pytest", "-q"]
+    restart: "no"
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local-llm"]
+    volumes:
+      # Pulled models are gigabytes; a named volume keeps them across restarts.
+      # It starts EMPTY, so the model still has to be pulled once while there is
+      # a network: `docker compose --profile local-llm exec ollama ollama pull
+      # llama3.2:3b`. The Ollama already running on the host needs no such step,
+      # which is why OLLAMA_URL_IN_DOCKER exists.
+      - ollama_models:/root/.ollama
+    # Not published on the host: only the sibling containers need it.
+    healthcheck:
+      # The image ships no curl; `ollama list` succeeds once the server answers.
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  ollama_models:

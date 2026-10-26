@@ -1,0 +1,45 @@
+version: 2
+
+# One grouped PR per ecosystem instead of one per package. Dependabot cannot put
+# two ecosystems in a single PR, so two groups is the floor: pip and actions.
+# requirements.txt pins with `>=`, so a per-package bump only raises a floor the
+# resolver already satisfies -- individually those PRs carry no information.
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      python-deps:
+        patterns:
+          - "*"
+    # Two packages whose caps are load-bearing and which CI cannot defend.
+    #
+    # Windows Smart App Control blocks three of pyogrio 0.13.0's bundled DLLs
+    # and three of pyproj 3.8.0's extensions on the development machine, matched
+    # on file content - measured 2026-10-06, see the note in requirements.txt.
+    # Those are the newest cp314 builds the policy permits, which is why the
+    # caps exist.
+    #
+    # CI runs Linux, where the policy does not exist, so a bump to either comes
+    # back with every check green and breaks only the machine the work is done
+    # on. Dependabot has already proposed it twice: once deleting the cap and
+    # the comment explaining it, and once (2026-10-07) keeping the comment while
+    # raising the floor above the cap it describes, so the file contradicted
+    # itself.
+    #
+    # Lift these only after checking the DLLs load on the Windows venv.
+    ignore:
+      - dependency-name: pyogrio
+      - dependency-name: pyproj
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns:
+          - "*"

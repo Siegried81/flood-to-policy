@@ -1,0 +1,238 @@
+# International river basin districts of the Water Framework Directive.
+#
+# WHY THIS FILE EXISTS
+# The EEA WISE layer `WFD2016_RiverBasinDistrict_WM` publishes one polygon per
+# member state per basin, and carries no field that says which polygons are
+# portions of the same basin. Measured 2026-10-06: the Scheldt arrives as four
+# Belgian/Dutch rows plus a French one, and the three Belgian/Dutch rows overlap
+# by 0 km2 - they are disjoint national portions. So grouping by row, which is
+# all the service supports, answers "is this polygon in more than one country"
+# with "no" for every international basin in Europe. The whole point of the layer
+# in this kit - that a region can be flooded by water it does not govern - needs
+# the grouping, and the grouping has to be declared.
+#
+# WHERE IT COMES FROM
+# The layer's own `nameTextInternational` field, read for all 196 districts on
+# 2026-10-06 through
+#   .../WFD2016_RiverBasinDistrict_WM/MapServer/0/query
+#   ?where=1=1&returnGeometry=false
+#   &outFields=thematicIdIdentifier,countryCode,nameText,nameTextInternational
+# `returnGeometry=false` returns all 196 rows in one request, with no paging and
+# in under a second - the 289 MiB and the eight pages are the geometry alone.
+# Every group below is justified by that field, quoted in its `evidence`, and
+# nothing is grouped on a name this kit invented. The member states are NOT
+# listed here: they are derived from each district's `countryCode` at load time,
+# so they cannot drift from the layer.
+#
+# HOW TO FALSIFY IT
+# `src.basins.check_crosswalk()` refuses a code the layer does not have, a
+# district claimed by two basins, a basin with fewer than two member states, and
+# a basin whose portions are not geographically contiguous - a real basin's
+# national parts meet at the border, so a wrong grouping shows up as a gap.
+#
+# WHAT IT IS NOT
+# A district is not a basin. France reports the Scheldt inside a district that
+# also holds the Somme and the Channel coastal rivers, so a Picardy region counts
+# as draining into the international Scheldt district, which is what the WFD
+# says and is coarser than the hydrology. Say "district" in any sentence built
+# from this file, never "catchment".
+
+vintage: WFD2016            # the reporting round this layer belongs to
+derived: 2026-10-06
+
+basins:
+
+  danube:
+    name: Danube
+    districts: [AT1000, BG1000, CZ1000, DE1000, HRC, HU1000, PL1000, RO1000,
+                SIRBD1, SK40000]
+    evidence: >
+      Nine of the ten are named DANUBE, DONAU, DUNAVSKI or DUNAREA in
+      `nameTextInternational`; HU1000 reads "HUNGARIAN PART OF THE DANUBE" and
+      DE1000 "DONAU BY" for the Bavarian part.
+    note: >
+      The basin continues into Ukraine, Moldova, Serbia, Bosnia and Montenegro,
+      which do not report under the WFD, so the member-state list derived here is
+      the EU part and a floor.
+
+  rhine:
+    name: Rhine
+    districts: [AT2000, BERHIN_RW, DE2000, FRC, LU000, NLRN]
+    evidence: >
+      AT2000 "RHINE"/"RHEIN", LU000 "RHINE", NLRN "RHINE", FRC "LE RHIN",
+      BERHIN_RW the Walloon international Rhine district, DE2000 "HOCHRHEIN" -
+      the German Rhine district, whose polygon is the one district in the layer
+      that by itself spans more than one country.
+    note: >
+      Switzerland and Liechtenstein hold a large share of the basin and do not
+      report under the WFD. Swiss NUTS3 regions are in the admin frame, so they
+      appear through DE2000's geometry but not through the crosswalk.
+
+  meuse:
+    name: Meuse
+    districts: [BEMAAS_VL, BEMEUSE_RW, DE7000, FRB1, FRB2, LU001, NLMS]
+    evidence: >
+      MEUSE, MAAS and "LA MEUSE" for five of them. FRB2 "LA SAMBRE" is here
+      because the Sambre joins the Meuse at Namur and Belgium reports its own
+      Sambre inside BEMEUSE_RW; France reports it as its own district.
+
+  scheldt:
+    name: Scheldt
+    districts: [BEESCAUT_RW, BEESCAUT_SCHELDE_BR, BESCHELDE_VL, FRA, NLSC]
+    evidence: >
+      Three Belgian rows name the international Scheldt district in French and
+      Dutch, NLSC is "SCHELDT". FRA is "L'ESCAUT, LA SOMME ET LES COURS D'EAU
+      COTIERS" - the French portion of the Scheldt district, reported together
+      with the Somme.
+    note: >
+      The widest district in this file. A region in the Somme or on the Channel
+      coast is inside FRA and so counts as draining into the Scheldt district,
+      which is the WFD's unit and not the river's.
+
+  elbe:
+    name: Elbe
+    districts: [AT5000, CZ5000, DE5000, PL5000]
+    evidence: >
+      AT5000, CZ5000 and PL5000 are named ELBE; DE5000 is the German Elbe
+      district, listed by its sub-basins "SAALE, OBERE MOLDAU, BEROUNKA, EGER".
+
+  oder:
+    name: Oder
+    districts: [CZ6000, DE6000, PL6000]
+    evidence: ODER in German and Polish, ODRA in Czech.
+
+  ems:
+    name: Ems
+    districts: [DE3000, NLEM]
+    evidence: >
+      NLEM "EMS"; DE3000 is the German Ems district, listed as "OBERE EMS,
+      EMS-NORDRADDE, HASE".
+
+  vistula:
+    name: Vistula
+    districts: [PL2000, SK30000]
+    evidence: Both named VISTULA.
+    note: >
+      The basin reaches Belarus and Ukraine, which do not report under the WFD.
+
+  minho_lima:
+    name: Minho and Lima
+    districts: [ES010, PTRH1]
+    evidence: ES010 "MINHO", PTRH1 "MINHO AND LIMA".
+
+  douro:
+    name: Douro / Duero
+    districts: [ES020, PTRH3]
+    evidence: ES020 "DUERO", PTRH3 "DOURO" - one river, two spellings.
+
+  tagus:
+    name: Tagus / Tejo
+    districts: [ES030, PTRH5A]
+    evidence: ES030 "TAGUS", PTRH5A "TAGUS AND WEST RIVERS".
+
+  guadiana:
+    name: Guadiana
+    districts: [ES040, PTRH7]
+    evidence: Both named GUADIANA.
+
+  neagh_bann:
+    name: Neagh Bann
+    districts: [IEGBNIIENB, UKGBNIIENB]
+    evidence: >
+      Both named NEAGH BANN, and both codes carry the GBNI/IE prefix the two
+      administrations use for the cross-border districts of Ireland.
+
+  north_western:
+    name: North Western
+    districts: [IEGBNIIENW, UKGBNIIENW]
+    evidence: Both named NORTH WESTERN, same paired code scheme.
+
+  nemunas:
+    name: Nemunas
+    districts: [LT1100, PL8000]
+    evidence: LT1100 "NEMUNAS RBD", PL8000 "NEMUNAS".
+    note: Most of the basin is in Belarus and the Kaliningrad oblast.
+
+  venta:
+    name: Venta
+    districts: [LT2300, LVVUBA]
+    evidence: LT2300 "VENTA RBD", LVVUBA "VENTAS UPJU BASEINU APGABALS".
+
+  lielupe:
+    name: Lielupe
+    districts: [LT3400, LVLUBA]
+    evidence: LT3400 "LIELUPE RBD", LVLUBA "LIELUPES UPJU BASEINU APGABALS".
+
+  daugava:
+    name: Daugava
+    districts: [LT4500, LVDUBA]
+    evidence: LT4500 "DAUGUVA RBD", LVDUBA "DAUGAVAS UPJU BASEINU APGABALS".
+    note: The basin's upper two thirds are in Belarus and Russia.
+
+  gauja_koiva:
+    name: Gauja / Koiva
+    districts: [EE3, LVGUBA]
+    evidence: >
+      EE3 "KOIVA" and LVGUBA "GAUJAS UPJU BASEINU APGABALS" are the Estonian and
+      Latvian names of the same river. The clearest case for this file: no string
+      comparison would ever pair them.
+
+  kemijoki:
+    name: Kemijoki
+    districts: [FIVHA5, NOVHA5]
+    evidence: Both named KEMIJOKI.
+
+  tornionjoki:
+    name: Tornionjoki / Torne
+    districts: [FIVHA6, NOVHA6, SE1TO]
+    evidence: >
+      FIVHA6 "TORNIONJOKI IRBD", NOVHA6 "TORNIONJOKI", SE1TO "BOTHNIAN BAY
+      INTERNATIONAL DISTRICT" - Sweden's name for its Torne portion.
+
+  teno_naatamo_paatsjoki:
+    name: Teno, Naatamo and Paatsjoki
+    districts: [FIVHA7, NO1106]
+    evidence: >
+      FIVHA7 "TENOJOKI AND NAATAMOJOKI AND PAATSJOKI"; NO1106 is named
+      "NORWEGIAN - FINNISH", which is the Norwegian side of exactly these three.
+
+# Districts this file deliberately does NOT group, with the reason. Listed
+# rather than omitted, so that "not international" can be told from "not yet
+# decided" - and because the first three were produced by a naive name match and
+# are wrong.
+unresolved:
+
+  - districts: [HRJ, SIRBD2]
+    reason: >
+      Both are named ADRIATIC, which is the sea and not a basin. Croatia's and
+      Slovenia's Adriatic districts are adjacent coastal districts, not two
+      portions of one river basin. A name match pairs them; hydrology does not.
+
+  - districts: [NO1, NO2, NO5, NO1TO, SE1, SE2, SE5, SE1102, SE1103, SE1104,
+                SE5101]
+    reason: >
+      The Swedish and Norwegian Bothnian Bay, Bothnian Sea and
+      Skagerrak/Kattegat districts mix national units with units named
+      "INTERNATIONAL DRAINAGE BASIN", and the layer does not say which Norwegian
+      unit each Swedish one pairs with. Several are sea districts rather than
+      river basins. Grouping them would be guesswork; the Torne, which the names
+      do pin down, is grouped above.
+
+  - districts: [DK4]
+    reason: >
+      Named "INTERNATIONALT", so it is one - but the layer does not name the
+      German district it pairs with, and the German side is reported inside a
+      larger national district.
+
+  - districts: [PL3000, PL4000, PL6700, PL7000, PL9000]
+    reason: >
+      Prokhladnaya, Mamonovka, Ucker, Pregolya and Dniester. The other side of
+      each is in Russia, Ukraine or inside a larger German district, so there is
+      no second portion in this layer to group with.
+
+  - districts: [DE9500, ITA]
+    reason: >
+      The Eider reaches Denmark and the Alpi Orientali district holds the
+      Isonzo/Soca, shared with Slovenia, but in both cases the neighbouring
+      state reports that water inside a district whose name says nothing about
+      it. Not groupable from this layer.

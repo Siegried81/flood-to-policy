@@ -1,0 +1,7 @@
+# Development-only tools: never installed in the published Docker image.
+# debugpy: VS Code debugger, used by docker-compose.debug.yml (and locally:
+#   pip install -r requirements-dev.txt)
+debugpy>=1.8.22,<2
+# playwright: headless screenshots of both UIs (scripts/screenshots/). After
+#   installing, fetch its browser once: python -m playwright install chromium
+playwright>=1.64,<2

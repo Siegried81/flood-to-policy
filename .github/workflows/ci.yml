@@ -1,0 +1,37 @@
+name: tests
+
+# Offline by design: the suite must pass with no network, because on the day the
+# venue Wi-Fi is the first thing to fail.
+on: [push, pull_request]
+
+# The workflows only read the checkout. Stated rather than inherited, because the
+# default token can write to the repo and nothing here needs that.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+
+  # The image is how the geospatial half runs on the Windows host, and the README
+  # recorded it as "reviewed but untested" for lack of a Docker daemon there. The
+  # runner is the clean machine the dress rehearsal asks for: build the code-only
+  # stage (the portable one needs the 6.4 GiB data tree, which CI does not have)
+  # and prove the native stack the image exists for actually loads inside it.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --target app -t flood-policy-kit:ci .
+      - run: docker run --rm flood-policy-kit:ci python -c "import rasterio, pyogrio, rasterstats, tiktoken; print('native stack loads')"
+      # The readiness script is what the `check` service runs; with no data in
+      # the image it must report BLOCKED and exit 1, not crash. `!` inverts it.
+      - run: "! docker run --rm flood-policy-kit:ci python scripts/check_offline_readiness.py"

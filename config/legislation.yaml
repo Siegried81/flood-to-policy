@@ -1,0 +1,238 @@
+# Every legal and policy instrument the kit cites, one record each, in the
+# shape the EU Data Law Observatory uses for its registry.
+#
+# Why a registry: the docs cite the Floods Directive by article in prose, and
+# a CELEX number or an ELI URL lived only in docs/policy_context.md. One
+# machine-readable record per instrument gives a brief its citation with the
+# URL attached, and `tests/test_legislation.py` holds docs/policy_answer.md to
+# it: an article cited there that is not listed here fails the suite.
+#
+# Fields, per instrument (keyed by abbreviation):
+#   short      the name a citation uses ("Directive 2007/60/EC")
+#   title      the full title as EUR-Lex carries it
+#   celex      the CELEX number; never invented - a document without one is
+#              not in this file (SWD(2021) 305 has none: Cellar answers 404)
+#   type       directive | regulation | decision | recommendation |
+#              communication | staff-working-document | proposal
+#   enacted    date of the act (EUR-Lex "date of document")
+#   in_force   entry into force; null for a non-binding or unadopted text.
+#              Where EUR-Lex lists several dates (staggered application) this
+#              is the earliest, the entry into force proper
+#   eurlex_url the ELI URL where one exists, else the CELEX landing page
+#   status     in_force | in_force_amended | non_binding | proposal
+#   verified   the date the celex and dates were checked live, or null.
+#              Live means the Publications Office Cellar SPARQL endpoint
+#              (publications.europa.eu/webapi/rdf/sparql, predicates
+#              cdm:resource_legal_id_celex, work_date_document,
+#              resource_legal_date_entry-into-force, resource_legal_in-force):
+#              eur-lex.europa.eu itself answers HTTP 202 with an empty body to
+#              a scripted fetch, so the check cannot go through its pages
+#   articles   the articles the kit relies on, one line each. For the Floods
+#              Directive the notes quote the local copy of the act at
+#              data/raw/scrape/floods_directive.html; the deadlines are the
+#              Article's own words, not arithmetic
+
+instruments:
+
+  FD:
+    short: Directive 2007/60/EC
+    title: Directive 2007/60/EC of the European Parliament and of the Council of 23 October 2007 on the assessment and management of flood risks
+    celex: 32007L0060
+    type: directive
+    enacted: 2007-10-23
+    in_force: 2007-11-26
+    eurlex_url: https://eur-lex.europa.eu/eli/dir/2007/60/oj
+    status: in_force
+    verified: 2026-10-08
+    articles:
+      "4": Preliminary flood risk assessment per river basin district, from available information including past floods and climate-change impacts; completed by 22 December 2011 (Art. 4(4)).
+      "5": On the basis of Article 4, Member States identify the areas where a potential significant flood risk exists or might be considered likely to occur (APSFR); shared areas coordinated between the Member States concerned.
+      "6": Flood hazard maps and flood risk maps for the Article 5 areas, for low, medium (return period >= 100 years) and high probability scenarios; completed by 22 December 2013 (Art. 6(8)).
+      "6(3)": The three scenarios a flood hazard map shall cover - (a) "floods with a low probability, or extreme event scenarios"; (b) "floods with a medium probability (likely return period >= 100 years)"; (c) "floods with a high probability, where appropriate". A figure is given for (b) only; the kit's placing of RP10-RP75 as high and RP200-RP500 as low/extreme is its own reading, not the Article's.
+      "7": Flood risk management plans with objectives and measures covering prevention, protection and preparedness including flood forecasts and early warning; completed and published by 22 December 2015 (Art. 7(5)).
+      "7(4)": "In the interests of solidarity, a plan in one Member State shall not include measures which significantly increase flood risks upstream or downstream of other countries in the same basin, unless coordinated and agreed in the framework of Article 8."
+      "8": Coordination of plans at river basin district level - one plan per national district, one international plan where the district lies entirely within the Community.
+      "8(2)": Where an international river basin district falls entirely within the Community, Member States shall ensure coordination with the aim of producing one single international flood risk management plan.
+      "8(3)": Where an international river basin district extends beyond the Community, Member States "shall endeavour" to produce one single international plan; where not possible, paragraph 2 applies to the parts inside their territory.
+      "8(5)": A Member State that identifies an issue affecting its flood risk management which it cannot resolve may report it to the Commission and the other Member States concerned, with recommendations; "the Commission shall respond ... within a period of six months."
+      "14": Six-yearly review of the preliminary assessment, the maps and the plans, with climate change taken into account.
+      "14(1)": The preliminary flood risk assessment "shall be reviewed, and if necessary updated, by 22 December 2018 and every six years thereafter."
+      "14(2)": The flood hazard maps and the flood risk maps "shall be reviewed, and if necessary updated, by 22 December 2019 and every six years thereafter."
+      "14(3)": The flood risk management plan(s) "shall be reviewed, and if necessary updated, including the components set out in part B of the Annex, by 22 December 2021 and every six years thereafter."
+      "14(4)": "The likely impact of climate change on the occurrence of floods shall be taken into account in the reviews referred to in paragraphs 1 and 3."
+      "15": Member States make the assessment, the maps, the plans and their reviews available to the Commission within three months after the dates in Articles 4(4), 6(8), 7(5) and 14.
+      "16": The Commission reports to the European Parliament and the Council on implementation by 22 December 2018 and every six years thereafter, taking the impact of climate change into account.
+
+  WFD:
+    short: Directive 2000/60/EC
+    title: Directive 2000/60/EC of the European Parliament and of the Council of 23 October 2000 establishing a framework for Community action in the field of water policy
+    celex: 32000L0060
+    type: directive
+    enacted: 2000-10-23
+    in_force: 2000-12-22
+    eurlex_url: https://eur-lex.europa.eu/eli/dir/2000/60/oj
+    status: in_force
+    verified: 2026-10-08
+    articles:
+      "3": River basin districts, the reporting unit the kit's cross-border basin figures are built on; Directive 2007/60/EC reuses them (its Article 3).
+      "4": Environmental objectives, which flood risk management plans must take into account under Directive 2007/60/EC Art. 7(3).
+
+  AIA:
+    short: Regulation (EU) 2024/1689
+    title: Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act)
+    celex: 32024R1689
+    type: regulation
+    enacted: 2024-06-13
+    in_force: 2024-08-01
+    eurlex_url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+    status: in_force_amended
+    verified: 2026-10-08
+    articles:
+      "50": Transparency obligations for providers and deployers of certain AI systems; the Digital Omnibus on AI did not move its dates.
+      "Annex III": The high-risk use cases; do not assert the kit falls under it without reading the annex (docs/policy_answer.md, section 8).
+
+  DOAI:
+    short: Regulation (EU) 2026/1744
+    title: Regulation (EU) 2026/1744 of the European Parliament and of the Council of 8 July 2026 amending Regulations (EU) 2024/1689, (EU) 2018/1139 and (EU) 2023/1230 as regards the simplification of the implementation of harmonised rules on artificial intelligence (Digital Omnibus on AI)
+    celex: 32026R1744
+    type: regulation
+    enacted: 2026-07-08
+    in_force: 2026-07-27
+    eurlex_url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
+    status: in_force
+    verified: 2026-10-08
+    articles: {}
+
+  MR:
+    short: Regulation (EU) 2023/1230
+    title: Regulation (EU) 2023/1230 of the European Parliament and of the Council of 14 June 2023 on machinery and repealing Directive 2006/42/EC of the European Parliament and of the Council and Council Directive 73/361/EEC
+    celex: 32023R1230
+    type: regulation
+    enacted: 2023-06-14
+    in_force: 2023-07-19
+    eurlex_url: https://eur-lex.europa.eu/eli/reg/2023/1230/oj
+    status: in_force_amended
+    verified: 2026-10-08
+    articles: {}
+
+  UCPM:
+    short: Decision No 1313/2013/EU
+    title: Decision No 1313/2013/EU of the European Parliament and of the Council of 17 December 2013 on a Union Civil Protection Mechanism
+    celex: 32013D1313
+    type: decision
+    enacted: 2013-12-17
+    in_force: 2013-12-21
+    eurlex_url: https://eur-lex.europa.eu/eli/dec/2013/1313/oj
+    status: in_force_amended
+    verified: 2026-10-08
+    articles:
+      "6": Risk management - Member States develop risk assessments and disaster risk management planning and provide summaries to the Commission; the article that makes flood risk assessment a standing duty of a public authority.
+
+  UCPM-2021:
+    short: Regulation (EU) 2021/836
+    title: Regulation (EU) 2021/836 of the European Parliament and of the Council of 20 May 2021 amending Decision No 1313/2013/EU on a Union Civil Protection Mechanism
+    celex: 32021R0836
+    type: regulation
+    enacted: 2021-05-20
+    in_force: 2021-05-26
+    eurlex_url: https://eur-lex.europa.eu/eli/reg/2021/836/oj
+    status: in_force
+    verified: 2026-10-08
+    articles: {}
+
+  UDRG:
+    short: Commission Recommendation 2023/C 56/01
+    title: Commission Recommendation of 8 February 2023 on Union disaster resilience goals
+    celex: 32023H0215(01)
+    type: recommendation
+    enacted: 2023-02-08
+    in_force: null
+    eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023H0215(01)
+    status: non_binding
+    verified: 2026-10-08
+    articles: {}
+
+  GDPR:
+    short: Regulation (EU) 2016/679
+    title: Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC (General Data Protection Regulation)
+    celex: 32016R0679
+    type: regulation
+    enacted: 2016-04-27
+    in_force: 2016-05-24
+    eurlex_url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+    status: in_force
+    verified: 2026-10-08
+    articles:
+      "22": Rights against a decision based solely on automated processing with legal or similarly significant effects; why the kit never decides an individual entitlement (docs/policy_craft.md).
+
+  HD:
+    short: Council Directive 92/43/EEC
+    title: Council Directive 92/43/EEC of 21 May 1992 on the conservation of natural habitats and of wild fauna and flora
+    celex: 31992L0043
+    type: directive
+    enacted: 1992-05-21
+    in_force: 1992-06-10
+    eurlex_url: https://eur-lex.europa.eu/eli/dir/1992/43/oj
+    status: in_force
+    verified: 2026-10-08
+    articles: {}
+
+  BD:
+    short: Directive 2009/147/EC
+    title: Directive 2009/147/EC of the European Parliament and of the Council of 30 November 2009 on the conservation of wild birds
+    celex: 32009L0147
+    type: directive
+    enacted: 2009-11-30
+    in_force: 2010-02-15
+    eurlex_url: https://eur-lex.europa.eu/eli/dir/2009/147/oj
+    status: in_force
+    verified: 2026-10-08
+    articles: {}
+
+  EUAS:
+    short: COM(2021) 82
+    title: Forging a climate-resilient Europe - the new EU Strategy on Adaptation to Climate Change
+    celex: 52021DC0082
+    type: communication
+    enacted: 2021-02-24
+    in_force: null
+    eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021DC0082
+    status: non_binding
+    verified: 2026-10-08
+    articles: {}
+
+  EWRS:
+    short: COM(2025) 280
+    title: European Water Resilience Strategy
+    celex: 52025DC0280
+    type: communication
+    enacted: 2025-06-04
+    in_force: null
+    eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025DC0280
+    status: non_binding
+    verified: 2026-10-08
+    articles: {}
+
+  SWD-2025-24:
+    short: SWD(2025) 24
+    title: Commission Staff Working Document - Third River Basin Management Plans, Second Flood Hazard and Risk Maps and Second Flood Risk Management Plans, Member State Spain, accompanying the report on the implementation of the Water Framework Directive (2000/60/EC) and the Floods Directive (2007/60/EC)
+    celex: 52025SC0024
+    type: staff-working-document
+    enacted: 2025-02-04
+    in_force: null
+    eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025SC0024
+    status: non_binding
+    verified: 2026-10-08
+    articles: {}
+
+  CADA:
+    short: COM(2026) 502
+    title: Proposal for a Regulation of the European Parliament and of the Council establishing a framework of measures for strengthening Europe's cloud and AI ecosystem (Cloud and AI Development Act)
+    celex: 52026PC0502
+    type: proposal
+    enacted: 2026-06-03
+    in_force: null
+    eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52026PC0502
+    status: proposal
+    verified: 2026-10-08
+    articles: {}

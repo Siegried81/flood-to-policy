@@ -1,0 +1,348 @@
+table Exposure
+	lineageTag: 6ca30e39-a692-58c5-b089-de198a9f800e
+
+	/// People in the flood footprint for ONE return period: the one selected, or RP100 when none is. Blank when several are selected: the extents are nested, so a sum across return periods counts the same people several times.
+	measure 'Exposed population' = IF(HASONEVALUE(Exposure[return_period]) || NOT ISFILTERED(Exposure[return_period]), CALCULATE(SUM(Exposure[exposed_pop]), Exposure[return_period] = SELECTEDVALUE(Exposure[return_period], 100)))
+		formatString: #,0
+		lineageTag: b62bfbd2-0552-5a19-99ec-657dce73ef52
+
+	/// Residents of the regions in the current filter.
+	measure Population = SUM(Regions[total_pop])
+		formatString: #,0
+		lineageTag: 040064c9-3f83-536e-8326-29dcef4cbfdd
+
+	/// Exposed population over residents, for one return period.
+	measure 'Share exposed' = DIVIDE([Exposed population], [Population])
+		formatString: 0.00%
+		lineageTag: 860e1af2-5030-5631-8620-c5af90f6a63f
+
+	/// Exposed population of regions with any area in a basin that crosses a national border. A floor: non-EU states do not report basins.
+	measure 'Exposed in shared basins' = CALCULATE([Exposed population], Regions[shared_basin_share] > 0)
+		formatString: #,0
+		lineageTag: 5c773aed-120a-51ee-aed4-64e12121d9d5
+
+	/// Share of the exposed population living in a cross-border basin.
+	measure 'Share in shared basins' = DIVIDE([Exposed in shared basins], [Exposed population])
+		formatString: 0.0%
+		lineageTag: ab016cb2-1e5b-58bd-854f-91b28193109d
+
+	/// Probability-weighted exposure over the sampled band (RP10-RP500 only): a lower bound, not an expected annual damage.
+	measure 'Expected annual exposure' = SUM(Regions[expected_annual_exposure])
+		formatString: #,0
+		lineageTag: 48791fd5-32c4-5da6-91b2-9106b93244bc
+
+	/// Regions intersecting a Floods Directive Art. 5 area. Declarations follow national geometry conventions and are not comparable across countries.
+	measure 'Regions with a declared risk area' = CALCULATE(COUNTROWS(Regions), Regions[apsfr_declared] = TRUE())
+		formatString: #,0
+		lineageTag: 59e6c272-5360-55be-a815-fbfe708865ab
+
+	/// Median over regions of the ensemble-median change in reference discharge, in %. Medians only: a mean is meaningless against near-zero references.
+	measure 'Median change in discharge 2041-2070' = MEDIAN(Regions[change_pct_ensemble_median_2041_2070])
+		formatString: 0.0
+		lineageTag: 8f35a325-54e0-52fa-82c9-b2585be62fa2
+
+	/// The return period on screen (RP100 when none is selected), for titles.
+	measure 'Selected return period' = SELECTEDVALUE(Exposure[return_period], 100)
+		formatString: 0
+		lineageTag: 91b39ad9-5899-51e6-88c5-bc942f866ab5
+
+	/// The return period on screen as words, for cards and titles. Says so when several are selected, since every headcount is then blank.
+	measure 'Return period label' = IF(HASONEVALUE(Exposure[return_period]) || NOT ISFILTERED(Exposure[return_period]), "1-in-" & FORMAT(SELECTEDVALUE(Exposure[return_period], 100), "0") & "-year river flood", "Pick one return period")
+		lineageTag: d536590d-d0ae-5a30-b5fa-fabbd9130c2e
+
+	/// NUTS3 regions in the current filter. Every region has an exposure figure for each of the nine return periods.
+	measure 'Regions measured' = COUNTROWS(Regions)
+		formatString: #,0
+		lineageTag: 40de1451-099b-5934-afdf-8eeb259cb336
+
+	/// Regions with any area in a basin that crosses a national border. A floor, like the headcount: non-EU states do not report basins.
+	measure 'Regions in shared basins' = CALCULATE(COUNTROWS(Regions), Regions[shared_basin_share] > 0)
+		formatString: #,0
+		lineageTag: 22f5530b-7c00-5901-8cbc-c71e4911a2b0
+
+	/// Residents aged 65 or over, as a share of all residents of the regions in the filter: weighted by population, so a country reads as its people and not as the mean of its regions. Regions without the figure are left out of both sides. A REGIONAL share: it says nothing about the age of the people inside the footprint.
+	measure 'Share over 65' = DIVIDE(SUMX(FILTER(Regions, NOT ISBLANK(Regions[share_over_65])), Regions[total_pop] * Regions[share_over_65]), SUMX(FILTER(Regions, NOT ISBLANK(Regions[share_over_65])), Regions[total_pop]))
+		formatString: 0.0%
+		lineageTag: 4f960ba9-56ef-5b04-b114-4121f5e40b5f
+
+	/// At-risk-of-poverty rate of the regions in the filter, weighted by population (poverty_rate_pct is in percent, hence the division by 100). Regions without the figure are left out of both sides. A regional rate, not the rate among the exposed.
+	measure 'Poverty rate' = DIVIDE(SUMX(FILTER(Regions, NOT ISBLANK(Regions[poverty_rate_pct])), Regions[total_pop] * Regions[poverty_rate_pct]), SUMX(FILTER(Regions, NOT ISBLANK(Regions[poverty_rate_pct])), Regions[total_pop])) / 100
+		formatString: 0.0%
+		lineageTag: cb6dcd29-eeb8-5bff-8847-3eafeb28b2a1
+
+	/// Share of ONE region's area inside a declared Floods Directive Art. 5 area; blank above one region, because the export carries no region areas to weight a sum with. Not comparable across countries.
+	measure 'Declared share of area' = IF(HASONEVALUE(Regions[nuts_id]), SELECTEDVALUE(Regions[apsfr_share]))
+		formatString: 0.0%
+		lineageTag: 09d6695c-29de-58eb-8124-f102a42889bf
+
+	/// The median region's declared share of area. Blank for a country that reports no declared areas (Ireland, Lithuania), which is not the same as zero. Not comparable across countries.
+	measure 'Median declared share' = MEDIAN(Regions[apsfr_share])
+		formatString: 0.0%
+		lineageTag: 53a71a2c-af01-5e7a-8663-c543dd19ee87
+
+	/// The region a drillthrough landed on. Two regions share a name (Jura, CH025 and FRC22): when the name alone was passed, the label says so, because the figures beside it then add both up.
+	measure 'Region shown' = IF(HASONEVALUE(Regions[nuts_id]), SELECTEDVALUE(Regions[region]) & " - " & SELECTEDVALUE(Regions[country_name]) & " (" & SELECTEDVALUE(Regions[nuts_id]) & ")", IF(HASONEVALUE(Regions[region]), SELECTEDVALUE(Regions[region]) & ": " & FORMAT(COUNTROWS(Regions), "0") & " regions share this name - the figures add them up", "No region picked: right-click a region on any page, then Drill through"))
+		lineageTag: 881fc7e1-c8f4-5707-9e93-67ce6a78aa9b
+
+	/// For one region, the ensemble's 25th percentile of the change in reference discharge, in %; over several, the median of those. Quartiles and medians only.
+	measure 'Lower quartile change in discharge 2041-2070' = MEDIAN(Regions[change_pct_ensemble_p25_2041_2070])
+		formatString: 0.0
+		lineageTag: be57f2a5-6443-5e77-948f-4fc884703b19
+
+	/// For one region, the ensemble's 75th percentile of the change in reference discharge, in %; over several, the median of those.
+	measure 'Upper quartile change in discharge 2041-2070' = MEDIAN(Regions[change_pct_ensemble_p75_2041_2070])
+		formatString: 0.0
+		lineageTag: c44ffa62-de3b-5eb5-8862-decdaeb6d31b
+
+	/// Regions where at least 80 % of the ensemble's simulations agree on the direction of the change by 2041-2070 (IPCC AR6 'robust').
+	measure 'Regions where simulations agree 2041-2070' = CALCULATE(COUNTROWS(Regions), Regions[ensemble_robust_on_sign_2041_2070] = TRUE())
+		formatString: #,0
+		lineageTag: 396d90cd-1eee-57dd-8b1b-635fb6df4d80
+
+	/// Yes / No for one region (No data where the climate layer has no value); "n of m regions" above one region.
+	measure 'Simulations agree on direction 2041-2070' = IF(HASONEVALUE(Regions[nuts_id]), IF(ISBLANK(SELECTEDVALUE(Regions[change_pct_ensemble_median_2041_2070])), "No data", IF(SELECTEDVALUE(Regions[ensemble_robust_on_sign_2041_2070]), "Yes", "No")), FORMAT([Regions where simulations agree 2041-2070], "0") & " of " & FORMAT(COUNTROWS(Regions), "0") & " regions")
+		lineageTag: 58b62ee3-bc09-54d6-8792-7b594f0224c1
+
+	/// The countries a region shares its rivers with, shown on one region only (blank on a basin row).
+	measure 'Partner countries' = SELECTEDVALUE(Regions[shared_with])
+		lineageTag: 5e1d6c1a-7f0b-4c8e-9a51-2b7d3f4e6a90
+
+	/// People the flood still reaches behind the JRC PESETA IV design standards (cells whose standard holds the scenario set dry). Same rule as Exposed population: one return period, RP100 when none is selected.
+	measure 'Residual exposed' = IF(HASONEVALUE(Exposure[return_period]) || NOT ISFILTERED(Exposure[return_period]), CALCULATE(SUM(Exposure[residual_exposed_pop]), Exposure[return_period] = SELECTEDVALUE(Exposure[return_period], 100)))
+		formatString: #,0
+		lineageTag: 1c771dca-0bf1-5df6-98a0-53f1eb978eb5
+
+	/// Share of the undefended exposed population the design standards hold. A design level, not a guarantee.
+	measure 'Held by defences' = DIVIDE([Exposed population] - [Residual exposed], [Exposed population])
+		formatString: 0%
+		lineageTag: 7fc0b1a2-5eef-5463-9281-f7805c24a23f
+
+	/// GISCO hospitals deeper than 0.5 m at RP100, undefended. Blank for countries GISCO does not cover (Germany).
+	measure 'Hospitals in footprint' = SUM(Regions[hospitals_flooded_rp100])
+		formatString: #,0
+		lineageTag: 12fd7f86-6934-5fff-92d3-1afc31436beb
+
+	/// The same hospitals, behind the design standards (residual).
+	measure 'Hospitals behind defences' = SUM(Regions[hospitals_flooded_residual_rp100])
+		formatString: #,0
+		lineageTag: e7c03941-6aa0-52bd-b81b-5e008aa58543
+
+	/// GISCO education sites deeper than 0.5 m at RP100, undefended.
+	measure 'Schools in footprint' = SUM(Regions[schools_flooded_rp100])
+		formatString: #,0
+		lineageTag: 6cf20d29-2b67-52dc-a9d3-93978a90a15c
+
+	/// The same schools, behind the design standards (residual).
+	measure 'Schools behind defences' = SUM(Regions[schools_flooded_residual_rp100])
+		formatString: #,0
+		lineageTag: c2ae1a67-8e51-568b-8d09-1b1a8602d00f
+
+	/// GHSL 2010 built-up surface inside today's RP100 footprint.
+	measure 'Built-up in footprint 2010 (km²)' = SUM(Regions[exposed_built_m2_2010_rp100]) / 1000000
+		formatString: #,0
+		lineageTag: 6b6f90e1-feff-53c6-bc98-d5af0f076f11
+
+	/// GHSL 2025 built-up surface inside the RP100 footprint.
+	measure 'Built-up in footprint 2025 (km²)' = SUM(Regions[exposed_built_m2_rp100]) / 1000000
+		formatString: #,0
+		lineageTag: 7943acce-4904-5885-9d45-aa0d2b69ecf0
+
+	/// What was built in the floodplain between the two GHSL epochs.
+	measure 'Built-up added since 2010 (km²)' = [Built-up in footprint 2025 (km²)] - [Built-up in footprint 2010 (km²)]
+		formatString: #,0
+		lineageTag: 58a50915-a3a3-5387-b062-dad8e9ee56d2
+
+	/// GHSL 2010 residents inside today's RP100 footprint.
+	measure 'People in footprint 2010' = SUM(Regions[exposed_pop_2010_rp100])
+		formatString: #,0
+		lineageTag: 0951d880-e241-5566-9df6-82150edd50fa
+
+	/// Classified CORINE area inside the RP100 footprint.
+	measure 'Footprint area (km²)' = SUM(Regions[corine_rp100_footprint_km2])
+		formatString: #,0
+		lineageTag: cac0bacb-d71c-5d0c-b9b5-4dd2bc204ee2
+
+	/// Share of the RP100 footprint under homes (CORINE 111-112), area-weighted.
+	measure 'Footprint: homes' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_homes] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: bdd48598-a54f-563e-892b-5a31671ba179
+
+	/// Share under industrial or commercial units (CORINE 121).
+	measure 'Footprint: industry and commerce' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_industry_commerce] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: f1b6d965-1708-56ed-bd80-a08f6b9849a9
+
+	/// Share under roads, rail, ports and airports (CORINE 122-124).
+	measure 'Footprint: transport' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_transport] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: f686c003-740c-524c-8036-ccd122ecf095
+
+	/// Share under mines, dumps, construction, urban green and sport (CORINE 131-142).
+	measure 'Footprint: other artificial' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_other_artificial] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: ad18a957-151a-5276-a3b2-4d4619077ecb
+
+	/// Share under agriculture (CORINE 2xx).
+	measure 'Footprint: farmland' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_agriculture] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: ce3b1a57-802a-5be7-acf9-bd625cc3a56b
+
+	/// Share under forest, semi-natural land and wetlands (CORINE 3xx-4xx).
+	measure 'Footprint: natural land' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_natural] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: bc8e98d0-8aab-55ff-8b82-7f9d605796cf
+
+	/// Share under water bodies left after the permanent-water mask (CORINE 5xx).
+	measure 'Footprint: water' = DIVIDE(SUMX(Regions, Regions[corine_rp100_share_water] * Regions[corine_rp100_footprint_km2]), [Footprint area (km²)])
+		formatString: 0.0%
+		lineageTag: a6596ebb-3f4c-5541-b9a5-59573dd9dd03
+
+	/// Mean CLMS imperviousness 2018 inside the RP100 footprint, area-weighted.
+	measure 'Footprint sealed share' = DIVIDE(SUMX(Regions, Regions[imperviousness_share_in_rp100_2018] * Regions[imperviousness_rp100_footprint_km2]), SUM(Regions[imperviousness_rp100_footprint_km2]))
+		formatString: 0.0%
+		lineageTag: 4054e6cb-800e-5e0a-a907-c8a5b84b29ae
+
+	/// People the design standards keep dry: the undefended headcount minus the residual one, for one return period (RP100 when none is selected). A design level, not a guarantee.
+	measure 'Held by defences (people)' = [Exposed population] - [Residual exposed]
+		formatString: #,0
+		lineageTag: c31e1757-b26d-56a8-b7cb-33e4dae3d73e
+
+	/// Residual exposure behind the design standards, weighted by probability over the sampled band RP10-RP500: the same trapezoid as Regions[expected_annual_exposure], written as a weighted sum - each return period weighs half the gap between its neighbouring probabilities (half its own gap at the two ends). Ignores the return-period slicer, like the regional column. A lower bound, never an expected damage.
+	measure 'Residual expected annual exposure' = SUMX(ALL(Exposure[return_period], Exposure[annual_probability]), VAR p = Exposure[annual_probability] VAR below = CALCULATE(MAX(Exposure[annual_probability]), ALL(Exposure[return_period], Exposure[annual_probability]), Exposure[annual_probability] < p) VAR above = CALCULATE(MIN(Exposure[annual_probability]), ALL(Exposure[return_period], Exposure[annual_probability]), Exposure[annual_probability] > p) VAR width = (IF(ISBLANK(above), p, above) - IF(ISBLANK(below), p, below)) / 2 RETURN width * CALCULATE(SUM(Exposure[residual_exposed_pop])))
+		formatString: #,0
+		lineageTag: 8b6d6e82-cabe-5264-980b-1a135d49ea72
+
+	/// The place a tooltip or card is about: the region and its country for one region, the country for one country, otherwise the number of regions in the filter.
+	measure 'Place shown' = IF(HASONEVALUE(Regions[nuts_id]), SELECTEDVALUE(Regions[region]) & " - " & SELECTEDVALUE(Regions[country_name]), IF(HASONEVALUE(Regions[country_name]), SELECTEDVALUE(Regions[country_name]), FORMAT(COUNTROWS(Regions), "#,0") & " regions"))
+		lineageTag: 7cc92944-444c-5a06-92d7-aaf711d2d1c1
+
+	/// Growth of the GHSL built-up surface inside today's RP100 footprint between 2010 and 2025: what moved into the floodplain, not a change in the hazard.
+	measure 'Built-up growth since 2010' = DIVIDE([Built-up added since 2010 (km²)], [Built-up in footprint 2010 (km²)])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: 6b9626da-eb3a-53e3-bae7-b26ac6fd7559
+
+	/// CORINE 2018 area under homes (111-112) inside the RP100 footprint, in km2.
+	measure 'Footprint under homes (km²)' = SUMX(Regions, Regions[corine_rp100_share_homes] * Regions[corine_rp100_footprint_km2])
+		formatString: #,0
+		lineageTag: a3631929-7072-5dbb-8c69-5374479fd461
+
+	/// CORINE 2018 area under industrial or commercial units (121) inside the RP100 footprint, in km2.
+	measure 'Footprint under industry (km²)' = SUMX(Regions, Regions[corine_rp100_share_industry_commerce] * Regions[corine_rp100_footprint_km2])
+		formatString: #,0
+		lineageTag: c80f19af-1217-55bf-a9b3-f29c1a4a4d26
+
+	/// CLMS 2018 imperviousness of ONE whole region; blank above one region, because the export carries no region areas to weight with.
+	measure 'Region sealed share' = IF(HASONEVALUE(Regions[nuts_id]), SELECTEDVALUE(Regions[imperviousness_share_2018]))
+		formatString: 0.0%
+		lineageTag: 0723953b-6e88-5fe9-8807-acef705af8c9
+
+	/// For one region, how much more sealed its RP100 footprint is than the region as a whole, in percentage points (CLMS 2018). Where towns sit in the floodplain they sit there densely. Blank above one region.
+	measure 'Floodplain sealed above region' = IF(NOT ISBLANK([Region sealed share]), ([Footprint sealed share] - [Region sealed share]) * 100)
+		formatString: 0.0
+		lineageTag: 72d04415-4f3c-5562-9745-b7544adf9ef4
+
+	/// Median over regions of the HERA 1991-2020 trend in annual peak discharge, in % of the typical peak per decade (Sen slope per river cell, then the region's median). A model reanalysis, not gauged flow.
+	measure 'River peak trend per decade' = MEDIAN(Regions[hera_peak_trend_pct_per_decade])
+		formatString: +0.0;-0.0;0.0
+		lineageTag: 368df01d-e5dc-53df-a714-a1428e26b6e0
+
+	/// Share of river cells whose annual peak rises significantly (Mann-Kendall, 5 %), pooled over the regions in the filter by their river cells.
+	measure 'River cells with rising peaks' = DIVIDE(SUMX(Regions, Regions[hera_cells_increasing_share] * Regions[hera_river_cells]), SUM(Regions[hera_river_cells]))
+		formatString: 0%
+		lineageTag: 6e3eec62-ebdc-56a2-8a6e-a4045a5d6189
+
+	/// Median over regions of the share of years whose peak fell in October-March.
+	measure 'Winter peak share' = MEDIAN(Regions[hera_winter_peak_share])
+		formatString: 0%
+		lineageTag: 95ac664d-c956-5856-90de-d175a4c9c8ba
+
+	/// Median over regions of the shift of the peak's date, in days per decade, read on a circular calendar; regions whose peaks have no typical season are blank. Positive: later in the year.
+	measure 'Peak timing shift per decade' = MEDIAN(Regions[hera_peak_timing_shift_days_per_decade])
+		formatString: +0.0;-0.0;0.0
+		lineageTag: c8301151-3983-5da0-8e4a-2e1575293be8
+
+	/// As River peak trend per decade, on the October-March maximum only.
+	measure 'Winter peak trend per decade' = MEDIAN(Regions[hera_winter_peak_trend_pct_per_decade])
+		formatString: +0.0;-0.0;0.0
+		lineageTag: 5a5b6ef0-eb53-51da-b6ea-1a67f77285dc
+
+	/// As River peak trend per decade, on the April-September maximum only.
+	measure 'Summer peak trend per decade' = MEDIAN(Regions[hera_summer_peak_trend_pct_per_decade])
+		formatString: +0.0;-0.0;0.0
+		lineageTag: a2e9703e-2ef5-52a0-b501-953d23b24042
+
+	/// Median over regions of the mean days a year above the EFAS 1-in-2-year flow (about bankfull). That level is fitted on another model run: read it as a trend, not an absolute count.
+	measure 'Flood days per year' = MEDIAN(Regions[hera_flood_days_per_year])
+		formatString: 0.0
+		lineageTag: bf1fced2-38ec-562f-9921-ba88e485b096
+
+	/// Median over regions of the Sen slope of flood days, in days per decade.
+	measure 'Flood days trend per decade' = MEDIAN(Regions[hera_flood_days_trend_per_decade])
+		formatString: +0.0;-0.0;0.0
+		lineageTag: 2fd7781a-ec41-5463-a0b2-54aab272eced
+
+	/// Years of HERA the trends rest on. Blank where the HERA layer has not been computed.
+	measure 'HERA years' = MAX(Regions[hera_years])
+		formatString: 0
+		lineageTag: b74fcd99-a563-5f2a-8015-740d70f2a88f
+
+	column nuts_id
+		dataType: string
+		lineageTag: f7f5ca85-fb44-57e1-9c7b-9abd2423d469
+		summarizeBy: none
+		sourceColumn: nuts_id
+
+		annotation SummarizationSetBy = User
+
+	column return_period
+		dataType: int64
+		lineageTag: 645025b5-c2b5-52b1-8fe3-bb0a31c62c85
+		summarizeBy: none
+		sourceColumn: return_period
+
+		annotation SummarizationSetBy = User
+
+	column annual_probability
+		dataType: double
+		lineageTag: 2e52b840-d2a9-5ed5-93d9-084f5fe4942b
+		summarizeBy: none
+		sourceColumn: annual_probability
+
+		annotation SummarizationSetBy = User
+
+	column exposed_pop
+		dataType: double
+		lineageTag: 5342fd78-89d7-58fa-86a4-5a8bb7859787
+		summarizeBy: none
+		sourceColumn: exposed_pop
+
+		annotation SummarizationSetBy = User
+
+	column hazard_coverage
+		dataType: double
+		lineageTag: 81947da8-e0d8-53dd-97cd-b322c0c1c87d
+		summarizeBy: none
+		sourceColumn: hazard_coverage
+
+		annotation SummarizationSetBy = User
+
+	column residual_exposed_pop
+		dataType: double
+		lineageTag: 9d0db1ad-ded0-59f1-a4b6-816da409a273
+		summarizeBy: none
+		sourceColumn: residual_exposed_pop
+
+		annotation SummarizationSetBy = User
+
+	partition Exposure = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "exposure.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"nuts_id", type text}, {"return_period", Int64.Type}, {"annual_probability", type number}, {"exposed_pop", type number}, {"hazard_coverage", type number}, {"residual_exposed_pop", type number}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+
