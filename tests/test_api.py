@@ -1078,3 +1078,39 @@ def test_the_europe_view_opens_on_the_1_in_100_year_flood():
     assert "export const DEFAULT_RETURN_PERIOD = 100;" in source
     assert "setReturnPeriod(defaultReturnPeriod(m.return_periods))" in source
     assert "return periods.at(-1) ?? null;" in source
+
+
+def _two_scope_table() -> pd.DataFrame:
+    """Two Belgian regions and one Serbian one, at RP100: EU-27 and not."""
+    return pd.DataFrame({
+        "nuts_id": ["BE31", "BE32", "RS110"],
+        "country": ["BE", "BE", "RS"],
+        "exposed_pop": [3000.0, 400.0, 5000.0],
+        "total_pop": [100_000.0, 50_000.0, 40_000.0],
+        "share_over_65": [0.90, 0.50, 0.55],
+        "return_period": [100] * 3,
+        "annual_probability": [0.01] * 3,
+    })
+
+
+def test_exposure_rows_say_whether_they_are_eu27(frozen):
+    frozen(_two_scope_table())
+    body = TestClient(app).get("/api/exposure?return_period=100").json()
+    assert {r["nuts_id"]: r["eu27"] for r in body["rows"]} == {
+        "BE31": True, "BE32": True, "RS110": False}
+    # The server total stays the whole table; the UIs narrow it.
+    assert body["total_exposed"] == 8400.0
+
+
+def test_the_eu27_flag_is_never_offered_as_an_indicator(frozen):
+    frozen(_two_scope_table())
+    assert "eu27" not in TestClient(app).get("/api/meta").json()["indicators"]
+
+
+def test_the_europe_view_opens_on_the_eu27():
+    """The brief's 25.7 million is the EU-27 part of the 37-country total, so
+    the view opens on the EU-27, offers the rest, and draws only what it counts."""
+    source = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    assert 'useState("EU-27")' in source
+    assert "geojson={shown}" in source
+    assert "rows={ranked}" in source and "[...rows]" in source

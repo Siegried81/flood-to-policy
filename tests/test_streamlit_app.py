@@ -1386,3 +1386,23 @@ def test_the_ranked_chart_is_ordered_by_its_value_not_by_region_code():
     assert encoding["x"]["sort"] == {"field": "exposed_share", "order": "descending"}
     shares = table["exposed_share"].dropna().tolist()
     assert shares == sorted(shares, reverse=True)
+
+
+def test_the_page_opens_on_the_eu27_and_offers_the_rest():
+    from tests.test_api import _two_scope_table
+    app_test = _run(_two_scope_table())
+    assert app_test.exception == []
+    assert app_test.radio[0].value == "EU-27"
+    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "3,400"
+    with _frozen(_two_scope_table()):
+        app_test = AppTest.from_file(str(APP), default_timeout=60).run()
+        app_test.radio[0].set_value(app_test.radio[0].options[1]).run()
+    assert {m.label: m.value for m in app_test.metric}["Exposed, total"] == "8,400"
+
+
+def test_an_eu_only_table_offers_no_country_choice():
+    from tests.test_api import _two_scope_table
+    table = _two_scope_table()
+    app_test = _run(table[table["country"] == "BE"])
+    assert app_test.exception == []
+    assert not any(r.label == "Countries" for r in app_test.radio)
