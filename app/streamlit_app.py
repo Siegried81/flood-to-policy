@@ -253,8 +253,15 @@ if one_identifier:
 else:
     key = st.selectbox("Region identifier", key_columns)
 periods = sorted(exposure["return_period"].unique()) if "return_period" in exposure else []
+# Opens on the 1-in-100 year flood, the scenario the brief and the pitch quote
+# (the Directive's "medium probability" maps, Art. 6(3)(b)); a table without
+# RP100 opens on its rarest period.
 chosen = (
-    st.select_slider("Return period (years)", periods, value=periods[-1])
+    st.select_slider(
+        "Return period (years)",
+        periods,
+        value=100 if 100 in periods else periods[-1],
+    )
     if periods
     else None
 )

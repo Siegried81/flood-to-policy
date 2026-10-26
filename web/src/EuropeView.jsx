@@ -37,6 +37,16 @@ const shareOf = (row) =>
 // A positive share below 0.05% would round to "0.0%" and read as nobody exposed.
 const sharePercent = (v) => (v > 0 && v < 0.0005 ? "<0.1%" : `${(v * 100).toFixed(1)}%`);
 
+// The view opens on the 1-in-100 year flood, the scenario the brief, the pitch
+// and the Directive's "medium probability" maps (Art. 6(3)(b)) all speak of, so
+// the first figure a reader sees is the one they will hear. A table without
+// RP100 falls back to its rarest period, as before.
+export const DEFAULT_RETURN_PERIOD = 100;
+export function defaultReturnPeriod(periods = []) {
+  if (periods.includes(DEFAULT_RETURN_PERIOD)) return DEFAULT_RETURN_PERIOD;
+  return periods.at(-1) ?? null;
+}
+
 // The European exposure views, as they were before the July 2021 view became
 // the landing page. `config` comes from GET /api/config; null means "assume
 // the local behaviour".
@@ -53,7 +63,7 @@ export default function EuropeView({ config }) {
     getMeta()
       .then((m) => {
         setMeta(m);
-        setReturnPeriod(m.return_periods.at(-1) ?? null);
+        setReturnPeriod(defaultReturnPeriod(m.return_periods));
         // Geometry is optional: without it the ranking still works, so a missing
         // file degrades the map rather than breaking the page.
         if (m.has_geometry) getGeometry().then(setGeometry).catch(() => {});
@@ -71,6 +81,13 @@ export default function EuropeView({ config }) {
   const metric = exposure?.rows?.[0]?.exposed_share !== undefined
     ? "exposed_share"
     : "exposed_pop";
+
+  // The total covers every country in the table (EU-27, EFTA and candidates),
+  // so it says how many: the brief's 25.7 million is the EU-27 share of it.
+  const countryCount = useMemo(
+    () => new Set((exposure?.rows ?? []).map((r) => r.country)).size,
+    [exposure]
+  );
 
   const values = useMemo(() => {
     const map = new Map();
@@ -158,7 +175,7 @@ export default function EuropeView({ config }) {
                 render the same, so neither is rounded into a number here. */}
             <span className="chip">
               {Number.isFinite(exposure.total_exposed)
-                ? `${Math.round(exposure.total_exposed).toLocaleString()} exposed`
+                ? `${Math.round(exposure.total_exposed).toLocaleString()} exposed in ${countryCount} countries`
                 : "exposure not measured"}
             </span>
             <span className="chip warn" title="Regions the hazard raster does not cover">
