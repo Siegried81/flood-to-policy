@@ -6,7 +6,7 @@ what the next round of the Floods Directive should change. Built for the
 **European AI Challenge 2026 — From Data to Policy** (JRC × FARI, Brussels,
 29–30 October 2026).
 
-**Live demo (July 2021 view, no install):**
+**Live demo (July 2021 and Europe views, no install):**
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
 
 | | What the data says |
@@ -169,7 +169,7 @@ the same wheel again with nothing reinstalled. **The policy moves both ways, so
 measure rather than believe either state** — measured 2026-10-14 it blocked
 `import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
 collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,059<!-- /numbers --> collected, nothing deselected, all passing** (the
+**<!-- numbers:tests_collected -->1,068<!-- /numbers --> collected, nothing deselected, all passing** (the
 climate dry-run test that used to read the CDS files already in `data/` now
 honours its patched directory). The WSL2 venv stays, because it is the only route that does
 not depend on the policy's mood and it is where a continental raster build
@@ -234,7 +234,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,059<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,068<!-- /numbers --> tests, offline: no network, no model
                                         # All collected and passing 2026-10-23 on
                                         # Windows. Smart App Control blocks
                                         # rasterio on Windows some days and not
@@ -268,21 +268,28 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ### Live demo
 
-A static build needs no API at all and shows the July 2021 view only. The public
-demo is that build, served as a static Hugging Face Space:
+A static build needs no API at all. It shows the July 2021 view and the Europe
+view (Exposure with the return-period selector, Context and Vulnerability) from
+the API's own answers, frozen into `web/public/europe/` by
+`scripts/export_europe_web.py`. The public demo is that build, served as a
+static Hugging Face Space:
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
 
 ```bash
 .venv/bin/python scripts/export_event_web.py           # public data: Natural Earth borders, no GISCO geometry
+.venv/bin/python scripts/export_europe_web.py          # Europe view: frozen API answers (gitignored, ~19 MB)
 cd web && VITE_STATIC=1 VITE_BASE=/ npm run build         # -> web/dist/
 ```
 
 In Git Bash prefix the build with `MSYS_NO_PATHCONV=1` so the base is not
 rewritten into a Windows path; use `VITE_BASE=/flood-to-policy/` for a site
 served under a sub-path. To update the Space, upload the contents of
-`web/dist/` (`index.html`, `event_2021_web.json` and the `assets/` folder) under
-*Files → Add file → Upload files*. Europe, Ask and Draft need the API and stay
-local.
+`web/dist/` (`index.html`, `event_2021_web.json` and the `assets/` and `europe/`
+folders) under *Files → Add file → Upload files*. In the static build the region
+map is drawn from GISCO's 1:20 million NUTS file, which the viewer's browser
+fetches from GISCO itself, so no GISCO geometry is published here; the
+vulnerability ranking is precomputed at ±30 % and top 10 for every indicator
+set. Draft and Translation call a language model and stay local.
 
 ### Agent access (MCP)
 

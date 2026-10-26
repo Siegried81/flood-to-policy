@@ -124,9 +124,23 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
         "locator": loc,
         "how_we_counted": list(P.HOW_WE_COUNTED),
         "limits": list(P.LIMITS),
-        "sources": list(P.SOURCES),
+        "sources": sources(loc),
         "attribution": attribution(loc),
     })
+
+
+#: The policy tool's boundary credit, and what replaces it when no GISCO line is drawn.
+GISCO_SOURCE = next(s for s in P.SOURCES if s.startswith("Boundaries:"))
+PUBLIC_BOUNDARY_SOURCE = ("Regions: NUTS 2024 classification (Eurostat), used to add up the EU-27 "
+                          "figure; no regional boundary is drawn. Country borders: Natural Earth, "
+                          "public domain.")
+
+
+def sources(loc: dict[str, Any] | None) -> list[str]:
+    """The policy tool's sources, with the boundary line matching the lines actually drawn."""
+    if loc and loc["nuts_d"]:
+        return list(P.SOURCES)
+    return [PUBLIC_BOUNDARY_SOURCE if s == GISCO_SOURCE else s for s in P.SOURCES]
 
 
 def attribution(loc: dict[str, Any] | None) -> str:

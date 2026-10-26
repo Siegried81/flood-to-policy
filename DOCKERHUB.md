@@ -1,4 +1,4 @@
-# flood-policy-kit
+# flood-to-policy
 
 ## Quick reference
 
@@ -19,7 +19,7 @@ Flood-risk policy toolkit for the European AI Challenge 2026 (JRC x FARI): a Str
 
 Images from this repository:
 
-- `flood-policy-kit`: code only (~2 GB); the data tree (~80 GiB, ~69 GiB of it HERA discharge files) is bind-mounted
+- `flood-to-policy`: code only (~2 GB); the data tree (~80 GiB, ~69 GiB of it HERA discharge files) is bind-mounted
 
 ## How to use this image
 

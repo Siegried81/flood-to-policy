@@ -31,6 +31,9 @@ venv/
 # Node
 node_modules/
 web/dist/
+# Frozen API answers for the static Europe view, rebuilt by
+# scripts/export_europe_web.py before every static build.
+web/public/europe/
 
 # Local working state, never committed: see _build/STATE.md
 _build/
