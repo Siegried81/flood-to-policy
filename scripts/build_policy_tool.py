@@ -51,6 +51,8 @@ from src.story_maps import geojson_pixels, lines as _lines, png_data_uri, reduce
 PROCESSED = ROOT / "data" / "processed"
 EMS_CACHE = ROOT / "data" / "raw" / "challenge_2021" / "ems"
 NUTS3 = ROOT / "data" / "raw" / "download" / "gisco_nuts3.geojson"
+NATURAL_EARTH = ROOT / "data" / "raw" / "download" / "natural_earth_countries.zip"
+COUNTRY_LABELS = {"BE": "BELGIUM", "DE": "GERMANY", "NL": "NETHERLANDS"}
 OUT_DIR = ROOT / "docs" / "perso" / "policy_tool"
 CRS = "EPSG:3035"
 
@@ -81,6 +83,39 @@ def _nuts(bounds) -> "pd.DataFrame | None":
         return None
     frame = gpd.read_file(NUTS3, bbox=tuple(bounds))
     return frame.to_crs(CRS) if frame.crs and frame.crs.to_string() != CRS else frame
+
+
+def _natural_earth_countries(bounds) -> dict:
+    """Natural Earth country polygons meeting an EPSG:3035 box, keyed by ISO2; {} without the file."""
+    import geopandas as gpd
+    import shapely
+
+    if not NATURAL_EARTH.exists():
+        return {}
+    world = gpd.read_file(f"zip://{NATURAL_EARTH.as_posix()}", columns=["ISO_A2_EH"]).to_crs(CRS)
+    world = world[world.intersects(shapely.box(*bounds))]
+    return dict(zip(world["ISO_A2_EH"], world.geometry))
+
+
+def border_lines(countries: dict, frame, to_xy) -> tuple[str, list]:
+    """Country borders inside `frame` as one SVG path, and a label per large country.
+
+    The frame edge is cut away, so a border is only drawn where two countries
+    meet or a coast runs, never along the map's own edge. A country is labelled
+    when more than 8 % of the frame lies in it, so a sliver of France at the
+    corner gets no name.
+    """
+    lines, labels = [], []
+    for code, geom in sorted(countries.items()):
+        country = geom.simplify(500)
+        edge = country.boundary.difference(frame.boundary.buffer(100)).intersection(frame)
+        lines += _lines(edge)
+        inside = country.intersection(frame)
+        name = COUNTRY_LABELS.get(code)
+        if name and inside.area > 0.08 * frame.area:
+            p = inside.representative_point()
+            labels.append((name, *to_xy(p.x, p.y)))
+    return P.line_d(lines, to_xy), labels
 
 
 def place_layer(product_id: str, *, with_nuts: bool = True) -> dict | None:
@@ -160,8 +195,10 @@ def locator(products: pd.DataFrame, *, with_nuts: bool = True) -> dict | None:
     """The overview map: country borders and every first-pass AOI, in a 600-wide viewBox.
 
     `nuts` holds the NUTS3 lines of the window at 1 km, for context under the
-    borders; `with_nuts=False` drops every GISCO-derived line (borders, NUTS
-    lines, country labels) and keeps the AOIs only.
+    borders, and the borders are the NUTS3 polygons dissolved by country.
+    `with_nuts=False` drops every GISCO-derived line and draws the borders from
+    Natural Earth instead: public domain, so the public build still shows which
+    country each mapped area is in.
     """
     import pyogrio
     import shapely
@@ -183,24 +220,17 @@ def locator(products: pd.DataFrame, *, with_nuts: bool = True) -> dict | None:
 
     out = {"width": LOCATOR_WIDTH, "height": (box[3] - box[1]) * scale, "labels": [],
            "borders": "", "nuts": "", "aoi": {}}
+    frame = shapely.box(*box)
     nuts = _nuts(box) if with_nuts else None
     if nuts is not None and len(nuts):
-        frame = shapely.box(*box)
         regions = [g.simplify(LOCATOR_NUTS_TOLERANCE_M).boundary.intersection(frame)
                    for g in nuts.geometry]
         out["nuts"] = P.line_d([l for g in regions for l in _lines(g)], to_xy)
-        lines = []
-        for code, group in nuts.groupby("CNTR_CODE"):
-            country = shapely.union_all(group.geometry.values).simplify(500)
-            edge = country.boundary.difference(frame.boundary.buffer(100)).intersection(frame)
-            lines += _lines(edge)
-            inside = country.intersection(frame)
-            if inside.area > 0.08 * frame.area:
-                p = inside.representative_point()
-                name = {"BE": "BELGIUM", "DE": "GERMANY", "NL": "NETHERLANDS"}.get(code)
-                if name:
-                    out["labels"].append((name, *to_xy(p.x, p.y)))
-        out["borders"] = P.line_d(lines, to_xy)
+        countries = {code: shapely.union_all(group.geometry.values)
+                     for code, group in nuts.groupby("CNTR_CODE")}
+    else:
+        countries = _natural_earth_countries(box)
+    out["borders"], out["labels"] = border_lines(countries, frame, to_xy)
     for key, geom in shapes.items():
         out["aoi"][key] = P.path_d(shapely.geometry.mapping(geom.simplify(200)), to_xy)
     return out

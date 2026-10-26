@@ -91,6 +91,7 @@ def test_event2021_serves_the_file_as_is(client, tmp_path, monkeypatch):
     payload = {"schema": 1, "hero": [], "places": []}
     path.write_text(json.dumps(payload), encoding="utf-8")
     monkeypatch.setattr(api, "EVENT_WEB", path)
+    monkeypatch.setattr(api, "EVENT_WEB_FULL", tmp_path / "absent.full.json")
     r = client.get("/api/event2021")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("application/json")
@@ -100,6 +101,7 @@ def test_event2021_serves_the_file_as_is(client, tmp_path, monkeypatch):
 
 def test_event2021_missing_is_a_404_that_names_the_builder(client, tmp_path, monkeypatch):
     monkeypatch.setattr(api, "EVENT_WEB", tmp_path / "absent.json")
+    monkeypatch.setattr(api, "EVENT_WEB_FULL", tmp_path / "absent.full.json")
     r = client.get("/api/event2021")
     assert r.status_code == 404
     assert "missing" in r.json()["detail"]
@@ -112,3 +114,23 @@ def test_event2021_is_served_in_the_hosted_demo(client, tmp_path, monkeypatch):
     path.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(api, "EVENT_WEB", path)
     assert client.get("/api/event2021").status_code == 200
+
+
+def _two_builds(tmp_path, monkeypatch):
+    public, full = tmp_path / "event_2021_web.json", tmp_path / "event_2021_web.full.json"
+    public.write_text('{"build": "public"}', encoding="utf-8")
+    full.write_text('{"build": "full"}', encoding="utf-8")
+    monkeypatch.setattr(api, "EVENT_WEB", public)
+    monkeypatch.setattr(api, "EVENT_WEB_FULL", full)
+
+
+def test_event2021_prefers_the_local_full_build(client, tmp_path, monkeypatch):
+    monkeypatch.delenv("HOSTED", raising=False)
+    _two_builds(tmp_path, monkeypatch)
+    assert client.get("/api/event2021").json() == {"build": "full"}
+
+
+def test_event2021_hosted_never_serves_the_full_build(client, tmp_path, monkeypatch):
+    monkeypatch.setenv("HOSTED", "1")
+    _two_builds(tmp_path, monkeypatch)
+    assert client.get("/api/event2021").json() == {"build": "public"}
