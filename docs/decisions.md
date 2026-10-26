@@ -397,3 +397,8 @@ Each entry keeps the same four-line shape: date, decision, why, effect.
 - **Decision:** The React Europe view and the Streamlit app open on RP100 instead of the rarest period (RP500); a table without RP100 still opens on its rarest one. The React total chip names how many countries it covers.
 - **Why:** The brief, the pitch and the Directive's medium-probability maps (Art. 6(3)(b)) all quote RP100, yet the page a juror opens first showed 35.5 million at RP500; and its 29.7 million at RP100 covers all 37 countries, while the brief's 25.7 million is the EU-27.
 - **Effect:** No figure changed; only which period is on screen first. The chip reads "29,727,887 exposed in 37 countries" at RP100.
+
+### 2026-10-26 — Both UIs open on the EU-27
+- **Decision:** `/api/exposure` rows carry `eu27` (membership from `src/policy_tool.EU27`, added to the answer, never to the table). The React Europe view and the Streamlit app open on the EU-27 and offer all 37 countries of the GISCO file as a second choice; the React map draws only the regions in scope.
+- **Why:** The brief, the pitch and the Floods Directive speak of the Member States, yet the first total on screen covered EU-27, EFTA and the candidate countries (29.7 million at RP100 against the brief's 25.7 million).
+- **Effect:** No figure changed. At RP100 the page now opens on 25,737,004 people in 27 countries (1,165 regions); "All 37" shows the previous 29,727,887. The Vulnerability and Context tabs of the React view still rank all 37 countries.

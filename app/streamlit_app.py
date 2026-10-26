@@ -39,6 +39,7 @@ from src import nlquery, rag, svgmap, translate, usage_log  # noqa: E402
 from src.toon_io import fit_rows, flatten, to_toon, token_report  # noqa: E402
 from src.demographics import with_current_names  # noqa: E402
 from src.vulnerability import sensitivity  # noqa: E402
+from src.policy_tool import EU27  # noqa: E402
 
 # Imported from the API rather than restated here. The vulnerability index is a
 # weighted mean over whichever columns are selected, so the moment the two UIs
@@ -297,9 +298,24 @@ if chosen is not None:
         "The Article fixes a number for (b) only, so RP100 and above is 'medium "
         f"probability' on the Directive's own words.{kit_reading}"
     )
+# EU-27 first, like the React UI: the brief, the pitch and the Floods Directive
+# speak of the Member States, and the GISCO file also holds EFTA and the
+# candidate countries. Offered only when the table holds both, since a choice
+# with one answer is no choice.
+eu_only = False
+if "country" in exposure.columns and not exposure["country"].isin(EU27).all():
+    n_countries = exposure["country"].nunique()
+    eu_only = st.radio(
+        "Countries",
+        ["EU-27", f"All {n_countries} (EU-27, EFTA, candidates)"],
+        horizontal=True,
+    ) == "EU-27"
 # One period, everywhere. The extents are nested, so a figure taken over the whole
 # table counts the core floodplain once per period.
 view = exposure[exposure["return_period"] == chosen] if periods else exposure
+# One scope, everywhere, for the same reason: every tab reads `view`.
+if eu_only:
+    view = view[view["country"].isin(EU27)]
 # Defined beside `view` rather than inside a tab because two tabs read it.
 # Streamlit re-runs the script top to bottom and `with` opens no scope, so every
 # name a tab binds is a module-level name the next tab inherits. A flag set in
