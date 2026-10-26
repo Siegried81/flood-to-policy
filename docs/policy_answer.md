@@ -199,29 +199,34 @@ same test as both rules here — which is why the earlier counts (976, 994, 943)
 were so much higher: two hydrological models forced by the same climate do not
 sample climate uncertainty at all.
 
-**80 regions** are simultaneously in the top decile of exposure share today and
-rising by 2041-2070 with at least 80 % of the members agreeing on the sign —
-Groot-Rijnmond, Val-de-Marne, Wien, Rhône, Padova, Hamburg among them; 11 if
-every member must agree, with Wien the only one of those six left. That set is a
-planning list, not a ranking.
+**69 EU-27 regions** are simultaneously in the EU-27 top decile of exposure
+share today and rising by 2041-2070 with at least 80 % of the members agreeing
+on the sign — Groot-Rijnmond, Val-de-Marne, Wien, Rhône, Padova among them; 8 if
+every member must agree, with Wien the only one of those five left. That set is
+a planning list, not a ranking. The decile is taken among the 1,165 EU-27
+regions, so the list matches the EU-27 headline and the Directive's reach.
 
 It says where defences will be tested, not where none stand (measured
-2026-10-25): the 80 hold **7,321,480** people exposed at RP100 undefended but
-**1,008,369** behind the design standards, and only 17 of them have a residual
-share above 5 %; Groot-Rijnmond reads 0.5 %, Wien and Hamburg 0.0 %. The same
-rule on the residual share (top decile of `residual_exposed_pop_rp100` over
-population, and a robust rise) gives **77 regions**, 15 if every member must
-agree, holding **2,771,048** residual exposed — Pisa, Vidin, Zapadnobačka (RS),
-Ialomița, Durrës (AL), Riga and Arad lead — and **only 17 regions are on both
+2026-10-26): the 69 hold **6,545,666** people exposed at RP100 undefended but
+**865,518** behind the design standards, and only 13 of them have a residual
+share above 5 %; Groot-Rijnmond reads 0.5 %, Wien 0.0 %. The same rule on the
+residual share (EU-27 top decile of `residual_exposed_pop_rp100` over
+population, and a robust rise) gives **68 regions**, 13 if every member must
+agree, holding **2,634,226** residual exposed — Pisa, Vidin, Ialomița, Riga,
+Arad, Pescara and Trójmiejski lead — and **only 13 regions are on both
 lists**. Quote both: the first is where rising discharge will erode the
 standards, the second where nothing is built yet.
+
+Over all 37 countries (1,345 regions, decile taken over all of them) the same
+rules give 80 and 77 regions, 7,321,480 and 2,771,048 people, 17 on both lists;
+the extra regions are in Serbia, Albania, North Macedonia, Kosovo and Türkiye.
 
 **The observed record does not show the rise yet** (measured 2026-10-25). In
 the HERA v2 reanalysis, 1991-2020, the median region's annual peak discharge
 fell by 1.4 % a decade (interquartile range −5.4 … +3.6 %; EU-27 median
 −1.8 %). Peaks fell in 727 of the 1,220 regions with river cells, in 428 of the
-709 with river cells and a robust projected rise by 2041-2070, and in **47 of the 80** on the
-planning list; only 4.7 % of the 210,574 river cells rise significantly
+709 with river cells and a robust projected rise by 2041-2070, and in **42 of the 69** on the
+EU-27 planning list (47 of the 80 over 37 countries); only 4.7 % of the 210,574 river cells rise significantly
 (Mann-Kendall, 5 %), and the rank correlation between the observed trend and
 the projected 2041-2070 median change is −0.01. HERA is a model forced by
 ERA5-Land, with reservoirs in it, not gauged flow. The honest reading: the
@@ -381,7 +386,7 @@ this page adds is the current legislative context a JRC jury will know:
   `poverty_rate_pct` is a percentage beside `share_over_65`, a fraction. Values
   did not change; a table or export from an older build says `poverty_rate`
   (the committed `exposure.parquet` still does), and the API and both UIs read it under the new name for one release.
-- The full suite now collects **<!-- numbers:tests_collected -->1,023<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
+- The full suite now collects **<!-- numbers:tests_collected -->1,052<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
   Windows on 2026-10-07, allowed it the next morning with nothing reinstalled,
   and blocked it again on 2026-10-12, so the policy moves both ways and the only safe habit is to
   re-measure rather than quote this line. The WSL2 venv stays as the route that
