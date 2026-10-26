@@ -169,7 +169,7 @@ the same wheel again with nothing reinstalled. **The policy moves both ways, so
 measure rather than believe either state** — measured 2026-10-14 it blocked
 `import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
 collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,071<!-- /numbers --> collected, nothing deselected, all passing** (the
+**<!-- numbers:tests_collected -->1,076<!-- /numbers --> collected, nothing deselected, all passing** (the
 climate dry-run test that used to read the CDS files already in `data/` now
 honours its patched directory). The WSL2 venv stays, because it is the only route that does
 not depend on the policy's mood and it is where a continental raster build
@@ -234,7 +234,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,071<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,076<!-- /numbers --> tests, offline: no network, no model
                                         # All collected and passing 2026-10-23 on
                                         # Windows. Smart App Control blocks
                                         # rasterio on Windows some days and not

@@ -52,6 +52,7 @@ from src import nlquery, rag, translate  # noqa: E402
 from src.toon_io import fit_rows, flatten, to_toon, token_report  # noqa: E402
 from src.demographics import LEGACY_COLUMNS, with_current_names  # noqa: E402
 from src.vulnerability import sensitivity  # noqa: E402
+from src.policy_tool import EU27  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 log = logging.getLogger(__name__)
@@ -292,6 +293,12 @@ def exposure(return_period: int | None = None) -> dict:
     if {"exposed_pop", "total_pop"} <= set(df.columns):
         df = df.assign(exposed_share=df["exposed_pop"] / df["total_pop"])
 
+    # Membership travels on each row so a UI can show the EU-27, which every
+    # EU-level figure in the brief is quoted on, without dropping the other ten
+    # countries of the GISCO file. Added to the answer only, never to the table,
+    # so it cannot be offered as a vulnerability indicator.
+    if "country" in df.columns:
+        df = df.assign(eu27=df["country"].isin(EU27))
     records = json.loads(df.to_json(orient="records"))  # NaN -> null, which JSON can carry
     # null rather than 0 when the column is absent: "we did not measure this" and
     # "we measured nobody" must not arrive in the same shape.

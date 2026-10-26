@@ -58,6 +58,9 @@ export default function EuropeView({ config }) {
   const [returnPeriod, setReturnPeriod] = useState(null);
   const [exposure, setExposure] = useState(null);
   const [geometry, setGeometry] = useState(null);
+  // EU-27 first: the brief, the pitch and the Floods Directive speak of the
+  // Member States. The other ten countries of the GISCO file stay one click away.
+  const [scope, setScope] = useState("EU-27");
 
   useEffect(() => {
     getMeta()
@@ -82,18 +85,40 @@ export default function EuropeView({ config }) {
     ? "exposed_share"
     : "exposed_pop";
 
-  // The total covers every country in the table (EU-27, EFTA and candidates),
-  // so it says how many: the brief's 25.7 million is the EU-27 share of it.
-  const countryCount = useMemo(
-    () => new Set((exposure?.rows ?? []).map((r) => r.country)).size,
-    [exposure]
+  // An API older than the eu27 flag sends rows without it: show them all
+  // rather than none.
+  const hasScope = exposure?.rows?.some((r) => typeof r.eu27 === "boolean") ?? false;
+  const rows = useMemo(
+    () => (exposure?.rows ?? []).filter((r) => scope !== "EU-27" || !hasScope || r.eu27),
+    [exposure, scope, hasScope]
   );
+
+  // Totals over the rows on screen, summed as the server sums them (unmeasured
+  // regions skipped and counted apart), so the all-countries figure is the
+  // server's own and the EU-27 one is its Member State part.
+  const totals = useMemo(() => {
+    const measured = rows.filter((r) => Number.isFinite(r.exposed_pop));
+    return {
+      exposed: exposure?.total_exposed == null
+        ? null : measured.reduce((s, r) => s + r.exposed_pop, 0),
+      unmeasured: exposure?.unmeasured == null ? null : rows.length - measured.length,
+      countries: new Set(rows.map((r) => r.country)).size,
+    };
+  }, [rows, exposure]);
 
   const values = useMemo(() => {
     const map = new Map();
-    for (const row of exposure?.rows ?? []) map.set(row[exposure.key], row[metric]);
+    for (const row of rows) map.set(row[exposure.key], row[metric]);
     return map;
-  }, [exposure, metric]);
+  }, [rows, exposure, metric]);
+
+  // The map draws the regions in scope only, so the other countries are left
+  // out of the frame rather than greyed as "not measured", which they are not.
+  const shown = useMemo(() => {
+    if (!geometry || !exposure) return geometry;
+    const ids = new Set(rows.map((r) => r[exposure.key]));
+    return { ...geometry, features: geometry.features.filter((f) => ids.has(f.properties?.[exposure.key])) };
+  }, [geometry, rows, exposure]);
 
   // Region names off the boundaries the map already loads, so every table can
   // print "Wittmund" beside "DE94H" without another request or another column
@@ -108,11 +133,11 @@ export default function EuropeView({ config }) {
   }, [geometry, meta]);
 
   const ranked = useMemo(
-    () => [...(exposure?.rows ?? [])]
+    () => [...rows]
       .filter((r) => Number.isFinite(r[metric]))
       .sort((a, b) => b[metric] - a[metric])
       .slice(0, 15),
-    [exposure, metric]
+    [rows, metric]
   );
 
   if (error) {
@@ -173,14 +198,23 @@ export default function EuropeView({ config }) {
             {/* The server sends null, not 0, when the table carries no
                 exposed_pop column at all. "Not measured" and "zero" must not
                 render the same, so neither is rounded into a number here. */}
+            {hasScope && (
+              <label>
+                Countries
+                <select value={scope} onChange={(e) => setScope(e.target.value)}>
+                  <option value="EU-27">EU-27</option>
+                  <option value="All">All {new Set(exposure.rows.map((r) => r.country)).size} (EU-27, EFTA, candidates)</option>
+                </select>
+              </label>
+            )}
             <span className="chip">
-              {Number.isFinite(exposure.total_exposed)
-                ? `${Math.round(exposure.total_exposed).toLocaleString()} exposed in ${countryCount} countries`
+              {Number.isFinite(totals.exposed)
+                ? `${Math.round(totals.exposed).toLocaleString()} exposed in ${totals.countries} countries`
                 : "exposure not measured"}
             </span>
             <span className="chip warn" title="Regions the hazard raster does not cover">
-              {Number.isFinite(exposure.unmeasured)
-                ? `${exposure.unmeasured} not measured`
+              {Number.isFinite(totals.unmeasured)
+                ? `${totals.unmeasured} not measured`
                 : "coverage unknown"}
             </span>
           </div>
@@ -207,7 +241,7 @@ export default function EuropeView({ config }) {
               selector can have moved since this response arrived, and a map
               captioned with a scenario it is not for is worse than no caption. */}
           <Choropleth
-            geojson={geometry}
+            geojson={shown}
             values={values}
             idKey={exposure.key}
             // A share is a fraction on the wire; "≤4.2%" reads, "≤0.04" does not.
