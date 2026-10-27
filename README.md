@@ -169,7 +169,7 @@ the same wheel again with nothing reinstalled. **The policy moves both ways, so
 measure rather than believe either state** — measured 2026-10-14 it blocked
 `import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
 collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,077<!-- /numbers --> collected, nothing deselected, all passing** (the
+**<!-- numbers:tests_collected -->1,090<!-- /numbers --> collected, nothing deselected, all passing** (the
 climate dry-run test that used to read the CDS files already in `data/` now
 honours its patched directory). The WSL2 venv stays, because it is the only route that does
 not depend on the policy's mood and it is where a continental raster build
@@ -234,7 +234,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,077<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,090<!-- /numbers --> tests, offline: no network, no model
                                         # All collected and passing 2026-10-23 on
                                         # Windows. Smart App Control blocks
                                         # rasterio on Windows some days and not
@@ -254,6 +254,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/check_offline_readiness.py   # exits 1 if the demo needs the network
 .venv/bin/python scripts/check_offline_readiness.py --strict  # evening before: a WARN blocks too
 .venv/bin/python scripts/docs_numbers.py --check      # exits 1 if a doc's number no longer matches the code
+.venv/bin/python scripts/event_2021_infrastructure.py # -> data/processed/event_2021_infrastructure.parquet (July 2021 roads, networks, services)
 .venv/bin/python scripts/export_event_web.py          # -> data/processed/event_2021_web.json + web/public/ copy (July 2021 view, public: Natural Earth borders)
 .venv/bin/python scripts/export_event_web.py --full   # -> event_2021_web.full.json, local only (GISCO borders + NUTS3), served by the API when present
 
