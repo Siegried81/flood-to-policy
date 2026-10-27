@@ -107,6 +107,39 @@ PLAN_REVIEW_SOURCE = (
     "December 2021 and every six years thereafter\"; the next review falls on "
     "22 December 2027.")
 
+#: The brief's recommendations 2 and 3, word for word, so the tool and the brief
+#: say the same thing (Annex 4, criterion 3). Recommendation 1 answers the case's
+#: own question and is filled on the day (`render_page(recommendation=, actor=)`).
+#: Each is (what, who and by when, instrument and cost).
+RECOMMENDATIONS: tuple[tuple[str, str, str], ...] = (
+    ("Make the declared risk areas comparable, and publish absence as absence: a "
+     "minimum mapping unit, reaches reported as buffered areas, each State's declared "
+     "share published beside its submission; Ireland's areas into the layer, "
+     "Lithuania's current cycle reconciled, \"not reported\" shown instead of nothing.",
+     f"DG ENV through the Working Group on Floods, with the EEA; tabled early in 2027, "
+     f"before the {PLAN_REVIEW_DATE_SHORT} plan review.",
+     "The reporting guidance the Working Group already issues each cycle, and Article 15 "
+     "reporting. Staff time only."),
+    ("Test Article 8(5) on the Meuse, the river of July 2021. One riparian State reports "
+     "a flood-risk issue it cannot resolve alone and proposes a solution; the Commission "
+     "must answer within six months.",
+     "A party of the International Meuse Commission (secretariat in Liège), by mid-2027, "
+     "so the answer lands inside the 2027 planning window.",
+     "Article 8(5) as written. No new body, no new money."),
+)
+
+#: The page's bottom line, the brief's closing paragraph without its figures (the
+#: page types none by hand).
+CONCLUSION = (
+    "July 2021 showed that Europe's flood map can miss many of the people a flood reaches, "
+    "and that a defence built for the 1-in-100-year flood is not a guarantee. "
+    "Recommendation 1 answers the event itself. Recommendations 2 and 3 carry it to Europe: "
+    "until the Member States' declared risk areas can be compared, nobody can see whether "
+    "the people left behind the defences are inside what any State plans for; and a river "
+    "shared by several States, as the Meuse is, needs the one cross-border route the "
+    f"Directive already provides. The next window to act is the plan review of "
+    f"{PLAN_REVIEW_DATE}.")
+
 #: Story-map raster classes, shared with the web export so both draw the same map.
 RASTER_CLASSES = story_maps.RASTER_CLASSES
 
@@ -776,7 +809,10 @@ details ul{margin:.4em 0;padding-left:1.2em}
 .eumap .credit{font-size:9px;fill:#555}
 .eulegend{list-style:none;padding:0;margin:10px 0;font-size:.9rem}
 .eulegend li{margin:3px 0}
-.reco{border:3px solid var(--ink);padding:16px 18px;font-size:1.2rem}
+.recos{width:100%;border-collapse:collapse;font-size:.95rem}
+.recos th,.recos td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.recos tr.reco td{border:3px solid var(--ink);font-size:1.05rem}
+.conclusion{font-size:1.1rem;border-left:4px solid var(--ink);padding:4px 0 4px 14px}
 .limits{columns:2 340px;column-gap:32px;padding:16px 20px;margin:0;list-style:none;background:#fffaf0;border:1px solid #d8c48a}
 .limits li{break-inside:avoid;margin:0 0 .7em;font-size:.9rem}
 footer{margin-top:3em;border-top:1px solid var(--line);padding-top:10px;font-size:.78rem;color:var(--muted)}
@@ -786,7 +822,7 @@ body{font-size:11pt}main{max-width:none;padding:0}
 .places,.toggle,details summary{display:none}
 details{display:block}details>*{display:block}
 h2{break-after:avoid;margin-top:1.4em}
-.hero,.story,.europe,.reco,.limits,.chart{break-inside:avoid}
+.hero,.story,.europe,.recos,.conclusion,.limits,.chart{break-inside:avoid}
 .limits{background:none}
 }
 """
@@ -933,8 +969,13 @@ the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map
 if there were no dikes (JRC hazard map, GHS-POP 2025, E2025). Protected low-lying areas, such as much of the
 Netherlands, therefore show high. Grey is not measured, not zero.</p></div></div>
 
-<h2><span class="kicker">What we recommend</span>Recommendation</h2>
-<div class="reco">{slot(recommendation)} — addressed to {slot(actor)}</div>
+<h2><span class="kicker">What we recommend</span>Three recommendations, before the {PLAN_REVIEW_DATE_SHORT} plan review</h2>
+<table class="recos"><thead><tr><th>Action</th><th>Who, by when</th><th>Instrument, cost</th></tr></thead><tbody>
+<tr class="reco"><td><b>1.</b> {slot(recommendation)}</td><td>{slot(actor)}</td><td>{slot("[INSTRUMENT, COST]")}</td></tr>
+{"".join(f'<tr><td><b>{i}.</b> {esc(what)}</td><td>{esc(who)}</td><td>{esc(how)}</td></tr>' for i, (what, who, how) in enumerate(RECOMMENDATIONS, 2))}
+</tbody></table>
+<h2><span class="kicker">In one paragraph</span>Conclusion</h2>
+<p class="conclusion">{esc(CONCLUSION)}</p>
 
 <h2><span class="kicker">Read with care</span>What this cannot tell you</h2>
 <ul class="limits">{"".join(f"<li>{item}</li>" for item in LIMITS)}</ul>
@@ -942,7 +983,7 @@ Netherlands, therefore show high. Grey is not measured, not zero.</p></div></div
 <footer>
 <p><b>Sources.</b></p><ul>{"".join(f"<li>{esc(s)}</li>" for s in SOURCES)}</ul>
 <p>Every number on this page is read from the team's computed tables by a script; none is typed by hand,
-except the legal date above. This file is static: it calls no AI service and loads nothing from the
+except dates and the Directive's own terms. This file is static: it calls no AI service and loads nothing from the
 internet. {esc(built)}</p>
 <p><b>{TEAM}</b></p>
 </footer>

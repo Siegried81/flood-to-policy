@@ -499,6 +499,55 @@ geodata:
     licence: CC-BY-4.0
     verified: 2026-10-06
 
+  - id: ghsl_pop_100m_tiles_2020
+    url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2020_GLOBE_R2023A_54009_100/V1-0/tiles/
+    access: download
+    crs: ESRI:54009
+    # Same two tiles as ghsl_pop_100m_tiles, epoch 2020: 41,019,822 B and
+    # 93,236,511 B (HEAD, 2026-10-27).
+    files:
+      - GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R3_C19.zip
+      - GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R4_C19.zip
+    purpose: >
+      GHS-POP at 100 m, epoch 2020, for the Walloon July 2021 validation
+      (`scripts/validate_2021.py --epoch 2020`): the organisers ask for E2020
+      for a 2021 event (Annex 2), and these are the same tiles one epoch earlier.
+    caveat: >
+      Take BOTH tiles, for the reason given under ghsl_pop_100m_tiles.
+    licence: CC-BY-4.0
+    verified: 2026-10-27
+
+  - id: groundsource_flood_events
+    url: https://zenodo.org/records/18647054/files/groundsource_2026.parquet
+    access: download
+    purpose: >
+      Groundsource (Google Research, 2026): 2.6 million flood events from 2000 to
+      2026 in more than 150 countries, extracted from news reports by Gemini and
+      mapped to place polygons. Used only to corroborate July 2021 in BE/DE/NL:
+      how many reported floods fell where the JRC 1-in-100 map expects none.
+    caveat: >
+      Model-extracted, not observed: the authors report 60 % of events right in
+      both place and date, 82 % right to the district or within a day. A count
+      from it is corroboration, never a headline. 667 MB.
+    licence: CC-BY-4.0
+    verified: 2026-10-27
+
+  - id: opw_ireland_afa
+    url: https://s3.eu-west-1.amazonaws.com/catalogue.floodinfo.opw/cfram/cfram_area_for_further_assessment_boundaries.zip
+    access: download
+    crs: EPSG:29903
+    purpose: >
+      Ireland's own flood-risk areas (Office of Public Works, CFRAM Areas for
+      Further Assessment, 307 polygons; `CYCLE_TWO` flags the 199 that are the
+      second-cycle APSFRs, `EU_APSFR` their EU code). Ireland is absent from every
+      cycle of the EEA APSFR layer; this shows the areas exist and are published
+      nationally: the 199 cover 2.37 % of the State (measured 2026-10-27).
+    caveat: >
+      A national layer, not the EEA one: compare it with the EEA shares as one
+      State's declaration, never merge it silently into the European statistic.
+    licence: CC-BY-4.0
+    verified: 2026-10-27
+
   - id: cems_emsr518_belgium_2021
     # The activation page is HTML; the products sit in a public S3 bucket, which
     # answers anonymously - verified 2026-10-06 with no credentials and a default

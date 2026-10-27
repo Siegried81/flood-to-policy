@@ -500,7 +500,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,095<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,112<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 The platform history matters more than any one run. On 12 October 2026, in WSL2,
@@ -536,7 +536,7 @@ forty-three summing to 989 while the suite held 1,090.
 | `test_nlquery.py` | 60 | natural-language questions over the table: the spec whitelist, unknown columns and operators refused, one period, nulls counted as not measured, one model call and no retry |
 | `test_offline_readiness.py` | 56 | the demo runs with the Wi-Fi off: the three verdicts, `--strict`, a rejected file is not present, the two caches `src.fetch` does not fill |
 | `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
-| `test_validate_2021.py` | 15 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total |
+| `test_validate_2021.py` | 16 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total, `--epoch 2020` reading its own tiles and writing its own file |
 | `test_api.py` | 82 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
 | `test_streamlit_app.py` | 67 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
 | `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
@@ -581,7 +581,8 @@ forty-three summing to 989 while the suite held 1,090.
 | `test_export_event_web.py` | 16 | the React app's July 2021 JSON: the contract keys, every number the policy tool's, missing is null never zero, no GISCO line in the committed file, `--full` goes to an ignored file only |
 | `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
 | `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
-| `test_policy_tool.py` | 20 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N" |
+| `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
+| `test_policy_tool.py` | 21 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N" |
 
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
@@ -604,10 +605,10 @@ zonal statistic is the right arithmetic on the wrong piece of Europe. Measured o
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,095<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,112<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
-| <!-- numbers:sources_declared -->79<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->71<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->39<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
+| <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
 | the 0.25% stripe discrepancy | two continental RP100 builds, 6 October 2026 |
 | 4.85% of cells carry a value | a 1,468,800-cell window of Belgian land, RP100 |
