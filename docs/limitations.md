@@ -1,6 +1,12 @@
 # Limitations: what the kit does not claim
 
-The kit is a ten-day build on open data, frozen on 2026-10-08. This page gathers
+The kit is a ten-day build on open data. Three dates are in play:
+`exposure.parquet` was last built on 2026-10-07 (nine return periods; see
+[`data/processed/DATA_NOTICE.md`](../data/processed/DATA_NOTICE.md)), the European
+figures were read off it as the measured base of 2026-10-08
+([`policy_answer.md` §3](policy_answer.md#3-the-measured-base-2026-10-08)), and
+`context.parquet` has been rebuilt layer by layer since (the full climate ensemble
+on 2026-10-25); the July 2021 tables were built on 2026-10-26, and their infrastructure table (`event_2021_infrastructure.parquet`) on 2026-10-27. This page gathers
 in one place what its figures cannot support, what was designed and not built,
 what a public authority would still have to do before acting on it, and the
 shortcuts accepted to ship it. Every bullet points at the file that holds the
@@ -10,6 +16,42 @@ rebuilt. The findings and recommendations themselves are in
 [`policy_answer.md`](policy_answer.md).
 
 ## 1. What the figures can't say
+
+**The July 2021 Copernicus figures**
+
+The core of the case: water, residents, buildings and infrastructure per
+Copernicus EMS Rapid Mapping product (EMSR517 Germany, EMSR518 Belgium, EMSR520
+Netherlands; 27 products, 4 Belgian, 22 German, 1 Dutch).
+
+- **A snapshot, not the peak.** Each product is the water visible on one image, often a day or more after the crest. The first map
+  (`PRODUCT`) and each monitoring pass (`MONIT01`) are separate rows, never merged
+  into one extent; the true extent was larger than either.
+  [`src/event2021.py`](../src/event2021.py) module docstring.
+- **Outside an AOI is "not mapped", not dry.** Every figure is computed inside the
+  product's area of interest only; whole flooded valleys lie outside them, and a
+  cell outside is unknown, never a false alarm for the hazard map.
+- **Radar delineations stop at walls, so the Belgian building count is a floor.**
+  The delineation (`DEL`) products are drawn semi-automatically from radar and
+  miss the water between houses; the grading (`GRA`) products, photo-interpreted,
+  carry it through the streets. Belgium has delineations only: on EMSR518 AOI01
+  (Liège) 138 GHS-OBAT buildings lie inside the first map's water and 369 within
+  25 m of it, so `buildings_within_25m_of_observed` travels beside the count.
+- **Two population grids.** The event is counted on GHS-POP E2020 (30 arc-seconds,
+  as Annex 2 of the challenge asks); the European figures on GHS-POP E2025 at 1 km.
+  The two never enter one sum.
+- **Never say "homes destroyed".** Copernicus's building classes
+  (`11-Residential` / `12-Non-residential`) are not consistent between passes: on
+  the Ahr's first map (EMSR517 AOI15) 273 of the 336 buildings graded destroyed
+  are classed non-residential, against 15 of 753 on its monitoring pass. Say
+  "buildings graded destroyed", and only for the German grading products.
+- **Infrastructure "in the water" means crossing the observed polygons.**
+  `scripts/event_2021_infrastructure.py` reads the products' road, railway,
+  network and service layers; for a delineation those layers are the AOI's
+  reference map, not a damage statement, so a road counts only where its line
+  crosses the observed water (a 25 m scope is kept beside it, for the same walls).
+  A grading product's per-feature damage grade is the analysts' own statement.
+  [`scripts/event_2021_infrastructure.py`](../scripts/event_2021_infrastructure.py)
+  module docstring.
 
 **The hazard**
 
@@ -180,14 +222,23 @@ rebuilt. The findings and recommendations themselves are in
   DFO, EM-DAT and HANZE; and NUTS3 rows cover 84.3 % of the national total.
   [`src/losses.py`](../src/losses.py) module docstring,
   [`policy_answer.md` §9](policy_answer.md#9-what-this-document-does-not-claim).
-- **Validation is one event, one country, extent only.** `src/validate.py`
+- **Validation is one event, three countries, extent only.** `src/validate.py`
   scores the model against the observed July 2021 extent in Belgium at 20 m,
-  refusing units under 25 observed cells. The Walloon depth layer that would
+  refusing units under 25 observed cells, and `scripts/event_2021.py` scores it
+  against all 27 Copernicus EMS products of the organisers' bucket, inside their
+  areas of interest only (Belgium 4, Germany 22, Netherlands 1; the Ahr is
+  EMSR517 AOI15, which AOI03 overlaps). At RP100 the share of the first maps'
+  observed water that the model's extent contains (`hit_rate_rp100` in
+  `event_2021_countries.parquet`) is 0.84 in Belgium, 0.57 in Germany and 0.93
+  in the Netherlands (0.59 and 0.51 with the monitoring passes), and 0.62 on the
+  Ahr's first map, where 51 % of the 3,739 residents reached lived outside the
+  RP100 zone. The false alarm ratio is 0.89 to 0.94: a snapshot is not the peak,
+  so it bounds nothing. The Walloon depth layer that would
   allow a depth-against-depth check is on disk only as a by-hand download (its
   declared URL answers HTTP 404 "Download Dataset Expired"), and
   `scripts/validate_2021.py` reads it only as an extent (depth > 0); no
   depth-against-depth check is built.
-  Nothing validates the model elsewhere in Europe.
+  Nothing validates the model outside those mapped areas, or for any other event.
   [`technical_deep_dive.md` §5](technical_deep_dive.md#5-validation-the-credibility-half),
   [`datasets.md`](datasets.md#wallonia-observed-july-2021--the-second-ground-truth--one-layer-verified-one-dead).
 - **Reported events are a probe, never evidence.** News coverage is biased by
@@ -197,8 +248,10 @@ rebuilt. The findings and recommendations themselves are in
 **The map and the text**
 
 - **The colour classes are quantiles of what is present.** At RP100 the six
-  bounds are 0.84, 1.90, 3.39, 5.61, 9.22 and 70.82 %; the legend prints them so
-  the reader sees the classes are relative. Grey is "not measured", never zero.
+  bounds of the exposed share are 0.86, 1.95, 3.52, 5.66, 9.33 and 70.82 % over
+  the EU-27 (1,159 regions with a figure; the UIs open on it) and 0.84, 1.90,
+  3.39, 5.61, 9.22 and 70.82 % over all 37 countries (1,338); the legend prints
+  them so the reader sees the classes are relative. Grey is "not measured", never zero.
   [`src/svgmap.py`](../src/svgmap.py) module docstring,
   the team's AI log.
 - **Sixteen regions are off the viewport.** The outermost regions (prefixes
@@ -229,7 +282,10 @@ written intent rather than from memory.
   with the model yet. Design: [`datasets.md`](datasets.md#wallonia-observed-july-2021--the-second-ground-truth--one-layer-verified-one-dead).
 - **The model-versus-observation map for Europe.** The satellite-derived flood
   depth series covers 2015-2025; only the July 2021 file is declared and
-  fetched, so the "where is the model blind" comparison exists for Belgium only.
+  fetched. The July 2021 comparison now runs on the 27 Copernicus EMS products
+  in Belgium, Germany and the Netherlands (`scripts/event_2021.py`), inside their
+  mapped areas only; no map of "where is the model blind" exists for any other
+  event or country.
   Design: [`strategy.md`](strategy.md#the-find-that-changes-the-plan).
 - **Three further components of "unpreparedness".** The insurance protection
   gap (EIOPA), Solidarity Fund allocation against modelled risk, and the
@@ -358,11 +414,13 @@ here, still needs the following from the authority itself.
 
 Only what the repository shows.
 
-- **Only the frozen tables are committed.** Since 2026-10-23,
-  `data/processed/exposure.parquet` and `context.parquet` are in git (about
-  1.5 MB, with `data/processed/DATA_NOTICE.md` for their sources); everything
-  else under `data/` - the ~80 GiB under `data/raw/`, the caches, the backups - is
-  ignored. So a fresh clone answers with the frozen figures at once, but
+- **Only the frozen tables and the public July 2021 export are committed.**
+  Since 2026-10-23, `data/processed/exposure.parquet` and `context.parquet` are
+  in git (about 1.5 MB), and since 2026-10-26 `event_2021_web.json` (about
+  0.5 MB, Natural Earth borders, no GISCO line), with
+  `data/processed/DATA_NOTICE.md` for their sources; everything else under
+  `data/` - the July 2021 parquets and CSVs, the ~80 GiB under `data/raw/`, the
+  caches, the backups - is ignored. So a fresh clone answers with the frozen figures at once, but
   rebuilding them still means fetching the rasters and a multi-hour
   continental build. CI now has the tables too, which means a test that strays
   outside the frozen harness passes there as well: hide the parquet and re-run
@@ -401,15 +459,19 @@ Only what the repository shows.
   `technical_deep_dive.md` §7 is filled by `scripts/docs_numbers.py`; the
   per-file rows are not, and they drift: the table of 10 October had three
   wrong or missing rows by 12 October, and two more (`test_api.py`, `test_rag.py`)
-  by 14 October. Re-measured on 26 October (43 files, summing to the 989
-  collected); re-measure again after any test change. [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
-- **Whether the suite runs on Windows depends on a policy that flipped twice.**
-  Smart App Control blocked `rasterio`'s DLL on 2026-10-07 and allowed it again
-  the next morning with nothing reinstalled; the WSL2 venv is the route that
-  does not depend on it. Root [`README.md`](../README.md),
+  by 14 October. Re-measured on 27 October: 49 files, summing to the
+  <!-- numbers:tests_collected -->1,090<!-- /numbers --> collected; re-measure the
+  file count after any test change (the total is filled by the script). [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
+- **Whether the suite runs on Windows depends on a policy that has changed
+  state four times on record.** Smart App Control blocked `rasterio`'s DLL on
+  2026-10-07, allowed it again the next morning with nothing reinstalled,
+  blocked it again by 2026-10-12 (still on 2026-10-14) and allowed it again by
+  2026-10-23; the WSL2 venv is the route that does not depend on it. Root [`README.md`](../README.md),
   [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
-- **Five downloaded data inputs carry no `licence:`** (nor do 22 of the 28 scraped policy and context documents, or 13 of the 19 `access: api` sources). `gisco_nuts3`, `gisco_lau`,
-  `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`;
+- **Six downloaded data inputs carry no `licence:`** (nor do 22 of the 28 scraped policy and context documents, or 13 of the 19 `access: api` sources). `gisco_nuts3`, `gisco_lau`,
+  `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`,
+  and `natural_earth_countries` (added 2026-10-26; Natural Earth is public
+  domain, but the entry does not say so);
   the honest claim is "every input is traceable to a URL and a purpose", not
   "a licence on every input". [`responsible_ai.md`](responsible_ai.md#what-to-write-under-each-concretely).
 - **The prompt budget is in characters, not tokens.** Groq refuses above 8,000
@@ -429,6 +491,10 @@ Only what the repository shows.
   guarded by a written measurement rather than by the suite.
   [`decisions.md`, 2026-10-08 "the legend was off-screen"](decisions.md#2026-10-08--stiframe-with-content-height-map-legend-now-visible).
 - **The two UIs show different views of the same table.** The React app is the
-  one to demo and needs the API and a Vite build; the Streamlit app needs
-  neither and reads the parquets directly. They cannot disagree on a number and
+  one to demo: run live it needs the API and a Vite build, while its static build
+  (`VITE_STATIC=1`) needs no API, reads the API's answers frozen into
+  `web/public/europe/` by `scripts/export_europe_web.py`, and is the public
+  Hugging Face Space (root [`README.md`](../README.md), "Live demo"); Draft and
+  Translation stay local. The Streamlit app needs neither and reads the parquets
+  directly. They cannot disagree on a number and
   do not show the same tabs. [`technical_deep_dive.md` §1](technical_deep_dive.md#1-the-pipeline-end-to-end).

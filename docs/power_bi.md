@@ -38,9 +38,9 @@ pick one and the others follow; none picked means 1-in-100.
 
 | Page (links to a screenshot) | Title (the claim) | Visuals |
 |---|---|---|
-| [Overview (cover)](screenshots/power_bi_00_overview.png) | Europe's flood exposure at a glance | six tiles, each a big figure with a context line and a button to the page behind it - people exposed (25.7 M), still exposed behind the defences (7.25 M), people a year behind the defences (207,308 - the JRC's own estimate is about 160,000), share in a shared basin (63.3 %), built-up added since 2010 (423 km²), farmland share of the footprint (72 %); a chart "from 25.7 million to 7.25 million" (no defences, held, still exposed); a panel with Liège, July 2021, the declared areas and how to explore |
+| [Overview (cover)](screenshots/power_bi_00_overview.png) | Europe's flood exposure at a glance | six tiles, each a big figure with a context line and a button to the page behind it - people exposed (25.7 M), still exposed behind the defences (7.25 M), people a year behind the defences (207,308, a lower bound - the JRC's own estimate is about 160,000), share in a shared basin (63.3 %), built-up added since 2010 (423 km²), farmland share of the footprint (72 %); a chart "from 25.7 million to 7.3 million" (no defences, held, still exposed); a panel with Liège, July 2021, the declared areas and how to explore |
 | [1. Headline](screenshots/power_bi_01_headline.png) | 25.7 million people in the EU-27 live where a 1-in-100-year river flood reaches | return-period tiles, the return period shown, four cards (people exposed, share exposed, share in a shared basin, expected annual exposure), people exposed by return period on the BuPu ramp - the tiles do not filter this chart, so it always shows the nesting - and the "undefended figures" note |
-| [2. Behind the defences](screenshots/power_bi_02_defences.png) | Behind the dykes, 7.25 million still live where the 1-in-100 flood reaches | tiles, the share held by the design standards, five cards (exposed without defences, still exposed behind them, residual people a year, hospitals and schools still in the footprint), undefended against residual by return period, the share held by country (ranked, coloured on the BuPu ramp), and a stacked bar of where the 7.25 million sit - bar length = no defences, dark = still exposed, light = held - with drill-down to regions |
+| [2. Behind the defences](screenshots/power_bi_02_defences.png) | Behind the dykes, 7.3 million still live where the 1-in-100 flood reaches | tiles, the share held by the design standards, five cards (exposed without defences, still exposed behind them, residual people a year, hospitals and schools still in the footprint), undefended against residual by return period, the share held by country (ranked, coloured on the BuPu ramp), and a stacked bar of where the 7.3 million sit - bar length = no defences, dark = still exposed, light = held - with drill-down to regions |
 | [3. Where](screenshots/power_bi_03_where.png) | Four countries hold three in five of the EU's exposed - the highest shares are elsewhere | tiles, a bar chart on the Geography hierarchy (length = people, colour = share exposed on the BuPu ramp), a matrix of countries opening into regions, the Shape map placeholder, the EuroGeographics credit |
 | [4. Downstream of someone else](screenshots/power_bi_04_downstream.png) | Nearly two in three of the EU's exposed live in a river basin shared with another country | tiles, three cards, people exposed in shared basins by main basin (drills to regions), a decomposition tree (basin, country, region, in the order the reader picks), a matrix of basins and their partner countries |
 | [5. What is at stake](screenshots/power_bi_05_at_stake.png) | What the water covers - and 423 km² more built in the floodplain since 2010 | five cards (built-up added since 2010, its growth +14.5 %, footprint under homes 5,438 km², under industry and commerce 2,044 km², footprint area 148,003 km²), the footprint's land use (CORINE 2018), the regions whose floodplain is sealed more than the region around it (Arr. Liège 46.5 % against 14.1 %), and July 2021 in the EFAS reanalysis by region |
@@ -55,7 +55,8 @@ The titles and figures are true at 1-in-100 for the EU-27, measured on
 2026-10-25 from the export: 59 % of the exposed live in Germany, France, Italy
 and the Netherlands, while the highest national shares are the Netherlands
 (14.8 %), Latvia and Hungary; 7,252,724 people are still exposed behind the
-design standards, 207,308 a year once weighted by probability; the defences
+design standards, 207,308 a year once weighted by probability (a lower bound: the band
+stops at 1-in-500); the defences
 hold 99 % or more in the Netherlands, Hungary, Austria and Belgium, 26 % in
 Poland, 24 % in Romania and 12 % in Spain; 63.3 % of the EU-27's exposed live
 in a shared basin (57.0 % over all 37 countries, whose non-EU members report
@@ -63,8 +64,9 @@ no basins); built-up surface in the footprint grew from 2,917 km² to 3,340 km²
 (+423 km², +14.5 %); 72.4 % of the footprint is farmland; Ahrweiler passed its
 1-in-500-year discharge, with 44 of its 55 river cells past 1-in-100; the
 regional rank correlation of share exposed is -0.13 with the over-65 share and
--0.16 with the poverty rate; the median Belgian region declares 99.99 % of its
-area, the median German one 0.03 %, the median Spanish one 0.004 %. A title is
+-0.16 with the poverty rate; the median Belgian NUTS3 region declares 99.99 % of its
+area (the brief's "99.9 % of its territory" is another measure: the area of
+Belgium's declared polygons over the national territory, 99.908 %), the median German one 0.03 %, the median Spanish one 0.004 %. A title is
 static text: pick another return period and the cards move, the title does
 not.
 
@@ -124,7 +126,7 @@ basin name can carry a comma.
 | `Regions measured` | tooltips | the regions in the filter |
 | `Share over 65` / `Poverty rate` | page 6, the region profile | weighted by population, regions without the figure left out of both sides. **Regional** figures, not the age or income of the exposed: the kit has no population grid by age, so a "share of the exposed over 65" is deliberately not computed |
 | `Declared share of area` | the region scatter, the profile | one region only - blank above, because the export carries no region areas to weight with |
-| `Median declared share` | the country bars | the median region; blank, not zero, for Ireland and Lithuania, which report no declared areas |
+| `Median declared share` | the country bars | the median region; blank, not zero, for Ireland, in no cycle of the EEA layer, and Lithuania, in the 2010 cycle only |
 | `Regions with a declared risk area` | tooltips | declarations are not comparable across countries |
 | `Median change in discharge 2041-2070`, `Lower quartile …`, `Upper quartile …` | the climate card | medians and quartiles only, never a mean |
 | `Regions where simulations agree 2041-2070` / `Simulations agree on direction 2041-2070` | the climate card | read the robust column (at least 80 % of members agree, IPCC AR6); "No data" where the layer has no value, never "No" |
@@ -228,7 +230,7 @@ points the schemas cannot vouch for, in the order to look at them.
    small "Tooltip: place" page with the country's name, not the default list.
    If the default box shows, set Format → Tooltips → Type: Report page, Page:
    Tooltip: place on that chart.
-5. **Page 2's stacked bar** (where the 7.25 million sit): dark segment first,
+5. **Page 2's stacked bar** (where the 7.3 million sit): dark segment first,
    longest for Poland, Spain, Romania; the ranked "share held" chart should
    run from Luxembourg and Austria (100 %) down to the Baltic states,
    Bulgaria and Greece (0 %).

@@ -121,16 +121,16 @@ which is open and needs no credentials.
 
 The JRC maps already cover Europe — that is what they are. Nine return periods,
 272–350 MB each, measured 2026-10-06. Downloading all nine is **2.61 GiB**, and
-the whole `geodata` section — 45 entries, 105 jobs once the multi-file ones are
-expanded: 56 files to download, 19 runtime API calls, and 30 HERA files under a
-`folder` entry that `src.fetch` skips (`scripts/fetch_hera.py` fetches those) —
-and the full fetch including the policy corpus (25) and context (3) is
-**84 files**, ≈6.96 GiB on disk measured on 25 October; all of them were
-fetched that day. The counts come from
-`src.fetch.expand()` over `sources.yaml` as it stood on 25 October 2026, the
-bytes from the hosts' `Content-Length` on 6 October (later additions were not
-re-measured, and many documents send none), so re-derive them rather than
-quoting this paragraph.
+the whole `geodata` section — 51 entries, 111 jobs once the multi-file ones are
+expanded: 57 files to download, 19 runtime API calls, and 35 files under six
+`folder` entries that `src.fetch` skips (30 HERA files that
+`scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the
+organisers' bucket that `scripts/event_2021.py` reads) — and the full fetch
+including the policy corpus (25) and context (3) is **85 files**. The 84 then
+declared measured ≈6.96 GiB on disk on 25 October, all fetched that day; the
+85th, `natural_earth_countries` (4.9 MB), came on 26 October. The counts come
+from `src.fetch.expand()` over `sources.yaml` as it stood on 27 October 2026,
+so re-derive them rather than quoting this paragraph.
 
 **At European scale the whole-file download is not a convenience, it is the only
 option.** The files are tiled and range-readable, so `/vsicurl/` looks like it
@@ -195,12 +195,18 @@ hazard is scored against it. It is not the only observed extent on disk: the
 JRC satellite depth map of the July 2021 event flags about 148 km² in the
 Netherlands and 85 km² in Germany against 23 km² in Belgium (counted against the
 NUTS3 polygons), but only about 0.35 km² over the Ahr, and the one German
-Copernicus package, EMSR517 AOI01, covers the Mosel with about 0.28 km² observed,
-not the Ahr. That validation is a methods result you can carry into the real
-analysis — "we checked the model against the 2021 observations and it
-under/over-estimates by X". The organisers' bucket adds Copernicus EMS areas
-in Germany (the Ahr among them) and the Netherlands, so on the day the same
-check widens to the whole July 2021 core.
+Copernicus package `src.fetch` downloads, EMSR517 AOI01, covers the Mosel with
+about 0.28 km² observed, not the Ahr. The organisers' bucket carries the rest:
+`scripts/event_2021.py` measures all 27 Copernicus EMS products of the event
+(Belgium 4, Germany 22, Netherlands 1; the Ahr is EMSR517 AOI15), inside their
+areas of interest only. At RP100 the JRC extent contains 0.84 of the observed
+water on the Belgian first maps, 0.57 on the German ones and 0.93 on the Dutch
+one, and 0.62 on the Ahr's first map, where 51 % of the 3,739 residents reached
+lived outside it (`data/processed/event_2021_countries.parquet` and
+`event_2021_products.parquet`, built 26 October). That is the methods result to
+carry into the analysis — "we checked the model against the 2021 observations
+and it misses X" — with its limits in
+[`limitations.md`](limitations.md#1-what-the-figures-cant-say).
 
 Belgium is also the one place on disk with **two independent observations** of the same
 flood: Copernicus EMSR518 (four packages — a first delineation *and* a monitoring

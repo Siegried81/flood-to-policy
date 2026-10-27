@@ -59,7 +59,7 @@ assume the kit's existing raster and zonal code (`scripts/build_exposure.py`,
 | 1 | **EFAS v5.1 return-level thresholds** (RP 1.5 to 500, one NetCDF per RP, about 54 MB each), plus an **EFAS historical window for July 2021** (Meuse, Vesdre, Ahr) | Which river cells in July 2021 went past their 1-in-100 (or 1-in-500) level. This turns "July 2021" into a return period, with the JRC's own model. | Thresholds: **none** (open Confluence attachment, HEAD 200). July 2021 window: **ECMWF account** (you have one) and the CEMS-FLOODS licence accepted on the efas-historical page | 4-6 h |
 | 2 | **HRL Imperviousness Density 2018, 100 m, Europe** (one 66 MB GeoTIFF, EPSG:3035) | Share of sealed soil per NUTS3 region and **inside the RP100 footprint**. This is a surface-runoff (pluvial) proxy, and it speaks directly to the brief's own limitation: "Surface runoff - much of what hit Wallonia in 2021 - is not in the hazard maps". | **EU Login** (CLMS). 2021 and 2024 are served through **WEkEO** only (a second, free account) | 3-4 h |
 | 3 | **HERA sealed fraction, yearly 1950-2020** (`fracsealed_European_01min_YYYY.nc`, 9.5-13 MB each) | Sealing trend per NUTS3 for 2010 against 2020, the same epochs as the kit's GHSL 2010/2025 comparison. It is a no-account fallback for item 2, but coarser (1 arcmin, about 1.8 km). | **none** (JRC FTP, CC BY 4.0) | 2-3 h |
-| 4 | **HERA river discharge v2, 1951-2020** (70 yearly NetCDF files of 2.3 GB each, 6-hourly, 1 arcmin; about 161 GB in all, or about 69 GB for 1991-2020) | **Observed trend in annual peak discharge per basin** over 70 years: whether today's 1-in-100 flood was a 1-in-100 flood in 1960. This is the "heavier source" for your ~15 h budget. | **none** (JRC FTP, CC BY 4.0) | 12-15 h (download is most of it) |
+| 4 | **HERA river discharge v2, 1951-2020** (70 yearly NetCDF files of about 2.3 GiB each, 6-hourly, 1 arcmin; about 161 GiB in all, or about 69.5 GiB (74.6 GB, 30 files) for 1991-2020, measured on disk 2026-10-27) | **Observed trend in annual peak discharge per basin** over 70 years: whether today's 1-in-100 flood was a 1-in-100 flood in 1960. This is the "heavier source" for your ~15 h budget. | **none** (JRC FTP, CC BY 4.0) | 12-15 h (download is most of it) |
 | 5 | **CORINE Land Cover 2018, 100 m raster** (125 MB) | What the flooded ground is: industrial, agricultural, urban. It is already declared in `sources.yaml` (`copernicus_corine_land_cover`) with no file. This review supplies the file name and size. | **EU Login** (CLMS) | 3 h |
 | 6 | **C3S ECDE aggregated climate indicators**: maximum 5-day precipitation, extreme precipitation total and frequency of extreme precipitation, at **NUTS2** (not NUTS3; see the mini-report) | Projected change in heavy precipitation per region, by global warming level. This is the pluvial counterpart to the discharge projections the kit already has. | The **ECMWF account** (CDS) the kit already uses, plus the CC BY licence accepted once | 2 h |
 | 7 | **CEMS rapid-mapping public activations list** (anonymous JSON) | "53 EU flood activations from March 2023 to October 2026" by country. It is context for the brief and costs one GET. | **none** | 1 h |
@@ -165,7 +165,7 @@ NetCDF is the only format offered for it. Use it to keep only river cells
   - v5.1 thresholds match the `version_5_0` reanalysis: the same page says "This upgrade of EFAS has no impact on the EFAS modelling results".
 
 ### HERA — Hydrological European ReAnalysis (JRC FTP, `CEMS-EFAS/HERA/`)
-- **v2.0** (2025-07-29): `VER2-0/Data/NetCDF/river_discharge/dis.HERA_v2_{1951..2020}.nc`, 70 files of about 2.3 GB each (2020: 2,490,256,518 B). The server sends `Accept-Ranges: bytes`. v2 changes how groundwater return flow is modelled, which removes spurious discharge increases, so use v2 rather than v1.
+- **v2.0** (2025-07-29): `VER2-0/Data/NetCDF/river_discharge/dis.HERA_v2_{1951..2020}.nc`, 70 files of about 2.3 GiB each (2020: 2,490,256,518 B). The server sends `Accept-Ranges: bytes`. v2 changes how groundwater return flow is modelled, which removes spurious discharge increases, so use v2 rather than v1.
 - **v1.0 README:**
   - 1 arcmin; 6-hourly discharge for rivers with more than 100 km² upstream; 1950-2020.
   - Domain: EU27, UK, CH, IS, NO and the Western Balkans.
@@ -180,7 +180,7 @@ NetCDF is the only format offered for it. Use it to keep only river cells
 - **Caveats:**
   - It stops at 2020, so 2021 needs EFAS.
   - It is a model forced by reanalysis, not gauges.
-  - A per-file annual maximum still means reading all 2.3 GB once. The files are chunked `[1 time step, 14 rows, all 4530 columns]` with zlib level 4 (read on `dis.HERA_v2_2020.nc` on disk), so even a small box reads full-width row bands at every one of the 1,464 time steps.
+  - A per-file annual maximum still means reading all 2.3 GiB once. The files are chunked `[1 time step, 14 rows, all 4530 columns]` with zlib level 4 (read on `dis.HERA_v2_2020.nc` on disk), so even a small box reads full-width row bands at every one of the 1,464 time steps.
   - The RAM rule in our working rules applies: one year at a time.
 - **HERA sealed fraction** (`VER1-0/Data/NetCDF/socioeconomic_maps/landuse/fracsealed_European_01min_{1950..2020}.nc`, 71 files of 9.5-13 MB): the cheapest sealing trend available, with no account.
 

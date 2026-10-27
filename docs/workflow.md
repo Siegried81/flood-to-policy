@@ -101,10 +101,10 @@ directory listing is valid HTML comfortably above the minimum document size — 
 source permanently done. A silent success, repeated on every later run, with no
 data in it. `expand()` is the fix: an entry's `files:` list becomes one job per
 file, ids become `<entry id>/<file stem>`, and the count `fetch_all` prints is
-the number of jobs (56 for `geodata` and 84 across all three sections, with
+the number of jobs (57 for `geodata` and 85 across all three sections, with
 `api` and `folder` entries skipped rather than counted; derived from
-`sources.yaml` on 25 October 2026) rather than of
-declared entries, of which there are 73. Entries with no `files:` key pass through untouched, so every
+`sources.yaml` on 27 October 2026) rather than of
+declared entries, of which there are 79. Entries with no `files:` key pass through untouched, so every
 single-file source keeps its previous on-disk path.
 
 ## Verification is not an LLM call

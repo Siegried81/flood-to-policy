@@ -5,20 +5,20 @@ services:
     build:
       context: .
       target: app
-    image: flood-policy-kit:latest
+    image: flood-to-policy:latest
     env_file:
       - path: .env
         required: false
     environment:
       # The workspace, not the copy baked into the image, is what gets imported.
-      PYTHONPATH: /workspaces/flood-policy-kit
+      PYTHONPATH: /workspaces/flood-to-policy
       OLLAMA_URL: ${OLLAMA_URL_IN_DOCKER:-http://host.docker.internal:11434}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       # The whole checkout, data/ included: edits are live, nothing is rebuilt.
-      - .:/workspaces/flood-policy-kit:cached
-    working_dir: /workspaces/flood-policy-kit
+      - .:/workspaces/flood-to-policy:cached
+    working_dir: /workspaces/flood-to-policy
     # Keeps the container up for VS Code; the image's default command is Streamlit.
     command: sleep infinity
     # The image's healthcheck probes Streamlit, which this service does not run.

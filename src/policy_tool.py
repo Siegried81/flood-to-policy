@@ -276,7 +276,7 @@ def hero(products: pd.DataFrame, countries: pd.DataFrame,
          "line": (f"{share_words(ahr_share).capitalize()} of the people the July 2021 water reached in the Ahr valley lived OUTSIDE "
                   f"the European 1-in-100-year flood zone: {fmt_people(ahr_out)} of "
                   f"{fmt_people(ahr_res)} residents."),
-         "small": "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 model."},
+         "small": "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 (E2020) model."},
         {"id": "harm", "big": fmt_count(destroyed), "raw": destroyed,
          "line": (f"buildings graded destroyed in Germany. The water reached about "
                   f"{fmt_people(de_res)} residents there; {fmt_people(de_out)} of them lived "
@@ -285,7 +285,7 @@ def hero(products: pd.DataFrame, countries: pd.DataFrame,
                    f"bring it to {fmt_count(destroyed_later)}. Only German areas were graded.")},
         {"id": "europe", "big": fmt_millions(eu), "raw": eu,
          "line": "people in the EU live inside the 1-in-100-year river flood zone. July 2021 was not a one-off risk.",
-         "small": "JRC hazard map without dikes, GHS-POP population, all EU-27 regions."},
+         "small": "JRC hazard map without dikes, GHS-POP 2025 (E2025, 1 km) population, all EU-27 regions."},
         {"id": "when", "big": PLAN_REVIEW_DATE_SHORT, "raw": None,
          "line": "is when every Member State must review its flood risk management plans: the next window to act.",
          "small": "Floods Directive 2007/60/EC, Article 14(3)."},
@@ -656,8 +656,13 @@ LIMITS: tuple[str, ...] = (
     "stop at building walls and miss water between houses; grading maps, drawn by "
     "analysts, carry the water through the towns. Belgium has only delineation maps, "
     "which is why its building count is low.",
-    "<b>Population is a model.</b> GHS-POP 2020 (E2020) spreads residents evenly within "
-    "each ~1 km cell; it does not know who was home in July 2021.",
+    "<b>Population is a model, on two grids.</b> The July 2021 figures use GHS-POP 2020 "
+    "(E2020), as the organisers ask for a 2021 event; the European figures use GHS-POP 2025 "
+    "(E2025, 1 km), the grid the EU-wide layer is built on. Both spread residents evenly "
+    "within each ~1 km cell and do not know who was home in July 2021.",
+    "<b>Design standards are not guarantees.</b> The European figures assume no dikes. "
+    "The JRC protection layer counts every exposed resident of the Ahrweiler district as "
+    "protected against the 1-in-100-year flood, and the Ahr flooded in 2021.",
     "<b>The hazard map covers large rivers only.</b> The JRC map models rivers with "
     "catchments of 150 km² and more, without dikes, and no surface runoff or small "
     "streams: much of the 2021 damage came from exactly those.",
@@ -672,7 +677,9 @@ SOURCES: tuple[str, ...] = (
     "Mapping, activations EMSR517 (Germany), EMSR518 (Belgium), EMSR520 (Netherlands), "
     "July 2021, © European Union.",
     "Buildings: GHS-OBAT R2024A (epoch 2020), JRC, © European Union.",
-    "Population: GHS-POP R2023A, epoch 2020 (E2020), JRC, © European Union.",
+    "Population: GHS-POP R2023A, epoch 2020 (E2020) for the July 2021 event and epoch 2025 "
+    "(E2025, 1 km) for the European figures, JRC, © European Union.",
+    "Flood protection: JRC PESETA IV flood protection standards (2019), © European Union.",
     "Boundaries: GISCO NUTS 2024, © EuroGeographics for the administrative boundaries.",
     PLAN_REVIEW_SOURCE,
 )
@@ -681,7 +688,7 @@ HOW_WE_COUNTED: tuple[str, ...] = (
     "<b>The water</b> is what Copernicus EMS outlined as flooded area or flood trace on "
     "its first map of each area (EMSR517/518/520). Later monitoring maps add water "
     "seen days afterwards; they are shown as small print, never mixed into a headline.",
-    "<b>Residents</b> are GHS-POP 2020 counts, each ~1 km cell weighted by the share of "
+    "<b>Residents</b> are GHS-POP 2020 (E2020) counts, each ~1 km cell weighted by the share of "
     "it under the observed water, on a 20 m equal-area grid (EPSG:3035).",
     "<b>Outside the 1-in-100-year zone</b> means the 20 m cell is dry in the JRC river "
     "flood hazard map for that return period (depth 0 or no data).",
@@ -923,7 +930,7 @@ the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map
 <div class="europe"><div>{europe_svg(europe_features, eu)}</div>
 <div>{europe_text(eu, exposure)}{europe_legend(eu)}
 <p class="small">Share of each region's residents inside the zone a 1-in-100-year river flood would reach
-if there were no dikes (JRC hazard map, GHS-POP). Protected low-lying areas, such as much of the
+if there were no dikes (JRC hazard map, GHS-POP 2025, E2025). Protected low-lying areas, such as much of the
 Netherlands, therefore show high. Grey is not measured, not zero.</p></div></div>
 
 <h2><span class="kicker">What we recommend</span>Recommendation</h2>

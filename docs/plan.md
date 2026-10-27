@@ -28,7 +28,7 @@ time, so nothing to adjust.
 
 | Week | Goal | Done when |
 |---|---|---|
-| **Mon 5 → Sun 11** | Register. Learn the domain: Floods Directive, Sendai, Hazard×Exposure×Vulnerability. Download every dataset — **84 files, ≈6.96 GiB on disk measured 25 October**. Get `geopandas`/`rasterio` under your fingers. | You can produce one map of exposed population on the Vesdre valley, 2021 |
+| **Mon 5 → Sun 11** | Register. Learn the domain: Floods Directive, Sendai, Hazard×Exposure×Vulnerability. Download every dataset — **85 files; the 84 declared on 25 October measured ≈6.96 GiB on disk that day**. Get `geopandas`/`rasterio` under your fingers. | You can produce one map of exposed population on the Vesdre valley, 2021 |
 | **Mon 12 → Sun 18** | The kit: exposure pipeline, vulnerability index, Streamlit map, tests, CI. | `pytest` green, `streamlit run` shows a real map |
 | **Mon 19 → Sun 25** | GenAI layer: grounded RAG over the policy corpus, brief template, responsible-AI checklist, deploy. **All downloads finished.** | App online, brief template filled with a dry-run result |
 | **Mon 26 → Wed 28** | **Full dress rehearsal**: an 8-hour solo hackathon on a *different* region (Valencia DANA 2024, or Emilia-Romagna 2023). Rehearse the demo. Rest Wednesday evening. | A timed five-minute demo of the policy tool you can deliver without notes (Annex 4) |
@@ -51,20 +51,22 @@ produced by `src/exposure.py`, with the number written on it. The valley sits
 inside the July 2021 core the case is about; the European NUTS3 work is the
 context around it ([`scope.md`](scope.md)).
 
-**The download, measured.** `python -m src.fetch` is 84 files — 56
-geodata downloads, 25 policy-corpus scrapes and 3 context scrapes; it skips the
-`geodata` section's 19 runtime API calls, which store nothing, and the 30 HERA
-files of its one `folder` entry, which `scripts/fetch_hera.py` fetches. The
-84 files measured ≈6.96 GiB on disk on 25 October: the
+**The download, measured.** `python -m src.fetch` is 85 files — 57
+geodata downloads, 25 policy-corpus scrapes and 3 context scrapes (counted
+2026-10-27); it skips the `geodata` section's 19 runtime API calls, which store
+nothing, and the 35 files of its six `folder` entries: the 30 HERA files, which
+`scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the
+organisers' bucket, which `scripts/event_2021.py` reads. The 84 files declared on
+25 October measured ≈6.96 GiB on disk that day (the 85th,
+`natural_earth_countries`, adds 4.9 MB): the
 nine return periods alone are 2.61 GiB, and six `download` entries expand to several files
 each, so the printed count is files rather than declared sources. Start it once
 and leave it; it is idempotent, so a dropped connection costs only the files that
 are actually missing. Do not expect `/vsicurl/` to save you the download — it
 pays off for a country window (2.4 MiB for Belgium on RP100) and collapses at EU
 scale (35,525 tiles, 56% of the file, in tens of thousands of requests). The counts are `src.fetch.expand()`
-over `sources.yaml` as it stood on 25 October 2026 and the bytes the hosts'
-`Content-Length` on 6 October, which the twelve documents added on the 12th
-mostly do not send — every entry added later moves
+over `sources.yaml` as it stood on 27 October 2026 and the bytes the files
+measured on disk on 25 October — every entry added later moves
 them, so re-derive rather than quoting this line.
 
 **One account to open this week.** The JRC Risk Data Hub needs an EU Login
