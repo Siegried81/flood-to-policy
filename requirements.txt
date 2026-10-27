@@ -52,7 +52,7 @@ cdsapi>=0.7.7         # ONLY scripts/fetch_cds_member.py, a pre-event errand;
 pandas>=3.1.0
 numpy>=2.5.4
 xarray>=2026.9.0      # src/efas.py, src/hera.py: lazy NetCDF slices, never a whole file
-netCDF4>=1.7.5.1        # the NetCDF-4/HDF5 engine xarray reads EFAS and HERA files with
+netCDF4>=1.7.5.1.post1        # the NetCDF-4/HDF5 engine xarray reads EFAS and HERA files with
 
 # App + maps
 streamlit>=1.66.1
@@ -72,7 +72,7 @@ pytest>=9.1.1
 jsonschema>=4.26.0     # scripts/validate_bi_report.py: the Power BI files against Microsoft's schemas
 
 # API for the React UI
-fastapi>=0.161.1
+fastapi>=0.162.0
 uvicorn>=0.54.0
 pypdf>=6.21.2          # the policy corpus includes PDFs
 pyarrow>=26.0.0       # parquet round-trips dtypes exactly; CSV loses a NUTS code's leading zero
