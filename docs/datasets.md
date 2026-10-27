@@ -25,12 +25,18 @@ YAML, the YAML is right.
 
 ## What the whole download costs
 
-The `geodata` section declares **45 entries**, which expand to **105 jobs**; **56**
-of those are files to download (**≈6.89 GiB**, of which the Natura 2000 GeoPackage is 1.27) and the other **49** are
-`access: api` endpoints queried at runtime or an `access: folder` listing (the 30
-`hera_river_discharge` files), so `src.fetch` lands nothing on disk for them.
+The `geodata` section declares **51 entries**, which expand to **111 jobs**; **57**
+of those are files to download (**≈6.89 GiB** for the 56 on disk on 2026-10-25, of
+which the Natura 2000 GeoPackage is 1.27, plus the 4.9 MB `natural_earth_countries`
+archive added on 2026-10-26) and the other **54** are not mirrored: **19**
+`access: api` endpoints queried at runtime and **35** files under six
+`access: folder` entries (the 30 `hera_river_discharge` files, which
+`scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the
+organisers' bucket, which `scripts/event_2021.py` reads), so `src.fetch` lands
+nothing on disk for them.
 With the `policy_corpus` (**25** entries) and `context` (**3**) sections, every one
-of them a `scrape`, the whole fetch is **84 files** and **≈6.96 GiB**. **Six** entries
+of them a `scrape`, the whole fetch is **85 files**; the 84 that were on disk on
+2026-10-25 measured **≈6.96 GiB**. **Six** entries
 resolve to several downloaded files each — `jrc_flood_hazard` 13 (nine return periods,
 two companion masks, the README and the CHANGELOG), `efas_flood_thresholds` 9,
 `hanze_flood_impacts` 7, `cems_emsr518_belgium_2021` 4, `hera_sealed_fraction` 2 and
@@ -51,13 +57,14 @@ as permanently done. A silent success with nothing in it. The resolved URLs now
 live in `sources.yaml`, with the human-readable portal page kept beside them as
 `landing:` for provenance.
 
-Nine return periods alone are **2.61 GiB**. All 84 files were on disk on
-2026-10-25; re-run `python -m src.fetch` only after changing `sources.yaml`.
+Nine return periods alone are **2.61 GiB**. All 84 files then declared were on
+disk on 2026-10-25, and the 85th (`natural_earth_countries`) since 2026-10-26;
+re-run `python -m src.fetch` only after changing `sources.yaml`.
 
 Those counts are `src.fetch.expand()` over `sources.yaml` as it stood on
-2026-10-25 and the byte totals are the declared files measured on disk the
-same day, not a property of the repo: every entry added later moves them. Re-count
-rather than quoting this paragraph.
+2026-10-27 and the byte totals are the declared files measured on disk on
+2026-10-25, not a property of the repo: every entry added later moves them.
+Re-count rather than quoting this paragraph.
 
 ## JRC river flood hazard maps ✅ verified
 
@@ -164,7 +171,9 @@ that takes in Belgium **and** the German Ahr valley.
 about **0.35 km²** is flagged flooded — consistent with a flash flood in a
 narrow wooded valley that drained between Sentinel-1 passes, though that cause
 is a reading, not a measurement. So the cross-border validation this file supports is
-**limited to Belgium**; it cannot score the model on the German side.
+**limited to Belgium**; it cannot score the model on the German side. The
+Copernicus EMS products of the organisers' bucket can, the Ahr included (see
+EMSR517 under [EMSR518](#copernicus-ems-emsr518--belgium-july-2021--verified)).
 
 **An absence here is weaker evidence than a presence.** Sentinel-1 sees extent
 through cloud but not under dense canopy or in narrow urban streets, and a
@@ -284,11 +293,21 @@ one package of it (`cems_emsr517_germany_2021`, AOI01 only, 7,136,350 B, verifie
 Trier/Mosel area, `areaOfInterestA` bounds 6.345–7.588 °E, 49.543–50.375 °N,
 south of the Ahr valley. Its `observedEventA` layer is 8 polygons totalling about
 **0.28 km²**, so it scores the model on the Mosel, not on the German flood the
-event is remembered for. The Ahr **cannot be validated with the data on disk**,
-and which other EMSR517 AOI covers it is unverified: the AOIs and monitoring
-passes beyond AOI01 were **not** enumerated. Check the landing page and declare
-that package before any claim about the Ahr. Keep the two activations labelled —
-a German polygon counted as Belgian is a silent error.
+event is remembered for. With that package alone the Ahr cannot be validated.
+
+**The organisers' bucket carries the rest of EMSR517**, declared as
+`challenge_emsr517_germany_2021` (an `access: folder` entry that
+`scripts/event_2021.py` reads in place): 22 German products, beside EMSR518's 4
+and EMSR520's 1, so 27 in all. **AOI15, Bad Neuenahr-Ahrweiler, is the Ahr**: a
+grading product (first map and a `MONIT01` v3 pass), overlapped by the AOI03
+delineation (Hönningen), so the German total deduplicates the two. Measured
+2026-10-26 (`data/processed/event_2021_products.parquet`): AOI15's first map shows
+4.8 km² of water reaching 3,739 residents (GHS-POP E2020); the JRC RP100 extent
+contains 0.62 of that water, and 51 % of those residents lived outside it. Over
+Germany's 16 first maps the RP100 hit rate is 0.57 (0.51 with the monitoring
+passes), against 0.84 in Belgium and 0.93 in the Netherlands
+(`event_2021_countries.parquet`). Keep the activations labelled — a German
+polygon counted as Belgian is a silent error.
 
 ## Wallonia: the official hazard map (*aléa d'inondation*) ✅ verified
 

@@ -141,12 +141,19 @@ export const approve = (text, token) =>
 export const getConfig = () => request("/api/config");
 
 
-// The July 2021 story. The static file Vite copied from web/public/ comes
-// first, resolved against the page base so a sub-path deployment
-// (VITE_BASE=/flood-to-policy/) finds it too; the API route is the fallback for
-// a server whose dist/ was built before the file existed. A static build has no
-// fallback to try.
+// The July 2021 story. With a server, the API comes first: locally it serves
+// the `--full` build (GISCO borders, NUTS3 lines) when present, which the
+// public file Vite copied into dist/ never carries. The public file, resolved
+// against the page base so a sub-path deployment (VITE_BASE=/flood-to-policy/)
+// finds it too, is the fallback - and the only source in a static build.
 export async function getEvent2021() {
+  if (!STATIC_BUILD) {
+    try {
+      return await request("/api/event2021");
+    } catch {
+      /* fall through to the public file */
+    }
+  }
   const file = `${import.meta.env.BASE_URL}event_2021_web.json`;
   try {
     const resp = await fetch(file);
@@ -154,11 +161,8 @@ export async function getEvent2021() {
       return await resp.json();
     }
   } catch {
-    /* fall through to the API */
+    /* reported below */
   }
-  if (STATIC_BUILD) {
-    throw new Error("event_2021_web.json is missing from this build. Run "
-      + "`python scripts/export_event_web.py`, then rebuild.");
-  }
-  return request("/api/event2021");
+  throw new Error("event_2021_web.json is missing from this build. Run "
+    + "`python scripts/export_event_web.py`, then rebuild.");
 }

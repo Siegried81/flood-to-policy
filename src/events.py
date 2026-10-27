@@ -44,6 +44,7 @@ from pathlib import Path
 import requests
 
 from src.data_io import DATA
+from src.fetch import USER_AGENT
 
 CACHE = DATA / "processed" / "events_cache.json"
 
@@ -127,7 +128,9 @@ def _gdelt_count(place: str, days: int, languages: tuple[str, ...]) -> int | Non
                 "format": "json",
                 "timespan": f"{days}d",
             },
-            headers={"User-Agent": "flood-policy-kit/0.1 (student project)"},
+            # Same contactable User-Agent as the bulk fetcher, so GDELT sees one
+            # identity for this project and can ask it to slow down.
+            headers={"User-Agent": USER_AGENT},
             timeout=TIMEOUT_S,
         )
         if response.status_code == 429:

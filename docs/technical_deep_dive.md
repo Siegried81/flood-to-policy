@@ -6,8 +6,8 @@ three minutes are up, and the questions you will ask yourself at 02:00 when a
 number looks wrong.
 
 Everything here is re-derived from the code and the config as they stand on
-25 October 2026. Where a figure comes from a measurement rather than from the
-repository, it says so. `docs/decisions.md` carries the dated record of every
+27 October 2026. Where a figure comes from a measurement rather than from the
+repository, it says so, with the date it was measured. `docs/decisions.md` carries the dated record of every
 change to what a number means; this file describes the current state only.
 
 ---
@@ -18,7 +18,7 @@ change to what a number means; this file describes the current state only.
 config/sources.yaml          one file owns every URL
         │
         ▼
-python -m src.fetch          84 files, ≈6.96 GiB, idempotent, robots-aware
+python -m src.fetch          85 files, idempotent, robots-aware
         │
         ├───────────────────────┬───────────────────────┐
         ▼                       ▼                       ▼
@@ -36,15 +36,20 @@ exposure_protected.parquet  context.parquet         regions.geojson
         │                       │                       │
         └───────────────────────┼───────────────────────┘
                                 ▼
-                  api/main.py             12 JSON routes over src/
+                  api/main.py             14 JSON routes over src/
                         │
         ┌───────────────┼──────────────────────────┐
         ▼               ▼                          ▼
    web/ (React)    app/streamlit_app.py      scripts/export_bi.py
-   5 tabs, SVG     7 tabs, reads the          → bi/data/*.csv
-   choropleth      parquets directly          → bi/FloodPolicyKit.pbip
-                                                (Power BI, docs/power_bi.md)
+   2 views: July   7 tabs, reads the          → bi/data/*.csv
+   2021, Europe    parquets directly          → bi/FloodPolicyKit.pbip
+   (5 tabs, SVG                                 (Power BI, docs/power_bi.md)
+   choropleth)
 ```
+
+The July 2021 event has its own chain, beside this one, from the organisers'
+bucket to the policy tool and the React app's first view (§5, "The July 2021
+pipeline").
 
 Two properties of this shape are deliberate.
 
@@ -56,10 +61,19 @@ coupling them would guarantee it happened.
 **Both UIs read the same frozen table.** They cannot disagree about a number,
 because there is only one number - `app/streamlit_app.py` reads the parquet
 directly rather than going through the API, which is why it needs neither the
-server nor `npm`. They do NOT show the same views: React has five tabs
-(Exposure, Context, Vulnerability, Draft, Translation) and draws the choropleth
-inside the first; Streamlit has seven, adding "Ask the table" and the AI usage
-log. The React UI is the one to demo.
+server nor `npm`. They do NOT show the same views. React has two views
+(`VIEWS` in `web/src/App.jsx`): "July 2021", which opens first and reads the
+event JSON (§5), and "Europe", which holds five tabs (Exposure, Context,
+Vulnerability, Draft, Translation) and draws the choropleth inside the first.
+Streamlit has seven tabs, adding "Ask the table" and the AI usage log. The
+React UI is the one to demo.
+
+**A static build needs no API.** `VITE_STATIC=1` builds a React app that reads
+files shipped in `dist/` instead of calling the server: the July 2021 JSON
+written by `scripts/export_event_web.py`, and the Europe view's API answers
+frozen into `web/public/europe/` by `scripts/export_europe_web.py`. Draft and
+Translation call a language model, so they are switched off there. The public
+demo is that build, served as a static Hugging Face Space (README, "Live demo").
 
 ---
 
@@ -321,11 +335,17 @@ a min-max-scaled weighted mean. Three layers were added on 24 October 2026:
 `hera_trend`, `landcover`), into the existing table and keeps every other column byte for byte. It refuses
 a table whose rows are not in boundary order, because the join is positional.
 
-### 4.4 The twelve routes
+### 4.4 The fourteen routes
 
-`/api/health`, `/api/meta`, `/api/exposure`, `/api/context`, `/api/geometry`,
-`/api/vulnerability`, `/api/search`, `/api/draft`, `/api/languages`,
-`/api/translate`, `/api/approve`, `/api/ask`.
+`/api/health`, `/api/config`, `/api/event2021`, `/api/meta`, `/api/exposure`,
+`/api/context`, `/api/geometry`, `/api/vulnerability`, `/api/search`,
+`/api/draft`, `/api/languages`, `/api/translate`, `/api/approve`, `/api/ask`.
+
+`/api/config` tells the UI what the deployment allows, so it greys out what the
+server would refuse: with `HOSTED=1` every route that calls a model or writes
+answers 403 before any provider is reached. `/api/event2021` serves the July
+2021 JSON written by `scripts/export_event_web.py` byte for byte; locally the
+`--full` build wins when present, the hosted demo always serves the public one.
 
 `/api/ask` takes either a `question` or a query `spec`. A question costs one
 model call that writes the spec and nothing else; `src/nlquery.py` validates it
@@ -388,12 +408,17 @@ flood in Belgium, Germany and the Netherlands, and the organisers' bucket holds
 Copernicus EMS extents for all three (Annex 2: 4 Belgian, 22 German and 1 Dutch
 products); the EU-wide NUTS3 work is the context around that core.
 
-**What the ground truths on disk can and cannot score.** The German side is not
-covered: the declared EMSR517 package is AOI01, the Trier/Mosel area south of the
-Ahr, with about 0.28 km² observed, and the JRC observed-depth file, whose
-footprint does reach the Ahr, flags only about 0.35 km² flooded there. So, with the
-kit's own files, the cross-border claim is limited to Belgium; the bucket's
-German and Dutch EMS areas are what widens it on the day. Inside Wallonia the choice of truth
+**What the ground truths on disk can and cannot score.** The EMSR517 package
+`config/sources.yaml` declares for the kit's own validation is AOI01, the
+Trier/Mosel area south of the Ahr, with about 0.28 km² observed, and the JRC
+observed-depth file, whose footprint does reach the Ahr, flags only about
+0.35 km² flooded there. So `scripts/validate_2021.py`, which reads those files,
+scores Belgium only. The event pipeline below closes that gap from the
+organisers' bucket: it measures all 27 EMS products (4 Belgian, 22 German,
+1 Dutch), with the hit rate, false alarm ratio and CSI per product and per
+return period in `event_2021_hazard.parquet`. The Ahr place the policy tool
+leads with is `EMSR517_AOI15`, Bad Neuenahr-Ahrweiler (AOI03, Hönningen, also
+covers the Ahr; country totals count the overlap once). Inside Wallonia the choice of truth
 moves the score on its own: the IDW depth raster (about 77 km² with depth > 0)
 and the extent layer (about 521 km², of which only about 53 km² carry a `SCENARIO` zone name) give hit rates about
 2.1× apart for the same *aléa* mask (0.728 against 0.343) and 3.3× apart for
@@ -419,6 +444,28 @@ each map, in a conservative variant (a 100 m cell is inside the map when any
 `validate.py` derives no model domain from the hazard raster: its nodata is
 every dry cell, so "not nodata" is the wet footprint. `agreement_by_unit` takes
 `in_model_domain` only from an independent layer such as the EFAS upstream area.
+
+### The July 2021 pipeline
+
+The event is measured product by product, from the Copernicus EMS Rapid Mapping
+products in the organisers' bucket (EMSR518 Belgium, EMSR517 Germany, EMSR520
+Netherlands), each against the JRC hazard maps, GHS-POP E2020 and GHS-OBAT.
+
+| Step | Writes | What it does |
+|---|---|---|
+| `scripts/event_2021.py` with `src/event2021.py` | `data/processed/event_2021_{products,hazard,buildings,damage,countries}.parquet` | Per EMS product, inside its AOI only: observed flooded area, hit rate / false alarm ratio / CSI per return period (`validate.agreement` on the 20 m EPSG:3035 grid), residents in the water and outside each hazard map, buildings by use, epoch and height, damage grades; then per country on the union of products, deduplicated cell by cell and building by building |
+| `scripts/event_2021_infrastructure.py` | `data/processed/event_2021_infrastructure.parquet` | Roads and railways (km by class), power lines and dams (km), schools, hospitals, fire stations and power plants (counts), each in the whole AOI, inside the observed water and within 25 m of it; country rows merge lines and features so an overlap counts once |
+| `scripts/build_policy_tool.py` with `src/policy_tool.py` | `docs/perso/policy_tool/policy_tool.html` and PNG snapshots (gitignored: the page carries GISCO geometry) | The challenge policy tool: one self-contained HTML file that opens offline and calls no AI service; story maps rasterised on the same 20 m grid the figures were counted on |
+| `scripts/export_event_web.py` | `data/processed/event_2021_web.json` and `web/public/event_2021_web.json` | The React "July 2021" view's data, built with `src/policy_tool.py`'s figures and the policy tool's maps; public borders from Natural Earth; `--full` draws GISCO borders and NUTS3 lines into the gitignored `event_2021_web.full.json` only |
+| `scripts/export_europe_web.py` | `web/public/europe/` (gitignored) | The static Europe view: the API's own answers to `/api/meta`, `/api/exposure`, `/api/context` and `/api/vulnerability`, frozen in-process; no geometry |
+
+Three rules carry the figures. **The unit is one EMS product**, one AOI at one
+date: a first delineation and its monitoring pass are separate rows, never
+merged, since neither is the peak. **Outside an AOI nothing was mapped**, so a
+cell there is unknown, not dry, and is never scored. **Residents are weighted by
+the flooded share of each cell**: a 1 km cell 30 % under water contributes 30 %
+of its people. The bucket is read once and cached under
+`data/raw/challenge_2021/`, so a re-run with `--offline` needs no network.
 
 ---
 
@@ -453,9 +500,12 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,090<!-- /numbers --> tests, offline**: no network, no model, no key. Measured 12 October 2026 in
-WSL2: every test then collected passed, nothing deselected; the same day Windows
-blocked `rasterio` again. Re-run on 14 October 2026: still blocked on Windows
+**<!-- numbers:tests_collected -->1,095<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+full suite passed on Windows and in WSL2, nothing deselected.
+
+The platform history matters more than any one run. On 12 October 2026, in WSL2,
+every test then collected passed, while the same day Windows blocked `rasterio`
+again. Re-run on 14 October 2026: still blocked on Windows
 (the five raster modules, 59 tests, do not collect), and in WSL2 all 702 pass
 once `test_climate.py`'s dry-run test stopped reading the CDS files already in
 `data/` (`fetch_cds_member.py` now resolves `OUT_DIR` at call time). Re-run on
@@ -475,10 +525,11 @@ block that `scripts/docs_numbers.py --write` fills from `pytest --collect-only`,
 and `tests/test_docs_numbers.py` fails the suite when any marked block in the
 docs disagrees with the repository. Edit the prose, never the digit.
 
-Per-file counts measured 26 October 2026 with
-`pytest --collect-only -q | grep '::' | cut -d: -f1 | sort | uniq -c`; they sum to the
-marked total above. Forty-three files — an earlier table listed twenty-two and
-summed to 473, a figure that had survived three suite changes by being typed.
+Per-file counts measured 27 October 2026 with
+`pytest --collect-only -q -p no:cacheprovider | grep '::' | cut -d: -f1 | sort | uniq -c`;
+they sum to the marked total above. Forty-nine files. Typed counts go stale:
+an earlier table listed twenty-two files summing to 473, and the next one
+forty-three summing to 989 while the suite held 1,090.
 
 | File | Tests | Guards |
 |---|---|---|
@@ -486,10 +537,10 @@ summed to 473, a figure that had survived three suite changes by being typed.
 | `test_offline_readiness.py` | 56 | the demo runs with the Wi-Fi off: the three verdicts, `--strict`, a rejected file is not present, the two caches `src.fetch` does not fill |
 | `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
 | `test_validate_2021.py` | 15 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total |
-| `test_api.py` | 78 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
-| `test_streamlit_app.py` | 62 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
+| `test_api.py` | 82 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
+| `test_streamlit_app.py` | 67 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
 | `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
-| `test_rag.py` | 77 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
+| `test_rag.py` | 80 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
 | `test_losses.py` | 29 | the RDH euro vintages and the levelling |
 | `test_basins.py` | 31 | the shared-basin layer: the declared crosswalk, the sliver floor, the basin names, shares that stop at 1.0 |
 | `test_exposure.py` | 25 | the two modes, `nodata_means_dry`, the masks, the build checkpoint |
@@ -525,6 +576,12 @@ summed to 473, a figure that had survived three suite changes by being typed.
 | `test_rainfall.py` | 8 | the July 2021 EMO-1 event rainfall: only the window is summed, a gap is refused, a cell missing a day is NaN not drier, a region holding no cell centre is NaN not 0 mm |
 | `test_docs_citations.py` | 6 | every docstring a doc cites by name exists in the cited module |
 | `test_climate_rules.py` | 5 | the two climate reading rules: the 80 % sign column when present, the interquartile spread at sixteen members and the full range at two, both sign counts in the period summary |
+| `test_event2021.py` | 18 | the July 2021 products on synthetic data: which bucket folders count as products, half a flooded cell is half its people, permanent water out of the score but not the headcount, an overlapping product counted once per country, one product end to end |
+| `test_event2021_infrastructure.py` | 13 | the July 2021 roads, networks and services: a class from the EMS `info` code, km on the ground and once per segment, a feature counted once with its most severe grade, nothing outside the AOI |
+| `test_export_event_web.py` | 16 | the React app's July 2021 JSON: the contract keys, every number the policy tool's, missing is null never zero, no GISCO line in the committed file, `--full` goes to an ignored file only |
+| `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
+| `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
+| `test_policy_tool.py` | 20 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N" |
 
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
@@ -547,9 +604,10 @@ zonal statistic is the right arithmetic on the wrong piece of Europe. Measured o
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,090<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
-| 84 files, ≈6.96 GiB | `src.fetch.expand()` over `config/sources.yaml`; the bytes measured on disk on 25 October, all 84 files present |
-| <!-- numbers:sources_declared -->79<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->71<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->38<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
+| <!-- numbers:tests_collected -->1,095<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
+| ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
+| <!-- numbers:sources_declared -->79<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->71<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->39<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
 | the 0.25% stripe discrepancy | two continental RP100 builds, 6 October 2026 |
 | 4.85% of cells carry a value | a 1,468,800-cell window of Belgian land, RP100 |

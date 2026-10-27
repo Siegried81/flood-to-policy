@@ -32,8 +32,10 @@ story) and responsible AI use. This repository is the evidence behind all three.
 > declarations that cannot be compared between Member States, and the climate
 > projections. Its working unit is **NUTS3**: the GISCO NUTS 2024 file holds
 > **1,345** NUTS3 polygons, of which **1,165** are in the EU-27 and the rest in
-> EFTA and the candidate countries. Belgium is where the model is checked
-> against *observed* flood extent. See [`docs/scope.md`](docs/scope.md).
+> EFTA and the candidate countries. The model is checked against *observed*
+> flood extent on all 27 Copernicus EMS products of July 2021 (4 in Belgium, 22
+> in Germany, 1 in the Netherlands; `data/processed/event_2021_products.parquet`).
+> See [`docs/scope.md`](docs/scope.md).
 
 > **Expect to be asked whether "European" means the EU-27 or the continent.**
 > The ranking returns Turkish regions (Antalya, Sakarya) alongside Dutch, Italian,
@@ -115,6 +117,9 @@ flood-to-policy/
 │   ├── pluvial.py              # projected heavy rain and discharge by warming level (C3S ECDE)
 │   ├── efas.py                 # July 2021 as a return period: EFAS reanalysis peak vs EFAS levels
 │   ├── rainfall.py             # July 2021 event rainfall per NUTS3 region (EMO-1)
+│   ├── event2021.py            # July 2021, product by product: water, people and buildings per EMS map
+│   ├── policy_tool.py          # the challenge policy tool: one static, offline HTML page for July 2021
+│   ├── story_maps.py           # pure helpers behind the July 2021 story maps, shared by every renderer
 │   ├── activations.py          # CEMS rapid-mapping flood activations by country and year
 │   ├── toon_io.py              # compact table encoding for LLM prompts
 │   ├── legislation.py          # config/legislation.yaml -> citations with article and EUR-Lex URL
@@ -129,13 +134,18 @@ flood-to-policy/
 │   ├── build_exposure.py            # freezes data/processed/exposure.parquet, one row per NUTS3 x RP
 │   ├── build_context.py             # freezes data/processed/context.parquet, what qualifies an exposure figure
 │   ├── fetch_cds_member.py          # CDS ensemble members, each verified against what was asked
-│   ├── fetch_hera.py                # the 30 HERA v2 discharge files (~69 GB), resumable, one at a time
+│   ├── fetch_hera.py                # the 30 HERA v2 discharge files (~69.5 GiB), resumable, one at a time
 │   ├── fetch_efas_july2021.py       # EFAS reanalysis for July 2021 over the Meuse/Vesdre/Ahr box
 │   ├── fetch_c3s_ecde.py            # C3S ECDE heavy-precipitation and flood-recurrence indicators
 │   ├── cems_activations.py          # CEMS flood activations by country and year, cached
 │   ├── rainfall_jul2021.py          # freezes data/processed/rainfall_jul2021.parquet (EMO-1, 581 regions)
 │   ├── build_geometry.py            # freezes data/processed/regions.geojson, the choropleth's polygons
 │   ├── validate_2021.py             # JRC RP10/100/500 and Walloon aléa vs four July 2021 truths, Wallonia window
+│   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
+│   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
+│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool/
+│   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
+│   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
 │   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
 │   ├── build_bi_report.py           # writes the Power BI report (PBIR): cover, eight story pages, theme, two drillthroughs, tooltip
 │   ├── validate_bi_report.py        # checks every bi/ JSON file against Microsoft's vendored schemas
@@ -169,7 +179,7 @@ the same wheel again with nothing reinstalled. **The policy moves both ways, so
 measure rather than believe either state** — measured 2026-10-14 it blocked
 `import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
 collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,090<!-- /numbers --> collected, nothing deselected, all passing** (the
+**<!-- numbers:tests_collected -->1,095<!-- /numbers --> collected, nothing deselected, all passing** (the
 climate dry-run test that used to read the CDS files already in `data/` now
 honours its patched directory). The WSL2 venv stays, because it is the only route that does
 not depend on the policy's mood and it is where a continental raster build
@@ -185,7 +195,7 @@ image: `docker compose build`. The `portable` image has not been built yet.
 
 **VS Code dev container.** `.devcontainer/` opens the editor inside that image
 (`Ctrl+Shift+P` → *Dev Containers: Reopen in Container*): a `dev` service with
-the checkout mounted at `/workspaces/flood-policy-kit`, `data/` included, so
+the checkout mounted at `/workspaces/flood-to-policy`, `data/` included, so
 tests and raster work run on Linux without the WSL venv. It leaves `app` and
 `api` untouched and runs nothing until you do; Streamlit and the API started
 from its terminal are forwarded on 8501 and 8010.
@@ -234,7 +244,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,090<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,095<!-- /numbers --> tests, offline: no network, no model
                                         # All collected and passing 2026-10-23 on
                                         # Windows. Smart App Control blocks
                                         # rasterio on Windows some days and not
@@ -243,9 +253,10 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
                                         # requirements.txt for the whole story.
                                         #   wsl -d Ubuntu
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q
-.venv/bin/python -m src.fetch           # 56 geodata downloads + 25 policy_corpus
-                                        # + 3 context = 84 files (sources.yaml of
-                                        # 25 Oct; ≈6.96 GiB on disk that day)
+.venv/bin/python -m src.fetch           # 57 geodata downloads + 25 policy_corpus
+                                        # + 3 context = 85 files (sources.yaml of
+                                        # 27 Oct; ≈6.96 GiB on disk on 25 Oct,
+                                        # when it was 84 files)
                                         # (done 25 Oct; re-run only to fill gaps)
 .venv/bin/python scripts/build_exposure.py --stripes 72 # -> data/processed/exposure.parquet
 .venv/bin/python scripts/build_context.py  --stripes 72 # -> data/processed/context.parquet
@@ -254,14 +265,24 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/check_offline_readiness.py   # exits 1 if the demo needs the network
 .venv/bin/python scripts/check_offline_readiness.py --strict  # evening before: a WARN blocks too
 .venv/bin/python scripts/docs_numbers.py --check      # exits 1 if a doc's number no longer matches the code
+
+# July 2021: event_2021.py first; every step below it reads its tables.
+.venv/bin/python scripts/event_2021.py                # reads the organisers' public bucket (cached in data/raw/challenge_2021/) -> data/processed/event_2021_*.parquet
 .venv/bin/python scripts/event_2021_infrastructure.py # -> data/processed/event_2021_infrastructure.parquet (July 2021 roads, networks, services)
+.venv/bin/python scripts/build_policy_tool.py         # -> docs/perso/policy_tool/policy_tool.html + PNGs (gitignored: GISCO geometry)
 .venv/bin/python scripts/export_event_web.py          # -> data/processed/event_2021_web.json + web/public/ copy (July 2021 view, public: Natural Earth borders)
-.venv/bin/python scripts/export_event_web.py --full   # -> event_2021_web.full.json, local only (GISCO borders + NUTS3), served by the API when present
+.venv/bin/python scripts/export_event_web.py --full   # -> event_2021_web.full.json, local only (GISCO borders + NUTS3), served by GET /api/event2021 when present
 
 # Either UI. Both read the same frozen table, so they cannot disagree on a number.
 .venv/bin/streamlit run app/streamlit_app.py            # no build step
-.venv/bin/uvicorn api.main:app --port 8010              # + cd web && npm run dev
+.venv/bin/uvicorn api.main:app --port 8010              # + the React dev server, below
+cd web && npm ci && npm run dev                         # npm ci once per fresh clone (node_modules is gitignored); open http://localhost:5190
 ```
+
+The React app reads the public `web/public/event_2021_web.json` first and calls
+`/api/event2021` only when that file is missing, so the local React UI shows the
+public build even when `--full` has been run; the `--full` file is what
+`GET /api/event2021` answers.
 
 `POST /api/approve` requires the `X-Approve-Token` header when `FLOOD_APPROVE_TOKEN` is set. Unset, it relies on the API being published on 127.0.0.1 only (`docker-compose.yml`).
 
@@ -277,9 +298,10 @@ static Hugging Face Space:
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
 
 ```bash
-.venv/bin/python scripts/export_event_web.py           # public data: Natural Earth borders, no GISCO geometry
-.venv/bin/python scripts/export_europe_web.py          # Europe view: frozen API answers (gitignored, ~19 MB)
-cd web && VITE_STATIC=1 VITE_BASE=/ npm run build         # -> web/dist/
+.venv/bin/python scripts/export_event_web.py           # only after a new event_2021.py run: the committed JSON is already the public build
+.venv/bin/python scripts/export_europe_web.py          # Europe view: frozen API answers -> web/public/europe/ (gitignored, ~19 MB)
+cd web && npm ci                                        # once per fresh clone: node_modules is gitignored, so there is no vite yet
+VITE_STATIC=1 VITE_BASE=/ npm run build                 # in web/ -> web/dist/
 ```
 
 In Git Bash prefix the build with `MSYS_NO_PATHCONV=1` so the base is not
@@ -359,8 +381,11 @@ The React UI is the one to demo: it draws the choropleth as **SVG from GeoJSON**
 with no tile provider and no API key, so the map still works with the network
 unplugged. Streamlit is the fallback that needs no `npm`.
 
-Data is **not** committed (`data/` is ignored): run `.venv/bin/python -m src.fetch` to
-download what `config/sources.yaml` declares — **84 files, ≈6.96 GiB**; the
+The raw downloads are **not** committed (`data/` is ignored), except four files in
+`data/processed/`: `exposure.parquet`, `context.parquet`, `event_2021_web.json`
+and `DATA_NOTICE.md`. Run `.venv/bin/python -m src.fetch` to
+download what `config/sources.yaml` declares — **85 files** (counted 27 Oct;
+≈6.96 GiB measured on 25 Oct, when it was 84); the
 breakdown by section and why the printed count is files, not sources, is in
 [`docs/datasets.md`](docs/datasets.md#what-the-whole-download-costs). It ran on
 25 October; never start it at the venue — the Wi-Fi of a 60-person hackathon will
@@ -399,8 +424,10 @@ or local Ollama. See
 
 ## Licence and data credits
 
-The code is MIT ([`LICENSE`](LICENSE)). The data is not: the two frozen tables
-committed under `data/processed/` keep their sources' licences, listed with the
+The code is MIT ([`LICENSE`](LICENSE)). The data is not: the files committed
+under `data/processed/` (the two frozen tables `exposure.parquet` and
+`context.parquet`, and the public July 2021 view `event_2021_web.json`) keep
+their sources' licences, listed with the
 exact credit each requires in
 [`data/processed/DATA_NOTICE.md`](data/processed/DATA_NOTICE.md). In short:
 © EuroGeographics for the administrative boundaries (Eurostat/GISCO, NUTS 2024,

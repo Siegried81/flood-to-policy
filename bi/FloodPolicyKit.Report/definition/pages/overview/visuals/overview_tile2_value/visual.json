@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "Exposure.Residual expected annual exposure",
-              "displayName": "people a year behind the defences, weighted by probability"
+              "displayName": "people a year behind the defences, weighted by probability - a lower bound"
             }
           ]
         }

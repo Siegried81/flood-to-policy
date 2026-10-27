@@ -76,9 +76,10 @@ def export(out: Path = OUT) -> dict[str, int]:
     files: dict[str, object] = {}
 
     meta = _get(client, "/api/meta")
-    # The static page draws the map from GISCO directly, and approving needs a
-    # server that does not exist here.
-    meta.update(has_geometry=True, approve_token_required=False, static=True)
+    # The static build hosts no geometry (`static` alone tells the page to
+    # fetch GISCO's file in the browser), and approving needs a server that
+    # does not exist here.
+    meta.update(has_geometry=False, approve_token_required=False, static=True)
     files["meta.json"] = meta
 
     for period in meta["return_periods"]:

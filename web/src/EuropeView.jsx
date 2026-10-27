@@ -19,6 +19,30 @@ const TABS = ["Exposure", "Context", "Vulnerability", "Draft", "Translation"];
 // replaced by a notice instead of offering a button that can only fail.
 const MODEL_TABS = new Set(["Draft", "Translation"]);
 
+// The credits the data on this view requires, worded as in
+// data/processed/DATA_NOTICE.md (tests/test_export_europe_web.py checks they
+// still match it). One constant, rendered by the static and the API build
+// alike: the licences bind wherever the figures are shown. The Copernicus
+// Climate Change Service sentence and disclaimer are required verbatim.
+export const EUROPE_SOURCES = [
+  "Region codes, names and boundaries (NUTS 2024) — Source: Eurostat/GISCO. "
+    + "© EuroGeographics for the administrative boundaries.",
+  "Flood hazard — JRC / Copernicus Emergency Management Service, river flood hazard maps for "
+    + "Europe v3.1.1, doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81. © European Union, CC BY 4.0.",
+  "Population and built-up surface — JRC Global Human Settlement Layer, GHS-POP and "
+    + "GHS-BUILT-S R2023A, epoch 2025 at 1 km. © European Union, CC BY 4.0.",
+  "Share over 65 and poverty rate — Source: Eurostat (demo_r_pjangrp3, ilc_li41, accessed "
+    + "2026-10-07). Values were reshaped, and NUTS2 figures applied to their NUTS3 children. "
+    + "Eurostat bears no responsibility for these derived figures.",
+  "WFD river basin districts — © European Environment Agency, CC BY 4.0.",
+  "Floods Directive areas of potential significant flood risk (APSFR) — Source: European "
+    + "Environment Agency, reported by the Member States. The service publishes no licence; the "
+    + "EEA default (CC BY 4.0) is assumed.",
+  "Climate projections — Contains modified Copernicus Climate Change Service information 2026 "
+    + "(doi:10.24381/cds.73237ad6), CC BY 4.0. Neither the European Commission nor ECMWF is "
+    + "responsible for any use that may be made of the Copernicus information or data it contains.",
+];
+
 const finite = (value) => (Number.isFinite(value) ? value : null);
 
 // The share is read off the row when the server sent one, and derived
@@ -33,7 +57,7 @@ const shareOf = (row) =>
       : null;
 
 // Shares travel as fractions; the map shows them as percentages to one decimal,
-// enough to separate the quantile breaks (1.0%, 2.3%, 3.9% ...) without false precision.
+// enough to separate the quantile breaks (0.86%, 1.95%, 3.52% ... in the EU-27) without false precision.
 // A positive share below 0.05% would round to "0.0%" and read as nobody exposed.
 const sharePercent = (v) => (v > 0 && v < 0.0005 ? "<0.1%" : `${(v * 100).toFixed(1)}%`);
 
@@ -68,8 +92,10 @@ export default function EuropeView({ config }) {
         setMeta(m);
         setReturnPeriod(defaultReturnPeriod(m.return_periods));
         // Geometry is optional: without it the ranking still works, so a missing
-        // file degrades the map rather than breaking the page.
-        if (m.has_geometry) getGeometry().then(setGeometry).catch(() => {});
+        // file degrades the map rather than breaking the page. `has_geometry`
+        // says whether the server holds the polygons; a static build holds none
+        // and fetches GISCO's own file in the browser instead (api.js).
+        if (m.has_geometry || m.static) getGeometry().then(setGeometry).catch(() => {});
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -332,6 +358,14 @@ export default function EuropeView({ config }) {
       )}
 
       {!modelsOff && tab === "Translation" && <TranslationPanel />}
+
+      {/* Under every tab, not only the map: the Context and Vulnerability
+          tables show licensed figures too. */}
+      <footer className="ev-footer">
+        <p><b>Sources.</b> Figures derived from the datasets below and modified (aggregated per
+          NUTS3 region, reprojected, thresholded); none of the publishers is responsible for them.</p>
+        <ul>{EUROPE_SOURCES.map((s) => <li key={s}>{s}</li>)}</ul>
+      </footer>
     </div>
   );
 }
