@@ -341,6 +341,39 @@ def damage_breakdown(points: pd.DataFrame) -> pd.DataFrame:
             .rename("buildings").reset_index())
 
 
+#: EMS `transportationL` classes, keyed by the leading digits of the `info`
+#: code (EMS Rapid Mapping feature catalogue). Longest prefix wins, so "21120"
+#: (primary road) is not read as "2112". Anything else is "other".
+ROAD_CLASSES = {
+    "2111": "motorway", "21120": "primary_road", "21121": "secondary_road",
+    "21122": "local_road", "21124": "track", "212": "railway", "214": "bridge",
+}
+#: Essential services among the EMS built-up and facilities features, keyed the
+#: same way. Building blocks (`builtUpA`, delineations) and graded buildings
+#: (`builtUpP`) carry the use in `info`; the facilities layers carry plants,
+#: dams and lines. Sports grounds, cemeteries and offices are left out: the
+#: question is which services a flood cuts, not every object it touches.
+#: "1241" is the catalogue's "communication buildings, stations, terminals".
+FACILITY_CLASSES = {
+    "1263": "school_university", "1264": "hospital_care", "1223": "fire_station",
+    "1224": "police_station", "1241": "station_terminal",
+    "2302": "power_plant", "23027": "power_substation",
+    "2214": "power_line", "2224": "power_line", "2152": "dam",
+}
+#: Which side of the observed extent a feature is on. A delineation drawn by
+#: radar stops at walls, so `near` (within NEAR_OBSERVED_M) is the sensitivity.
+INFRA_SCOPES = ("aoi", "observed", "near")
+
+
+def info_class(info, classes: dict[str, str], default: str | None = "other") -> str | None:
+    """The class of an EMS `info` value such as "21122-Local Road", longest code prefix first."""
+    code = str(info).split("-", 1)[0].strip()
+    for prefix in sorted(classes, key=len, reverse=True):
+        if code.startswith(prefix):
+            return classes[prefix]
+    return default
+
+
 def ratio(numerator: float, denominator: float) -> float:
     """`numerator / denominator`, NaN when the denominator is 0 (never 0.0)."""
     return float(numerator) / denominator if denominator else np.nan
