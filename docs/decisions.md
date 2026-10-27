@@ -402,3 +402,8 @@ Each entry keeps the same four-line shape: date, decision, why, effect.
 - **Decision:** `/api/exposure` rows carry `eu27` (membership from `src/policy_tool.EU27`, added to the answer, never to the table). The React Europe view and the Streamlit app open on the EU-27 and offer all 37 countries of the GISCO file as a second choice; the React map draws only the regions in scope.
 - **Why:** The brief, the pitch and the Floods Directive speak of the Member States, yet the first total on screen covered EU-27, EFTA and the candidate countries (29.7 million at RP100 against the brief's 25.7 million).
 - **Effect:** No figure changed. At RP100 the page now opens on 25,737,004 people in 27 countries (1,165 regions); "All 37" shows the previous 29,727,887. The Vulnerability and Context tabs of the React view still rank all 37 countries.
+
+### 2026-10-26 — The policy tool's Europe map read on the EU-27
+- **Decision:** `policy_tool.europe_shares` keeps the EU-27 regions only when the table names countries, and `europe_svg` draws only the regions it counted; the text says "EU-27 regions".
+- **Why:** The page's hero quotes 25.7 million EU-27 residents, while its Europe map ranked and drew all 37 countries of the GISCO file, Turkey included, so the July 2021 places were ranked against another denominator than the headline.
+- **Effect:** "193 of 1,338 European regions" → "171 of 1,159 EU-27 regions" with at least one resident in ten in the zone (6 not measured); Ahrweiler 11 %, 178 → 158 regions rank higher; Verviers 2 %, 925 → 810. No share changed.
