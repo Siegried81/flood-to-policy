@@ -141,6 +141,7 @@ flood-to-policy/
 │   ├── rainfall_jul2021.py          # freezes data/processed/rainfall_jul2021.parquet (EMO-1, 581 regions)
 │   ├── build_geometry.py            # freezes data/processed/regions.geojson, the choropleth's polygons
 │   ├── validate_2021.py             # JRC RP10/100/500 and Walloon aléa vs four July 2021 truths, Wallonia window
+│   ├── groundsource_2021.py         # news-reported July 2021 floods (Groundsource) against the JRC 1-in-100 map, corroboration only
 │   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
 │   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
 │   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool/
@@ -179,7 +180,7 @@ the same wheel again with nothing reinstalled. **The policy moves both ways, so
 measure rather than believe either state** — measured 2026-10-14 it blocked
 `import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
 collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,095<!-- /numbers --> collected, nothing deselected, all passing** (the
+**<!-- numbers:tests_collected -->1,112<!-- /numbers --> collected, nothing deselected, all passing** (the
 climate dry-run test that used to read the CDS files already in `data/` now
 honours its patched directory). The WSL2 venv stays, because it is the only route that does
 not depend on the policy's mood and it is where a continental raster build
@@ -244,7 +245,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,095<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,112<!-- /numbers --> tests, offline: no network, no model
                                         # All collected and passing 2026-10-23 on
                                         # Windows. Smart App Control blocks
                                         # rasterio on Windows some days and not
