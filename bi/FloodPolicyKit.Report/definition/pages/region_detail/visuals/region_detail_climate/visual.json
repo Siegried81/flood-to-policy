@@ -134,7 +134,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Ensemble of eight bias-adjusted simulations: median and quartiles, never a mean'"
+                  "Value": "'Ensemble of 16 members (eight bias-adjusted simulations, two hydrological models): median and quartiles, never a mean'"
                 }
               }
             },

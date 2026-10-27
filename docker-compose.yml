@@ -104,7 +104,7 @@ services:
     stdin_open: true
 
   # The demo image: same code, data baked in, no bind mount. Carry it on a USB
-  # stick (`docker save flood-policy-kit:portable | gzip > kit.tar.gz`) and it
+  # stick (`docker save flood-to-policy:portable | gzip > kit.tar.gz`) and it
   # runs on a machine that has never seen this repo.
   portable:
     <<: *app-common
@@ -112,7 +112,7 @@ services:
     build:
       context: .
       target: portable
-    image: flood-policy-kit:portable
+    image: flood-to-policy:portable
     # Explicitly empty: the point of this service is that nothing is mounted, so
     # what runs is exactly what is inside the image.
     volumes: []

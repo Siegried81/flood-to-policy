@@ -30,8 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: docker build --target app -t flood-policy-kit:ci .
-      - run: docker run --rm flood-policy-kit:ci python -c "import rasterio, pyogrio, rasterstats, tiktoken; print('native stack loads')"
+      - run: docker build --target app -t flood-to-policy:ci .
+      - run: docker run --rm flood-to-policy:ci python -c "import rasterio, pyogrio, rasterstats, tiktoken; print('native stack loads')"
       # The readiness script is what the `check` service runs; with no data in
       # the image it must report BLOCKED and exit 1, not crash. `!` inverts it.
-      - run: "! docker run --rm flood-policy-kit:ci python scripts/check_offline_readiness.py"
+      - run: "! docker run --rm flood-to-policy:ci python scripts/check_offline_readiness.py"

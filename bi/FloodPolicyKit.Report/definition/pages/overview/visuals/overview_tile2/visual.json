@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "people a year behind the defences, weighted by probability",
+                    "value": "people a year behind the defences, weighted by probability - a lower bound",
                     "textStyle": {
                       "fontSize": "11pt",
                       "color": "#1B1F27",

@@ -1,7 +1,7 @@
 # What must not reach the build context, and why.
 #
 # Note what is NOT here: data/. The `portable` stage in the Dockerfile copies the
-# whole 6.4 GiB data tree (measured 2026-10-23) into the image on purpose, so the tree has to stay in
+# whole data tree (81 GiB on 2026-10-27, about 69.5 GiB of it HERA) into the image on purpose, so the tree has to stay in
 # the context. BuildKit only transfers the files a COPY actually asks for, so the
 # `app` stage - which never copies data/ - does not pay for it.
 #
@@ -43,3 +43,9 @@ data/processed/approved.md
 
 # Exploration, not the deliverable.
 notebooks/
+
+# Private, gitignored working files that `COPY docs/` would otherwise carry into
+# the image from a local checkout: the team's drafts and policy tool build, and
+# the local AI log.
+docs/perso/
+docs/ai_usage_log.md

@@ -5,11 +5,11 @@
 //
 // It adds a separate `dev` service and leaves `app` and `api` untouched.
 {
-	"name": "flood-policy-kit (Linux, geospatial stack)",
+	"name": "flood-to-policy (Linux, geospatial stack)",
 	"dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
 	"service": "dev",
 	"runServices": ["dev"],
-	"workspaceFolder": "/workspaces/flood-policy-kit",
+	"workspaceFolder": "/workspaces/flood-to-policy",
 	"shutdownAction": "stopCompose",
 	"features": {
 		// The image is python:3.12-slim, which has no git; VS Code's Source Control needs it.

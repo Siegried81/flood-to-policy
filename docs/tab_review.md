@@ -163,7 +163,7 @@ for an EU NUTS3 brief that must run offline.
 - Still drawable: per-record JSON-LD at `/dataset/<id>.json`, plus `.rdf`, `.csv` and `.ttl` for collections. These give DOIs, licences and author lists for `sources.yaml`. The SPARQL endpoint is behind the WAF, which returned 403.
 
 ### 4. JRC Data Catalogue — collection id-0054 "FLOODS"
-- URL: https://data.jrc.ec.europa.eu/collection/id-0054. Title: River Flood Hazard and flood event catalogue at European and Global Scale. Contact Peter.SALAMON@ec.europa.eu. Modified 21 Oct 2026.
+- URL: https://data.jrc.ec.europa.eu/collection/id-0054. Title: River Flood Hazard and flood event catalogue at European and Global Scale. Contact: as listed on the public catalogue record, https://data.jrc.ec.europa.eu/collection/id-0054. Modified 21 Oct 2026.
 - What it is: 3 datasets: European hazard maps (1d128b6c), global hazard maps, and satellite-derived flood depth maps 2015–2024 (0bc96690).
 - In the kit: 2 of its 3 members.
 - Verdict: **USEFUL.** It is the parent record of the kit's two core layers.

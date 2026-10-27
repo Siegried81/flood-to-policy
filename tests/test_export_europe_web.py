@@ -9,6 +9,7 @@ Monte Carlo and need no tables. No network.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import fastapi.testclient
@@ -97,9 +98,63 @@ def test_no_geometry_is_written(exported):
 def test_meta_says_static_and_asks_for_no_token(exported):
     meta = json.loads((exported / "meta.json").read_text(encoding="utf-8"))
     assert meta["static"] is True
-    assert meta["has_geometry"] is True
     assert meta["approve_token_required"] is False
     assert meta["corpus_passages"] == 3
+
+
+def test_meta_says_the_build_hosts_no_geometry(exported):
+    # The static files carry no polygons; the view keys the GISCO fetch on
+    # `static`, so the map still draws (EuropeView.jsx).
+    meta = json.loads((exported / "meta.json").read_text(encoding="utf-8"))
+    assert meta["has_geometry"] is False
+    view = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    assert "m.has_geometry || m.static" in view
+
+
+# Credits the Europe view must show, each as worded in DATA_NOTICE.md. The
+# Copernicus Climate Change Service sentence and disclaimer are licence terms
+# and must appear verbatim.
+REQUIRED_CREDITS = (
+    "© EuroGeographics for the administrative boundaries",
+    "river flood hazard maps for",
+    "doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81",
+    "GHS-POP and",
+    "GHS-BUILT-S R2023A, epoch 2025 at 1 km",
+    "Source: Eurostat",
+    "Eurostat bears no responsibility for these derived figures",
+    "WFD river basin districts",
+    "Source: European Environment Agency, reported by the Member States",
+    "Contains modified Copernicus Climate Change Service information 2026",
+    "(doi:10.24381/cds.73237ad6), CC BY 4.0",
+    "Neither the European Commission nor ECMWF is responsible for any use that may be "
+    "made of the Copernicus information or data it contains.",
+)
+
+
+def _flat(text: str) -> str:
+    """Collapse line breaks and JS string concatenation, so a phrase wrapped
+    differently in the notice and in the view still compares equal."""
+    text = re.sub(r'"\s*\+\s*"', "", text)
+    return re.sub(r"\s+", " ", text)
+
+
+def test_europe_view_shows_the_credits_of_the_data_notice():
+    notice = _flat((ROOT / "data" / "processed" / "DATA_NOTICE.md").read_text(encoding="utf-8"))
+    view = _flat((ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8"))
+    for credit in REQUIRED_CREDITS:
+        assert credit in notice, f"not in DATA_NOTICE.md: {credit}"
+        assert credit in view, f"not in EuropeView.jsx: {credit}"
+    # Rendered outside every tab and every STATIC_BUILD branch, so both builds show it.
+    assert "EUROPE_SOURCES.map" in view
+
+
+def test_local_client_asks_the_api_for_the_2021_story_first():
+    # Locally /api/event2021 serves the --full build; the public file is the
+    # fallback, and the only source of a static build.
+    api = (ROOT / "web" / "src" / "api.js").read_text(encoding="utf-8")
+    body = api[api.index("export async function getEvent2021"):]
+    assert body.index('request("/api/event2021")') < body.index("event_2021_web.json")
+    assert "if (!STATIC_BUILD)" in body
 
 
 def test_context_keeps_only_the_columns_the_panel_draws(exported):

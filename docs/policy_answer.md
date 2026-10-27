@@ -1,6 +1,8 @@
 # The answer: what we are asked, what we found, who has to act
 
-**Written 2026-10-08, figures re-derived up to 2026-10-25.** Every figure here comes from
+**Written 2026-10-08, figures re-derived up to 2026-10-25** (the July 2021
+figures and the R3 evidence on 2026-10-27). Every figure here comes from
+`data/processed/event_2021_*.parquet`,
 `data/processed/exposure.parquet`, `data/processed/context.parquet`, the cached
 APSFR layer and the Floods Directive text in `data/raw/scrape/`. Re-derive them
 rather than quoting this page: the parquets are rebuilt and the counts move.
@@ -16,6 +18,19 @@ instruments, the deadlines and the bodies — which no dataset carries.
 Netherlands, answered on the organisers' data (Q1, Q3), is the core. The
 EU-wide findings below are the context, the answer to "is this a one-off?",
 and they give the recommendation its scale and its named actor.
+
+**The core, in four figures** (the policy tool's hero numbers, read by
+`src.policy_tool.hero()` and `country_strip()` from
+`data/processed/event_2021_*.parquet`; first Copernicus EMS maps, residents from
+GHS-POP E2020). In the Ahr valley (Bad Neuenahr-Ahrweiler, EMSR517 AOI15),
+**51 %** of the 3,740 residents the water reached (1,890) lived *outside* the
+JRC 1-in-100-year flood zone. In Germany **375** buildings were graded
+destroyed on the first maps, **792** with the later maps of the same areas; the
+water reached about **32,600** residents there, **12,200** of them outside the
+1-in-100-year zone. In Belgium it reached about **1,990** residents (**12 %**
+outside the zone), in the Netherlands about **2,450** (**12 %**). Belgium and
+the Netherlands have no damage-grading products, so no destroyed count exists
+for them.
 
 ---
 
@@ -37,7 +52,7 @@ then a five-minute live demo of the policy tool:
 | Deliverable | What it carries |
 |---|---|
 | The **policy tool** (any file: html, pptx, png) | one thing pointed at, not a legend narrated |
-| The **policy brief** in the Annex 6 template | a decision with a named actor and a date; no page limit is stated |
+| The **policy brief** in the Annex 6 template | a decision with a named actor and a date; two pages (the programme asks for a "final 2-page policy brief"; Annex 6 states no limit) |
 | The **AI sheet** in the Annex 7 template | how AI was used at each stage, the errors caught, what it was *not* allowed to decide |
 
 The jury applies four criteria with equal weight: evidence and soundness,
@@ -164,7 +179,8 @@ Off the WFD river basin districts, grouped into international basins by
 `config/international_basins.yaml`:
 
 - **810** of 1,345 regions have part of their area in a basin that crosses a
-  national border; **603** lie wholly inside one.
+  national border; of those 810, **603** lie wholly (at least 99.9 % of their
+  area) inside such a basin.
 - **16,945,579** people exposed at RP100 live in those regions — **57.0 %** of
   the European total (all 37 countries; 63 % for the EU-27, the figure the
   brief quotes).
@@ -281,7 +297,8 @@ Three more articles do real work:
 ## 6. The measures: what, where, by whom, how, by when
 
 Three recommendations, each tied to an instrument and an addressee. None of them
-requires new legislation.
+requires new legislation. In the policy brief (`docs/perso/brief_draft.md`),
+action 1 is the case's own (Q4); R1 and R2 here are its action 2, R3 its action 3.
 
 ### R1 — Make the Article 5 declaration comparable before the 2027 review
 
@@ -291,7 +308,7 @@ requires new legislation.
 | **Where** | The WISE Floods Directive reporting schema and the APSFR layer served by the EEA. |
 | **By whom** | DG Environment, through the **Working Group on Floods** of the WFD/FD Common Implementation Strategy, with the EEA as the layer's custodian. |
 | **How** | The Working Group already issues reporting guidance for each cycle; this is an amendment to the next guidance, not a new process. |
-| **By when** | In time for the **22 December 2027** plan review — so tabled at a 2026 Working Group on Floods meeting. |
+| **By when** | Tabled early in 2027, in time for the **22 December 2027** plan review. |
 | **Evidence** | 4.1: a 23,095-fold spread in declared territory, shape index 1.5 to 74. |
 
 ### R2 — Close the two reporting holes, and publish absence as absence
@@ -309,12 +326,12 @@ requires new legislation.
 
 | | |
 |---|---|
-| **What** | One Member State formally reports, under Article 8(5), that it cannot resolve the coordination of flood risk in a basin whose upstream lies outside the Union — and recommends a solution. The Commission then owes an answer in six months. |
+| **What** | One Member State formally reports, under Article 8(5), that it cannot resolve the coordination of flood risk in a basin it shares with other states — and recommends a solution. The Commission then owes an answer in six months. |
 | **Where** | The Meuse is the right test case for a Brussels jury: five states, a Belgian secretariat, and a region (Namur) reading `[DE, FR, LU, NL]` — exactly the Commission's membership. For the non-EU upstream problem, the Rhine (Switzerland) or the Danube (Serbia) is the sharper case. |
 | **By whom** | The **International Meuse Commission** (secretariat in Liege; parties France, Belgium, the Netherlands, Germany, Luxembourg plus the Walloon, Flemish and Brussels-Capital Regions) as the forum; one of its parties as the reporting Member State; the Commission as respondent. |
 | **How** | Article 8(5) verbatim. No new body, no new money. |
-| **By when** | A report lodged in 2026 obliges a Commission response inside the 2027 planning window. |
-| **Evidence** | 4.3: 57.0 % of Europe's exposed population in a cross-border basin, and Article 8(3)'s "shall endeavour". |
+| **By when** | A report lodged by mid-2027 obliges a Commission response within six months, inside the 2027 planning window. |
+| **Evidence** | 4.3: 63.3 % of the EU-27's population exposed at RP100 (16,278,961 of 25.7 million, in 783 of 1,165 regions) lives in a cross-border basin (57.0 % over all 37 countries), and Article 8(3)'s "shall endeavour". |
 
 ## 7. The addressees, named
 
@@ -386,7 +403,7 @@ this page adds is the current legislative context a JRC jury will know:
   `poverty_rate_pct` is a percentage beside `share_over_65`, a fraction. Values
   did not change; a table or export from an older build says `poverty_rate`
   (the committed `exposure.parquet` still does), and the API and both UIs read it under the new name for one release.
-- The full suite now collects **<!-- numbers:tests_collected -->1,090<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
+- The full suite now collects **<!-- numbers:tests_collected -->1,095<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
   Windows on 2026-10-07, allowed it the next morning with nothing reinstalled,
   and blocked it again on 2026-10-12, so the policy moves both ways and the only safe habit is to
   re-measure rather than quote this line. The WSL2 venv stays as the route that

@@ -1,11 +1,12 @@
 # Data notice — `data/processed/`
 
-The MIT licence of this repository covers the **code only**. The two tables
-committed here, `exposure.parquet` and `context.parquet`, are derived from
-third-party datasets and remain subject to their licences. They have been
-modified: aggregated per NUTS3 region, reprojected, thresholded, and in places
-NUTS2 figures applied to NUTS3 children. None of the original publishers is
-responsible for these results.
+The MIT licence of this repository covers the **code only**. The three data
+files committed here, the tables `exposure.parquet` and `context.parquet` and the
+July 2021 export `event_2021_web.json`, are derived from third-party datasets and
+remain subject to their licences. They have been modified: the tables aggregated
+per NUTS3 region, reprojected, thresholded, and in places NUTS2 figures applied
+to NUTS3 children; the export measured per Copernicus EMS product and per
+country. None of the original publishers is responsible for these results.
 
 `regions.geojson` is deliberately **not** committed. It is a simplified copy of
 the GISCO NUTS geometry, whose terms grant a non-transferable right to use and
@@ -33,11 +34,22 @@ writes a richer local copy with the GISCO borders and NUTS3 lines to
 - **Country borders on the July 2021 locator map** — Natural Earth 1:10m
   admin-0 countries v5.1, public domain; credit given as a courtesy.
   <https://www.naturalearthdata.com/>
+- **Observed flood extent and damage grading, July 2021** — Copernicus
+  Emergency Management Service Rapid Mapping, activations EMSR517 (Germany),
+  EMSR518 (Belgium) and EMSR520 (Netherlands), July 2021, © European Union.
+  Free use with attribution. Used in `event_2021_web.json`.
+  <https://mapping.emergency.copernicus.eu/>
+- **Buildings, July 2021** — JRC Global Human Settlement Layer, GHS-OBAT
+  R2024A, epoch 2020. © European Union, CC BY 4.0. Used in
+  `event_2021_web.json`.
+- **Population, July 2021** — JRC GHSL GHS-POP R2023A, epoch 2020 (E2020),
+  30 arc-seconds. © European Union, CC BY 4.0. Used in `event_2021_web.json`.
 - **Flood hazard** — JRC / Copernicus Emergency Management Service, river flood
   hazard maps for Europe v3.1.1, doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81.
   © European Union, CC BY 4.0.
 - **Population and built-up surface** — JRC Global Human Settlement Layer,
-  GHS-POP and GHS-BUILT-S R2023A. © European Union, CC BY 4.0.
+  GHS-POP and GHS-BUILT-S R2023A, epoch 2025 at 1 km. © European Union,
+  CC BY 4.0.
 - **Natura 2000 and WFD river basin districts** — © European Environment Agency,
   CC BY 4.0 (Natura 2000 doi:10.2909/91357f39-7866-41ce-b447-43905c364ec8).
 - **Floods Directive areas of potential significant flood risk (APSFR)** —

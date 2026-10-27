@@ -202,7 +202,7 @@ def build_server():
     from mcp.server.mcpserver import MCPServer
 
     server = MCPServer(
-        name="flood-policy-kit",
+        name="flood-to-policy",
         instructions=(
             "European flood exposure by NUTS3 region, for drafting policy advice. "
             "Start with rank_regions, drill down with profile_regions, and back every "

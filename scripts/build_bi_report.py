@@ -487,7 +487,7 @@ def overview() -> tuple[dict, list]:
          "still do, behind the design standards of local defences",
          "Defences hold 99 % in NL, HU, AT and BE - 26 % in Poland, 24 % in Romania, 12 % in Spain"),
         (measure("Residual expected annual exposure"), 1, 0, RESIDUAL, "defences",
-         "people a year behind the defences, weighted by probability",
+         "people a year behind the defences, weighted by probability - a lower bound",
          "The JRC's own estimate is about 160,000 a year: the same order, reached the other way round"),
         (measure("Share in shared basins"), 0, 1, ACCENT, "downstream",
          "of the exposed live in a river basin shared with another country",
@@ -519,7 +519,7 @@ def overview() -> tuple[dict, list]:
             (measure("Exposed population"), "No defences", RAMP[3]),
             (measure("Held by defences (people)"), "Held by the design standards", HELD),
             (measure("Residual exposed"), "Still exposed behind them", RESIDUAL)],
-            "From 25.7 million to 7.25 million: what the defences hold",
+            "From 25.7 million to 7.3 million: what the defences hold",
             "People in the 1-in-100 footprint, EU-27 - most dykes are built for 50 to 100 years",
             decimals=2),
         text(f"{p}_more", right, [
@@ -528,8 +528,9 @@ def overview() -> tuple[dict, list]:
              9.5, INK, False),
             ("July 2021: the Ahr at Ahrweiler passed its 1-in-500-year discharge; 44 of its 55 river cells went "
              "past 1-in-100 in the EFAS reanalysis (page 5).", 9.5, INK, False),
-            ("Declared risk areas are not comparable: the median Belgian region declares 99.99 % of its area, "
-             "the median Spanish one 0.004 %; Ireland and Lithuania report none (page 7).", 9.5, INK, False),
+            ("Declared risk areas are not comparable: the median Belgian NUTS3 region declares 99.99 % of its area, "
+             "the median Spanish one 0.004 %; Ireland is in no cycle of the EEA layer, "
+             "Lithuania only in the 2010 one (page 7).", 9.5, INK, False),
             ("How to explore: " + EXPLORE + " The arrows on a chart open a country into its regions.",
              9, MUTED, False),
         ], frame=container()),
@@ -585,10 +586,10 @@ def headline() -> tuple[dict, list]:
 
 def defences() -> tuple[dict, list]:
     p = "defences"
-    visuals = header(p, "Behind the dykes, 7.25 million still live where the 1-in-100 flood reaches",
+    visuals = header(p, "Behind the dykes, 7.3 million still live where the 1-in-100 flood reaches",
                      "What to look at: undefended against residual by return period - most defences are built "
                      "for 50 to 100 years, so the rarer flood overtops them. Then which countries hold, and "
-                     "where the 7.25 million sit.")
+                     "where the 7.3 million sit.")
     cards = columns(5, TOP + 76, 100)
     charts = columns(3, TOP + 192, BOTTOM - TOP - 192)
     visuals += [
@@ -600,7 +601,7 @@ def defences() -> tuple[dict, list]:
         card(f"{p}_residual", cards[1], measure("Residual exposed"),
              "Still exposed behind the defences", units=1000000, decimals=2, value_colour=RESIDUAL),
         card(f"{p}_residual_eae", cards[2], measure("Residual expected annual exposure"),
-             "A year behind the defences (JRC: ~160,000)", units=1, value_colour=RESIDUAL),
+             "A year behind the defences, lower bound (JRC: ~160,000)", units=1, value_colour=RESIDUAL),
         card(f"{p}_hospitals", cards[3], measure("Hospitals behind defences"),
              "Hospitals still in the RP100 footprint"),
         card(f"{p}_schools", cards[4], measure("Schools behind defences"),
@@ -624,7 +625,7 @@ def defences() -> tuple[dict, list]:
                      [proj(level("Country"), active=True), proj(level("Region"), active=False)],
                      [(measure("Residual exposed"), "Still exposed", RESIDUAL),
                       (measure("Held by defences (people)"), "Held by the design standards", HELD)],
-                     "Where the 7.25 million sit - drill down to regions",
+                     "Where the 7.3 million sit - drill down to regions",
                      "Bar length: people exposed with no defences; dark: still exposed behind them",
                      sort_by=measure("Residual exposed"),
                      tooltips=[(measure("Held by defences"), "Share held")], tooltip_page=True),
@@ -954,7 +955,8 @@ def detail(level: str = "region") -> tuple[dict, list]:
                    proj(measure("Upper quartile change in discharge 2041-2070"), "Upper quartile, %"),
                    proj(measure("Simulations agree on direction 2041-2070"), "80 % of simulations agree on direction")]},
                frame=container("Climate: change in reference discharge, 2041-2070",
-                               "Ensemble of eight bias-adjusted simulations: median and quartiles, never a mean")),
+                               "Ensemble of 16 members (eight bias-adjusted simulations, two hydrological "
+                               "models): median and quartiles, never a mean")),
     ]
     visuals += footer(p, "JRC river-flood hazard maps and PESETA IV protection standards, GHSL population, "
                          "Eurostat, EEA declared risk areas, WFD basins, climate-change discharge ensemble")
