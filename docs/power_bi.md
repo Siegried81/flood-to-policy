@@ -57,7 +57,8 @@ and the Netherlands, while the highest national shares are the Netherlands
 (14.8 %), Latvia and Hungary; 7,252,724 people are still exposed behind the
 design standards, 207,308 a year once weighted by probability (a lower bound: the band
 stops at 1-in-500); the defences
-hold 99 % or more in the Netherlands, Hungary, Austria and Belgium, 26 % in
+hold 99 % or more in the Netherlands, Hungary, Austria, Belgium, Slovakia,
+Slovenia and Luxembourg, 26 % in
 Poland, 24 % in Romania and 12 % in Spain; 63.3 % of the EU-27's exposed live
 in a shared basin (57.0 % over all 37 countries, whose non-EU members report
 no basins); built-up surface in the footprint grew from 2,917 km² to 3,340 km²
