@@ -500,7 +500,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,112<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,115<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 The platform history matters more than any one run. On 12 October 2026, in WSL2,
@@ -582,7 +582,7 @@ forty-three summing to 989 while the suite held 1,090.
 | `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
 | `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
 | `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
-| `test_policy_tool.py` | 21 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N" |
+| `test_policy_tool.py` | 24 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N", the EU-27 States absent from the risk-area layer read from the context table |
 
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
@@ -605,7 +605,7 @@ zonal statistic is the right arithmetic on the wrong piece of Europe. Measured o
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,112<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,115<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
