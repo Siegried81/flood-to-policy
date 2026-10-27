@@ -198,6 +198,26 @@ def test_place_figures_equal_the_table():
     assert ahr["later"]["residents"] == "n/a"  # the later pass has no residents figure
 
 
+def test_each_figure_names_its_population_grid(page):
+    """The event figures use GHS-POP E2020, the European ones E2025: the page says which."""
+    small = {h["id"]: h["small"] for h in P.hero(_products(), _countries(), _exposure())}
+    assert "E2020" in small["missed"] and "E2025" not in small["missed"]
+    assert "E2025" in small["europe"] and "E2020" not in small["europe"]
+    population = next(s for s in P.SOURCES if s.startswith("Population:"))
+    assert "E2020" in population and "E2025" in population
+    grids = next(item for item in P.LIMITS if "Population is a model" in item)
+    assert "E2020" in grids and "E2025" in grids
+    for item in (small["missed"], small["europe"], population):
+        assert P.esc(item) in page
+
+
+def test_limits_say_design_standards_are_not_guarantees(page):
+    defences = [item for item in P.LIMITS if "not guarantees" in item]
+    assert len(defences) == 1 and "Ahrweiler" in defences[0]
+    assert defences[0] in page
+    assert any("PESETA" in s for s in P.SOURCES)
+
+
 def test_places_named_first_then_large_ones_only():
     keys = [p["key"] for p in P.place_records(_products())]
     assert keys == ["EMSR517_AOI15", "EMSR518_AOI01", "EMSR517_AOI06"]

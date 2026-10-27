@@ -15,7 +15,7 @@ $Repo = (Resolve-Path "$Here\..\..").Path
 # -Python for a git worktree, which has no .venv of its own.
 $Py   = if ($Python) { $Python } else { "$Repo\.venv\Scripts\python.exe" }
 $Out  = "$Repo\docs\screenshots"
-$Logs = "$env:TEMP\flood-policy-kit-screenshots"
+$Logs = "$env:TEMP\flood-to-policy-screenshots"
 New-Item -ItemType Directory -Force $Logs | Out-Null
 
 $started = @()

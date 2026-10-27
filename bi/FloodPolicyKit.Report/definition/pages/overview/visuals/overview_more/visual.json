@@ -58,7 +58,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Declared risk areas are not comparable: the median Belgian region declares 99.99 % of its area, the median Spanish one 0.004 %; Ireland and Lithuania report none (page 7).",
+                    "value": "Declared risk areas are not comparable: the median Belgian NUTS3 region declares 99.99 % of its area, the median Spanish one 0.004 %; Ireland is in no cycle of the EEA layer, Lithuania only in the 2010 one (page 7).",
                     "textStyle": {
                       "fontSize": "9.5pt",
                       "color": "#1B1F27",

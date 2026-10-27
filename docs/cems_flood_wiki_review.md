@@ -422,12 +422,13 @@ is not used.
 
 ## 4. Things in the kit's documents that this review touches (not edited)
 
-Status on 2026-10-25: the `brief_draft.md` sources line and the
+Status on 2026-10-25: the brief draft's sources line and the
 `efas_flood_thresholds` caveat in `sources.yaml` have since taken in the first
 and third points below; the v4.2 note sits in the `efas_flood_thresholds`
 caveat rather than in `efas_historical_july_2021`.
 
-- `flood-policy-kit/docs/brief_draft.md`, section 5 ("Sources"): "JRC
+- The brief draft (the team's private working copy, gitignored and not in
+  this repository), section 5 ("Sources"): "JRC
   river-flood hazard maps (9 return periods) and their validation (Dottori et
   al., ESSD 2022)". The maps used are **v3.1.1**. Their method is the EFAS v5
   chain above and their reference is **Baugh et al. (2024, in prep.)**.
@@ -436,7 +437,7 @@ caveat rather than in `efas_historical_july_2021`.
   Suggested wording: "JRC/CEMS river-flood hazard maps v3.1.1 (method: CEMS
   wiki, built on the EFAS v5 reanalysis; validation of the previous
   generation: Dottori et al., ESSD 2022)".
-- `brief_draft.md` key messages: "the JRC's own '160,000 exposed annually'".
+- The brief draft's key messages: "the JRC's own '160,000 exposed annually'".
   The CEMS Data FAQ quotes PESETA IV as **"170,000 people"** a year in the
   EU + UK at present
   (<https://confluence.ecmwf.int/spaces/CEMS/pages/242067503/FAQs>). Check
