@@ -386,7 +386,7 @@ this page adds is the current legislative context a JRC jury will know:
   `poverty_rate_pct` is a percentage beside `share_over_65`, a fraction. Values
   did not change; a table or export from an older build says `poverty_rate`
   (the committed `exposure.parquet` still does), and the API and both UIs read it under the new name for one release.
-- The full suite now collects **<!-- numbers:tests_collected -->1,076<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
+- The full suite now collects **<!-- numbers:tests_collected -->1,077<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
   Windows on 2026-10-07, allowed it the next morning with nothing reinstalled,
   and blocked it again on 2026-10-12, so the policy moves both ways and the only safe habit is to
   re-measure rather than quote this line. The WSL2 venv stays as the route that

@@ -239,7 +239,10 @@ def test_chart_heading_is_written_from_the_shares():
 
 def test_europe_classes_and_highlights(page):
     shares = P.europe_shares(_exposure())
-    assert shares["XX000"] is None
+    # EU-27 only: the Swiss and the unknown-country regions are left out.
+    assert set(shares) == {"DEB12", "BE335", "NL423"}
+    unmeasured = _exposure().assign(country=["DE", "BE", "NL", "DE", "CH"])
+    assert P.europe_shares(unmeasured)["XX000"] is None
     assert P.europe_class(0.01) == 0 and P.europe_class(0.05) == 2 and P.europe_class(0.2) == 3
     assert P.europe_class(None) is None
     assert "Ahrweiler 11 %" in page and "Verviers 2 %" in page
@@ -274,3 +277,10 @@ def test_user_text_is_escaped():
     out = P.render_page(countries=_countries(), products=_products(), exposure=_exposure(),
                         title="<script>x</script>")
     assert "<script>x</script>" not in out
+
+
+def test_the_europe_map_draws_and_counts_the_eu27_only():
+    shares = P.europe_shares(_exposure())
+    svg = P.europe_svg([_square(c, i, 50) for i, c in enumerate(["DEB12", "BE335", "CH011"])], shares)
+    assert "DEB12" in svg and "CH011" not in svg
+    assert "of 3</b> EU-27 regions" in P.europe_text(shares, _exposure())
