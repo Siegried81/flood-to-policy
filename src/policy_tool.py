@@ -396,8 +396,15 @@ def europe_shares(exposure: pd.DataFrame, return_period: int = 100) -> dict[str,
     one return period, the share rather than the headcount, NaN kept as None so
     the map paints it "not measured" rather than zero. The table is the
     undefended map: dikes are not in it.
+
+    EU-27 regions only, when the table says which country a region is in: the
+    hero's 25.7 million, the brief and the Floods Directive are about the Member
+    States, and a map that also ranks Turkish and Serbian regions would set the
+    July 2021 places against a different denominator from the headline.
     """
     view = exposure[exposure["return_period"] == return_period]
+    if "country" in view.columns:
+        view = view[view["country"].isin(EU27)]
     out: dict[str, float | None] = {}
     for code, num, den in zip(view["nuts_id"], view["exposed_pop"], view["total_pop"]):
         out[str(code)] = None if _missing(num) or _missing(den) or not den else float(num) / float(den)
@@ -417,7 +424,8 @@ def europe_text(shares: dict[str, float | None], exposure: pd.DataFrame) -> str:
     if not measured:
         return "No region has a measured share in this table."
     above = sum(v >= 0.10 for v in measured)
-    text = (f"<p>In <b>{above:,} of {len(measured):,}</b> European regions, at least one "
+    where = "EU-27" if "country" in exposure.columns else "European"
+    text = (f"<p>In <b>{above:,} of {len(measured):,}</b> {where} regions, at least one "
             f"resident in ten lives inside the 1-in-100-year river flood zone.</p>")
     for code, name in EUROPE_HIGHLIGHT:
         v = shares.get(code)
@@ -564,6 +572,10 @@ def europe_svg(features: Sequence[dict[str, Any]], shares: dict[str, float | Non
     skip = tuple(svgmap.OUTERMOST) + ("IS",)
     for f in features:
         code = str((f.get("properties") or {}).get("nuts_id"))
+        # Only the regions the shares were counted on: one outside them is not
+        # "not measured", it is outside the map's scope, so it is not drawn.
+        if code not in shares:
+            continue
         rings = [[svgmap._project(float(p[0]), float(p[1])) for p in ring]
                  for ring in svgmap._rings(f.get("geometry") or {})]
         rings = [r for r in rings if len(r) >= 3]
