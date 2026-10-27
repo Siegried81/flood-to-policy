@@ -289,8 +289,24 @@ def test_reduce_classes_never_tips_a_tie_to_outside():
 
 
 def test_placeholders_are_present_by_default(page):
-    for slot in ("[TITLE]", "[DECISION QUESTION]", "[RECOMMENDATION]", "[NAMED ACTOR]"):
+    for slot in ("[TITLE]", "[DECISION QUESTION]", "[RECOMMENDATION]", "[NAMED ACTOR]",
+                 "[INSTRUMENT, COST]"):
         assert slot in page
+
+
+def test_page_carries_the_briefs_recommendations_and_a_conclusion(page):
+    import html
+    text = html.unescape(page)
+    for what, who, how in P.RECOMMENDATIONS:
+        assert what in text and who in text and how in text
+    assert P.CONCLUSION in text
+    assert P.PLAN_REVIEW_DATE in P.CONCLUSION
+    # No measured figure typed by hand: only the event's name, the legal date and labels.
+    rest = P.CONCLUSION
+    for allowed in (P.PLAN_REVIEW_DATE, "July 2021", "1-in-100", "Recommendations 2 and 3",
+                    "Recommendation 1"):
+        rest = rest.replace(allowed, "")
+    assert not any(ch.isdigit() for ch in rest)
 
 
 def test_user_text_is_escaped():

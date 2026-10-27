@@ -245,10 +245,33 @@ def test_main_writes_both_tables_and_prints_every_truth(tmp_path, monkeypatch, c
         "truth": ["wallonia_extent_2021"], "model": ["jrc_rp100"], "variant": ["conservative"],
         "pop_in_truth": [100.0], "pop_in_truth_outside_model": [40.0],
         "share_outside_model": [0.4], "pop_inside_model_in_window": [500.0]})
-    monkeypatch.setattr(S, "build_window", lambda name: (scores, population))
+    monkeypatch.setattr(S, "build_window", lambda name, epoch=2025: (scores, population))
     out, out_pop = tmp_path / "v.parquet", tmp_path / "p.parquet"
     assert S.main(["--windows", "wallonia", "--out", str(out),
                    "--out-population", str(out_pop)]) == 0
     assert len(pd.read_parquet(out)) == 2 and len(pd.read_parquet(out_pop)) == 1
     printed = capsys.readouterr().out
     assert "wallonia_depth_2021 0.600, wallonia_extent_2021 0.200" in printed
+
+
+def test_epoch_2020_reads_its_own_tiles_and_writes_its_own_file(tmp_path, monkeypatch):
+    """`--epoch 2020` must not overwrite the 2025 population table."""
+    seen = {}
+    population = pd.DataFrame({"truth": ["t"], "model": ["m"], "variant": ["v"],
+                               "pop_in_truth": [1.0], "pop_in_truth_outside_model": [0.5],
+                               "share_outside_model": [0.5], "pop_inside_model_in_window": [1.0]})
+    scores = pd.DataFrame({"window": ["w"], "kind": ["x"], "model": ["m"], "truth": ["t"],
+                           "observed_km2": [1.0], "modelled_km2": [1.0], "hit_rate": [0.5],
+                           "false_alarm_ratio": [0.5], "csi": [0.5]})
+
+    def fake(name, epoch=2025):
+        seen["epoch"] = epoch
+        return scores, population
+    monkeypatch.setattr(S, "build_window", fake)
+    monkeypatch.setattr(S, "OUT_POPULATION", tmp_path / "validation_2021_population.parquet")
+    assert S.main(["--windows", "wallonia", "--epoch", "2020", "--out", str(tmp_path / "v.parquet")]) == 0
+    assert seen["epoch"] == 2020
+    assert (tmp_path / "validation_2021_population_e2020.parquet").exists()
+    assert not (tmp_path / "validation_2021_population.parquet").exists()
+    assert all("E2020" in p.name for p in S.GHSL_TILES[2020])
+

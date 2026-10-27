@@ -38,8 +38,9 @@ Choices that move a figure, each also written on every row:
   monitoring), i.e. the maximum observed extent.
 
 Then the population living inside each observed extent but outside each map,
-from the GHSL 100 m tiles (`ghsl_pop_100m_tiles`, epoch 2025 - the nearest
-GHSL epoch, not a 2021 count) summed onto a 100 m EPSG:3035 grid of 5 x 5
+from the GHSL 100 m tiles (`ghsl_pop_100m_tiles`, epoch 2025 by default; `--epoch
+2020` reads `ghsl_pop_100m_tiles_2020`, the epoch the organisers ask for a 2021
+event, and writes `validation_2021_population_e2020.parquet`) summed onto a 100 m EPSG:3035 grid of 5 x 5
 scoring cells. A 100 m cell is in an observed extent when its centre 20 m
 cell is. Two hazard rules give two figures:
 
@@ -97,10 +98,13 @@ WALLONIA_EXTENT = (
 CEMS_DIR = RAW / "cems_emsr518_belgium_2021"
 CEMS_PACKAGES = ("AOI01_DEL_PRODUCT", "AOI01_DEL_MONIT01",
                  "AOI02_DEL_PRODUCT", "AOI02_DEL_MONIT01")
-GHSL_TILES = tuple(
-    RAW / "ghsl_pop_100m_tiles" / f"GHS_POP_E2025_GLOBE_R2023A_54009_100_V1_0_{t}.zip"
-    for t in ("R3_C19", "R4_C19")
-)
+#: The two Belgian 100 m tiles per GHSL epoch. 2025 is the default, the grid the
+#: European layer uses; 2020 is what the organisers ask for a 2021 event (Annex 2).
+GHSL_TILES = {
+    epoch: tuple(RAW / folder / f"GHS_POP_E{epoch}_GLOBE_R2023A_54009_100_V1_0_{t}.zip"
+                 for t in ("R3_C19", "R4_C19"))
+    for epoch, folder in ((2025, "ghsl_pop_100m_tiles"), (2020, "ghsl_pop_100m_tiles_2020"))
+}
 NUTS3 = RAW / "gisco_nuts3.geojson"
 WALLONIA_NUTS_PREFIX = "BE3"
 
@@ -408,17 +412,17 @@ def _cems(kind: str):
     return pd.concat(frames, ignore_index=True)
 
 
-def _ghsl_paths() -> list[str]:
-    """The GDAL paths of the GHSL GeoTIFFs inside their zips."""
+def _ghsl_paths(epoch: int = 2025) -> list[str]:
+    """The GDAL paths of one epoch's GHSL GeoTIFFs inside their zips."""
     paths = []
-    for z in GHSL_TILES:
+    for z in GHSL_TILES[epoch]:
         name = next(n for n in zipfile.ZipFile(z).namelist() if n.endswith(".tif"))
         paths.append(f"zip://{z.as_posix()}!{name}")
     return paths
 
 
-def build_window(name: str) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Every score and population row for one window, from the files on disk."""
+def build_window(name: str, epoch: int = 2025) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Every score and population row for one window, population from GHSL `epoch`."""
     import geopandas as gpd
 
     bounds, truth_names = WINDOWS[name]
@@ -472,12 +476,13 @@ def build_window(name: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     population = pd.DataFrame()
     if name == "wallonia":
         pgrid = population_grid(grid)
-        paths = _ghsl_paths()
+        paths = _ghsl_paths(epoch)
         pop = read_population_on_grid(paths, pgrid)
         native = native_population_in_grid(paths, pgrid)
         print(f"  population on the 100 m grid {pop.sum():,.0f}; native cell centres "
               f"inside it {native:,.0f} ({pop.sum() / native - 1:+.3%})", flush=True)
         population = population_outside(pop, models, truths, window=name)
+        population.insert(1, "pop_epoch", epoch)
     return scores, population
 
 
@@ -496,7 +501,8 @@ def _print(scores: pd.DataFrame, population: pd.DataFrame) -> None:
     if not population.empty:
         pcols = ["truth", "model", "variant", "pop_in_truth", "pop_in_truth_outside_model",
                  "share_outside_model", "pop_inside_model_in_window"]
-        print("\nPopulation (GHSL 2025, 100 m) inside each observed extent, outside each map:")
+        print(f"\nPopulation (GHSL {population['pop_epoch'].iloc[0] if 'pop_epoch' in population else 2025}, 100 m) inside each "
+              "observed extent, outside each map:")
         print(population[pcols].round(3).to_string(index=False))
 
 
@@ -505,11 +511,18 @@ def main(argv: list[str] | None = None) -> int:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--windows", nargs="+", choices=list(WINDOWS), default=list(WINDOWS))
     parser.add_argument("--out", type=Path, default=OUT)
-    parser.add_argument("--out-population", type=Path, default=OUT_POPULATION)
+    parser.add_argument("--out-population", type=Path, default=None,
+                        help="default validation_2021_population.parquet, "
+                             "or ..._e2020.parquet with --epoch 2020")
+    parser.add_argument("--epoch", type=int, choices=sorted(GHSL_TILES), default=2025,
+                        help="GHSL population epoch for the Walloon population rows")
     args = parser.parse_args(argv)
+    if args.out_population is None:
+        args.out_population = (OUT_POPULATION if args.epoch == 2025 else
+                               OUT_POPULATION.with_name(f"{OUT_POPULATION.stem}_e{args.epoch}.parquet"))
 
     t0 = time.perf_counter()
-    results = [build_window(w) for w in args.windows]
+    results = [build_window(w, args.epoch) for w in args.windows]
     scores = pd.concat([r[0] for r in results], ignore_index=True)
     population = pd.concat([r[1] for r in results], ignore_index=True)
     args.out.parent.mkdir(parents=True, exist_ok=True)
