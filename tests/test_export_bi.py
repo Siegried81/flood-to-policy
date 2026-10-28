@@ -23,8 +23,8 @@ from scripts import build_bi_report, export_bi, validate_bi_report
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
-TABLES = ROOT / "bi" / "FloodPolicyKit.SemanticModel" / "definition" / "tables"
-REPORT = ROOT / "bi" / "FloodPolicyKit.Report"
+TABLES = ROOT / "bi" / "FloodToPolicy.SemanticModel" / "definition" / "tables"
+REPORT = ROOT / "bi" / "FloodToPolicy.Report"
 
 # The frozen tables are committed, so this skips only on a checkout that moved
 # them aside - which is how the UI tests are checked for leaks - not in CI. The
@@ -227,7 +227,7 @@ def test_the_legacy_layout_is_gone_and_the_project_opens_as_pbir() -> None:
     assert not (REPORT / "report.json").exists()
     pbir = json.loads((REPORT / "definition.pbir").read_text(encoding="utf-8"))
     assert pbir["version"] == "4.0"
-    assert pbir["datasetReference"] == {"byPath": {"path": "../FloodPolicyKit.SemanticModel"}}
+    assert pbir["datasetReference"] == {"byPath": {"path": "../FloodToPolicy.SemanticModel"}}
 
 
 @pytest.mark.skipif(not validate_bi_report.THEME_SCHEMA.exists(), reason="schemas not vendored")
@@ -335,15 +335,13 @@ def test_a_schema_desktop_writes_before_microsoft_publishes_it_is_read_as_the_la
 
 
 def test_every_page_laid_out_for_boundaries_credits_eurogeographics() -> None:
-    """GISCO terms: a page that shows the region boundaries, or holds the place
-    of the Shape map that will, carries the credit."""
-    checked = 0
+    """GISCO terms: a page that shows the region boundaries carries the credit.
+    No page is required to: the committed report draws no map (a Shape map is
+    added locally only, see docs/power_bi.md)."""
     for page in sorted((REPORT / "definition" / "pages").glob("*/")):
         texts = " ".join(p.read_text(encoding="utf-8") for p in page.rglob("visual.json"))
         if "regions.topojson" in texts or '"shapeMap"' in texts:
-            checked += 1
             assert "EuroGeographics for the administrative boundaries" in texts, page.name
-    assert checked, "no page is laid out for the map"
 
 
 def test_the_drill_down_is_visible_without_hovering() -> None:
@@ -352,7 +350,7 @@ def test_the_drill_down_is_visible_without_hovering() -> None:
     the +/- buttons switched on."""
     import json
 
-    pages = ROOT / "bi" / "FloodPolicyKit.Report" / "definition" / "pages"
+    pages = ROOT / "bi" / "FloodToPolicy.Report" / "definition" / "pages"
     for page, visual in (("where", "where_regions"), ("downstream", "downstream_partners")):
         spec = json.loads((pages / page / "visuals" / visual / "visual.json").read_text(encoding="utf-8"))
         assert spec["visual"]["visualType"] == "pivotTable"

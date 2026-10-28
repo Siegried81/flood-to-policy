@@ -64,8 +64,8 @@ def test_relocate_accepts_the_three_roots_this_tree_lives_under():
     """
     target = Path("/tmp/kit/data")
     for recorded in (
-        r"D:\Users\x\flood-policy-kit\data\raw\scrape\ai_act.html",
-        "/mnt/d/Users/x/flood-policy-kit/data/raw/scrape/ai_act.html",
+        r"D:\Users\x\flood-to-policy\data\raw\scrape\ai_act.html",
+        "/mnt/d/Users/x/flood-to-policy/data/raw/scrape/ai_act.html",
         "/app/data/raw/scrape/ai_act.html",
     ):
         assert readiness._relocate(recorded, target) == target / "raw/scrape/ai_act.html"
