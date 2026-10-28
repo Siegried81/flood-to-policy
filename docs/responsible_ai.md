@@ -30,7 +30,7 @@ itself names the sixth "Societal and environmental well-being"):
 | Human agency and oversight | Every figure in the brief was traced to its source dataset by a named person. The AI proposed; the team decided the thresholds, the weights and the ranking. |
 | Technical robustness | The pipeline has tests; the retrieval layer **refuses** rather than guessing when no source supports an answer. Every draft is checked offline for citations out of range, numbers no passage or table holds, and claim sentences with no citation; an approval with a citation to no source is refused. Say what these checks cannot see: a flipped negation, a claim cited to the wrong passage, a true figure attached to the wrong region. |
 | Privacy and data governance | Only aggregated, open data. Population grids, not individuals. No personal data entered any prompt. Each input's licence is recorded and respected — see below. |
-| Transparency | Public repo (never linked from the submitted files: Team N only, no names or repo link), AI sheet (Annex 7) compiled from the running AI usage log, and `sources.yaml` carrying a URL and a stated purpose for all 73 declared inputs — with a **verification date on 65 of the 73** and an explicit `licence:` on **33** (re-derived 2026-10-25; the counts are of declared entries, not of the files they expand to) — which is where redistribution is a live question. Five `access: download` entries still carry no `licence:` (`gisco_nuts3`, `gisco_lau`, `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`), so the honest claim is the narrower one. Claim the coverage you have: "every input is traceable to a URL and a stated purpose, and nearly nine in ten carry a verification date" survives a jury opening the file. "Licence for every input", and "a licence on every dataset we redistribute", do not. |
+| Transparency | Public repo (never linked from the submitted files: Team N only, no names or repo link), AI sheet (Annex 7) compiled from the running AI usage log, and `sources.yaml` carrying a URL and a stated purpose for all <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs — with a **verification date on <!-- numbers:sources_verified -->61<!-- /numbers -->** and an explicit `licence:` on **<!-- numbers:sources_licensed -->42<!-- /numbers -->** (kept current by `scripts/docs_numbers.py`; the counts are of declared entries, not of the files they expand to) — which is where redistribution is a live question. Five `access: download` entries still carry no `licence:` (`gisco_nuts3`, `gisco_lau`, `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`), so the honest claim is the narrower one. Claim the coverage you have: "every input is traceable to a URL and a stated purpose, and about three in four carry a verification date" survives a jury opening the file. "Licence for every input", and "a licence on every dataset we redistribute", do not. |
 | Diversity and fairness | The equity lens: exposure broken down by age and income, not only a total. Plus: who is *missing* from the data (undocumented residents, people in temporary housing). |
 | Environmental and societal well-being | The token budget you measured (`toon_io.token_report`), and the choice of a small model where a large one was not needed. |
 | Accountability | Named owner per deliverable; the limits section states what the work cannot claim. |
@@ -70,11 +70,11 @@ below is the record. Their human gate is the separate approve action, which
 re-runs the offline checks on the approved text and writes the verdict next to
 it in `data/processed/approved.md`.
 
-That is HLEG requirement 7 (accountability) as evidence rather than a claim, and
-it is the hand-written AI usage log produced automatically instead of
-reconstructed at 17:00 on Friday. `src.workflow.tracing_status()` reports whether
-it is actually on, including the half-configured case — tracing asked for with no
-key records nothing and warns about nothing.
+That is HLEG requirement 7 (accountability) as evidence rather than a claim,
+produced as the work runs rather than reconstructed afterwards.
+`src.workflow.tracing_status()` reports whether it is actually on, including the
+half-configured case: tracing asked for with no key records nothing and warns
+about nothing.
 
 **State the cost in the AI sheet, not in a footnote.** Traces are sent to
 LangChain's servers, so prompts and model outputs leave the machine. That is
@@ -95,10 +95,10 @@ tool can produce.
 
 ## The AI usage log
 
-Keep this as you go, in the team's AI log. It is not submitted itself: it
-is the running note the **Annex 7 AI sheet** is compiled from, and Annex 3 asks
-for that note "from the first hour". Writing it live costs nothing, while
-reconstructing it at the end is both painful and dishonest.
+Keep this as you go, in the team's AI log. It is not submitted itself: it is
+the running note the **Annex 7 AI sheet** is compiled from, and Annex 3 asks for
+that note "from the first hour". Writing it live costs nothing; reconstructing it
+at the end is both painful and dishonest.
 
 At the event, add the columns the Annex 7 sheet asks for, so compiling it is a
 copy rather than a memory exercise: the **stage** (1 understanding the case and

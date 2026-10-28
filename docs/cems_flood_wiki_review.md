@@ -389,9 +389,7 @@ EWDS `efas-historical` record as
 | EFAS historical, sizes | "One full-domain field is about 54 MB ... a full-domain year ... roughly 78 GB"; "Not recommended: EFAS historical for a Europe-wide trend ... 34 years at 6-hourly steps is terabytes" | The *whole* EFAS historical dataset (all variables, all versions) is **817 GB** on MARS, and the documented request size is ~450 MB per 1,000 fields in GRIB2 (EWDS Best Practices, 242067425). 54 MB is the uncompressed float32 NetCDF size; packed GRIB2 fields are far smaller. | "Terabytes" is wrong. A 1992-2022 discharge-only pull is tens to a few hundred GB (**inference**: the 450 MB per 1,000 fields figure may predate the 1 arcmin grid). HERA is still the better trend source (1951-2020, no queue). |
 | EFAS historical, limits | 1,500 fields per request (measured) | The wiki table says 1,000 for "EFAS climatology" | Keep the **measured 1,500**; the wiki table is stale. Add: no more than 10 parallel requests, and MARS sessions on Wednesdays slow the queue. |
 | EFAS historical, discharge | "a mean over the preceding 6 h" | Model Output: the time stamp marks the end of the averaging period. Known Issues: MARS archives at the start of the step, so 12:00 means 12:00-18:00. | Mark the time stamp as **conflicting in the source**; check `valid_time` in the file before quoting peak *times*. |
-| Thresholds, "Unverified" | fitting period unknown (GloFAS v4: 1979-2022) | **1992-2022** for EFAS v5 (FAQ; release tables) | Resolved: see Q1. |
-| Thresholds, "Unverified" | whether v5.1 matches `version_5_0` | Same model run; v5.1 is a minor release with "no impact on the EFAS modelling results" | Resolved: see Q1. |
-| Grid, "Unverified" | 4530 × 2970, inferred from a file size | Stated in the LDD v5 and threshold metadata | Resolved: see Q2. |
+| Thresholds and grid, "Unverified" | fitting period; v5.1 vs `version_5_0`; 4530 × 2970 inferred from a file size | 1992-2022; same model run; grid stated in the LDD v5 and threshold metadata | Resolved: see Q1 and Q2. |
 | EFAS RIA / WMS | "NOT ACCESSIBLE"; `tab_review.md`: "authorisation required" for the EFAS WMS-T | Anonymous WMS-T exists for a subset of layers and for forecasts older than 30 days; RIA is among them | Wrong for archived dates. RIA for July 2021 is public (Q5). |
 | Static field note | "upstream area > 150 km², to match the hazard maps" | Confirmed (inundation-maps page; Model Output) | No change. |
 | EWDS API keys | `hyear/hmonth/hday` for efas-historical | The official example still uses `hyear` for EFAS (EWDS API page). The renaming to `year/month/day` + `timespan` is documented for **GloFAS historical v5** only (699325478). | Fine today. **Unverified:** whether EFAS will follow; build requests from the live form, as the review advised. |
@@ -400,7 +398,7 @@ EWDS `efas-historical` record as
 
 ## 3. Ranked: what to add to the kit
 
-**Status on 2026-10-26:** items 2-4 are done (the `efas_flood_thresholds` caveat;
+**Status:** items 2-4 are done (the `efas_flood_thresholds` caveat;
 `efas_upstream_area.nc`, read by `src/efas.py` as a fallback; EMO-1 through
 `src/rainfall.py` into `rainfall_jul2021.parquet`, as four-day event rain per
 NUTS3 rather than 1-day and 3-day maxima). Item 5 sits in the
@@ -422,7 +420,7 @@ is not used.
 
 ## 4. Things in the kit's documents that this review touches (not edited)
 
-Status on 2026-10-25: the brief draft's sources line and the
+Status: the brief draft's sources line and the
 `efas_flood_thresholds` caveat in `sources.yaml` have since taken in the first
 and third points below; the v4.2 note sits in the `efas_flood_thresholds`
 caveat rather than in `efas_historical_july_2021`.
@@ -467,9 +465,6 @@ caveat rather than in `efas_historical_july_2021`.
 - The admin unit behind the two RIA readings near Liège, and the RIA's
   behaviour at other points and times. Only 2 forecast times at 1 point were
   queried.
-- ~~That the JRC FTP `upArea_European_01min.nc` (static maps v1.1.2) equals the
-  EWDS `upstream_area` for `version_5_0`.~~ Checked on the two files on disk:
-  every valid cell is equal.
 - Whether the EWDS `efas-historical` request keys will change the way GloFAS
   historical v5 keys did.
 - The per-field GRIB2 size on the 1 arcmin grid. The "450 MB per 1,000 fields"

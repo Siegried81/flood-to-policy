@@ -1,9 +1,8 @@
 # What would actually win this
 
-Written 2026-10-05 after verifying the sources live, with every figure re-measured
-against them on 2026-10-06. The honest premise: on 29
-October, sixty students will be given the same geospatial data. Most will produce
-a risk map. The jury has seen a hundred risk maps.
+Sources verified live, figures measured against them. The honest premise: on 29 October, sixty students will be given the
+same geospatial data. Most will produce a risk map. The jury has seen a hundred
+risk maps.
 
 ## The find that changes the plan
 
@@ -44,7 +43,7 @@ fail"**:
 | Question | Why it is strong | What it needs |
 |---|---|---|
 | **Where does the model disagree with ten years of observation?** | The hazard maps model river flooding only, basins > 150 km². Regions that flooded on satellite but rank low on the model are the blind spot, named and mapped. A methods finding, which a scientific jury rewards more than a ranking. Belgium carries the calibration: two independent observations of July 2021 (EMSR518 and the Walloon layers) bound how much of the disagreement is the model and how much is the ground truth. | Satellite depth maps × hazard maps (convert cm → m first) |
-| **What did the floods actually cost, where?** | The Risk Data Hub publishes observed economic loss, people affected and casualties per administrative unit and per event, 1983–2024 — so a modelled ranking can be scored against recorded consequence instead of being asserted. Verified live 2026-10-06. | Risk Data Hub, one `admin_unit_level` at a time |
+| **What did the floods actually cost, where?** | The Risk Data Hub publishes observed economic loss, people affected and casualties per administrative unit and per event, 1983–2024 — so a modelled ranking can be scored against recorded consequence instead of being asserted. Verified live. | Risk Data Hub, one `admin_unit_level` at a time |
 | **Where is the protection gap widest?** | Exposure × (1 − insurance penetration). It is a live EU file (EIOPA), it is a real lever, and no student team will raise it. Your Solvay and banking background is the edge. | EIOPA dashboard + exposure |
 | **Did the money go where the risk is?** | The EU Solidarity Fund publishes what it paid, to whom, after which disaster. Compare allocation against modelled risk. That is a finding about governance, not geography. | EUSF allocations + exposure |
 | **Who is exposed in a basin they do not control?** | The Meuse rises in France, floods Belgium, reaches the Netherlands. A warning issued nationally arrives late downstream. This is an argument for EU-level action — exactly the conclusion this jury exists to hear. | River basin districts + NUTS3 |
@@ -62,9 +61,8 @@ Ranked by value per hour of work.
 
 1. **Satellite flood depth maps** (above). Free, no key, same tree as the hazard
    maps. Declared in `sources.yaml` down to the single July 2021 file, 38 MB.
-   **Download this week.**
-2. **JRC Risk Data Hub** — no longer a plan, it is in the kit: `src/rdh.py`,
-   called for real on 2026-10-06 (77 hazards, 1,297 Belgian loss rows, 1983–2024,
+2. **JRC Risk Data Hub** — in the kit: `src/rdh.py`, called live
+   (77 hazards, 1,297 Belgian loss rows, 1983–2024,
    the July 2021 event among them). It is the consequence layer, from the jury's
    own house. Two conditions attached: an EU Login token that dies after 10
    hours, and rows that are **nested by administrative level**, so every figure
@@ -72,7 +70,7 @@ Ranked by value per hour of work.
    across DFO, EM-DAT and HANZE. See `docs/datasets.md`.
 3. **EM-DAT** — the international disaster database, run by CRED at **UCLouvain**.
    Deaths, damages and people affected per event. The Risk Data Hub already
-   averages EM-DAT in, so this is now a cross-check on a number you can get
+   averages EM-DAT in, so this is a cross-check on a number you can get
    without it rather than the only route to consequence — and citing a Belgian
    academic database to a Brussels jury does no harm. Free for non-commercial
    research, registration required — do it now, not on the day.

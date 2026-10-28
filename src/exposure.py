@@ -30,9 +30,9 @@ from rasterstats import zonal_stats
 from shapely.geometry import box, mapping
 
 # The two readings of a partly flooded population cell. Checked rather than
-# matched with an `else`: a misspelled mode used to fall through to the binary
-# branch, so `mode="fracton"` quietly returned the conservative over-estimate
-# (1000 people where "fraction" gives 250) under a name that asked for the other
+# matched with an `else`: there a misspelled mode falls through to the binary
+# branch, so `mode="fracton"` quietly returns the conservative over-estimate
+# (1000 people where "fraction" gives 250) under a name that asks for the other
 # number.
 MODES = ("fraction", "binary")
 
@@ -418,7 +418,7 @@ def expected_annual_exposure(table: gpd.GeoDataFrame, key: str = "lau_id") -> "g
         figure is NaN instead.
       - "missing_exposure" - at least one scenario has no measured `exposed_pop`
         (see `exposed_population`: a unit the hazard layer does not cover). The
-        figure is NaN, as before, but now it says why. Integrating the remaining
+        figure is NaN, and the status says why. Integrating the remaining
         scenarios would be worse: it would narrow the band silently and present
         the result as if the full set had been used.
 

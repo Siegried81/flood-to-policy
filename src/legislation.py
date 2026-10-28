@@ -5,8 +5,8 @@ renders a citation with the article and the EUR-Lex URL attached, e.g.
 `cite("FD", "14(3)")` -> "Directive 2007/60/EC, Art. 14(3) —
 https://eur-lex.europa.eu/eli/dir/2007/60/oj".
 
-Why it exists: the brief's authority is a handful of articles, and until now
-each one was prose in a doc with its CELEX and URL living somewhere else. The
+Why it exists: the brief's authority is a handful of articles, and without a
+registry each one is prose in a doc with its CELEX and URL living somewhere else. The
 registry gives every instrument one record; this module is the only reader, so
 a doc, a slide or the app cite from the same place. `cite` refuses an article
 the registry does not list, on purpose: a citation the registry cannot back is

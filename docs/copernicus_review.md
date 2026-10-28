@@ -5,8 +5,7 @@ must be downloaded before the event, because the kit runs offline at the venue.
 This review does not repeat `docs/tab_review.md`. "In the kit" means listed in
 `config/sources.yaml`.
 
-**Status on 2026-10-25.** Since this review was written, all seven ranked
-items are in `sources.yaml` and on disk under `data/raw/download/`: the nine
+**Status.** All seven ranked items are now in `sources.yaml` and on disk under `data/raw/download/`: the nine
 EFAS v5.1 return-level files (not `_mu`/`_sigma`), the July 2021 EFAS window
 and the EWDS upstream-area field, `IMD_2018_100m_eu_03035_v020.zip`, the HERA
 sealed fraction for 2010 and 2020, HERA v2 discharge for 1991-2020 (30 files),
@@ -284,10 +283,9 @@ git for size.
 - `.env.example` ships `CDSAPI_URL=https://cds.climate.copernicus.eu/api` with
   an empty `CDSAPI_KEY`.
 
-When this review was written no `.env` and no `~/.cdsapirc` existed on this
-machine. A `.env` has since been created (it sets `CDSAPI_URL`, `CDSAPI_KEY`
-and `EWDS_API_KEY`); there is still no `~/.cdsapirc`. A `.env` copied from the
-example pins the URL to the CDS.
+On this machine `.env` sets `CDSAPI_URL`, `CDSAPI_KEY` and `EWDS_API_KEY`;
+there is no `~/.cdsapirc`. A `.env` copied from the example pins the URL to the
+CDS.
 
 1. **One ECMWF account for CDS, ADS and EWDS.** You appear to have one already;
    see the note at the top. Register at
@@ -312,9 +310,8 @@ example pins the URL to the CDS.
      To create the dotfile in PowerShell, run `notepad "$env:USERPROFILE\.cdsapirc"`,
      paste the two lines and save. Notepad must not add `.txt`; choose "All files".
    - For EWDS, do not edit the rc file. Put the key in `.env` under a separate
-     name (`EWDS_API_KEY=`, which `scripts/fetch_efas_july2021.py` now reads;
-     still not in `.env.example`) and build
-     the client with explicit arguments, which override both the environment
+     name (`EWDS_API_KEY=`, which `scripts/fetch_efas_july2021.py` reads;
+     not in `.env.example`) and build the client with explicit arguments, which override both the environment
      and the rc file:
      ```python
      cdsapi.Client(url="https://ewds.climate.copernicus.eu/api", key=os.environ["EWDS_API_KEY"])
@@ -388,13 +385,12 @@ review created none.
 
 ## Not verified (check before quoting)
 
-- ~~The EFAS v5.1 threshold fitting period, and whether v5.1 matches the EWDS `version_5_0`.~~ Resolved: 1992-2022, same run (EFAS v5.1 page).
-- ~~The EFAS v5 grid size (4530 × 2970).~~ Confirmed on the threshold file on disk.
-- ~~HERA chunking~~ (read on disk: one time step × 14 full-width rows per chunk), and the HERA paper's DOI.
+Resolved items (threshold fitting period, grid size, HERA chunking, empty
+`CDSAPI_KEY`, RIA access) are stated in the sections above.
+
+- The HERA paper's DOI.
 - Whether the CDS and EWDS personal access tokens are the same.
-- ~~How `cdsapi` treats an empty `CDSAPI_KEY` from `.env`.~~ Checked on `cdsapi` 0.7.7: the empty key is used and the rc file is not read.
 - The GFM archive start date and limits.
-- ~~That EFAS rapid impact assessments are restricted to partners.~~ Only in real time; the archive is public after 30 days (see `cems_flood_wiki_review.md`, Q5).
 - The WEkEO `hda` credentials file.
 - Anonymous `exportImage` on the EEA ImageServer (not called).
 - The DOI of IMD 2018 (only the 2024 DOIs were read).
