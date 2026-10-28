@@ -185,13 +185,16 @@ def scales(text: str, language: str) -> list[int]:
     return sorted(table[w] for w in _words(text) if w in table)
 
 
-def negations(text: str, language: str) -> int:
+def negations(text: str, language: str, pair_once: bool = True) -> int:
     """How many negations the text holds, so a source and its translation compare.
 
     The unit is the negation, not the word: French "ne ... pas" counts once,
     and a correlative ("neither ... nor", "ni ... ni", "noch ... noch") counts
     once per sentence, so a faithful translation lands on the same number as
     its source. "No." before a digit is a regulation number, not a negation.
+    With `pair_once=False` each half of a correlative counts instead: "no new
+    body, no new money" is two negations in English and is translated "ni ...
+    ni" in French, so `check` accepts a match under either reading.
     """
     text = _NOT_ONLY.sub(" ", _CITATION.sub(" ", text))
     text = _NUMERO.sub(" ", re.sub(r"\bNo\.\s*(?=\d)", " ", text))
@@ -201,15 +204,19 @@ def negations(text: str, language: str) -> int:
     for sentence in re.split(r"(?<=[.!?;])\s+", text):
         found = [w for w in _words(sentence)
                  if w in words or (language == "en" and re.search(r"n['’]t$", w))]
-        if first in found and second in found:
+        if pair_once and first in found and second in found:
             found = [w for w in found if w not in (first, second)] + [first]
         total += len(found)
         if language == "fr":
             # A "ne"/"n'" with no second half in the sentence is still a negation
             # ("ne ... plus", "ne ... guère"), unless it is the restrictive
-            # "ne ... que", which means "only".
+            # "ne ... que", which means "only". Only a "que" AFTER a "ne" makes it
+            # restrictive: in "qu'ils ne peuvent résoudre" the "qu'" comes first
+            # and the "ne" is a full negation.
             said = _words(sentence)
-            restrictive = said.count("que") + said.count("qu")
+            nes = [i for i, w in enumerate(said) if w in ("ne", "n")]
+            ques = [i for i, w in enumerate(said) if w in ("que", "qu")]
+            restrictive = sum(1 for i in nes if any(j > i for j in ques))
             bare = said.count("ne") + said.count("n") - len(found) - restrictive
             total += max(0, bare)
     return total
@@ -278,7 +285,9 @@ def check(source: str, translated: str, language: str | None = None) -> None:
             "10^12 in French and German."
         )
     want, got = negations(source, "en"), negations(translated, language)
-    if want != got:
+    readings_src = {negations(source, "en", once) for once in (True, False)}
+    readings_out = {negations(translated, language, once) for once in (True, False)}
+    if not readings_src & readings_out:
         raise TranslationFailed(
             f"The negations changed: the source has {want}, the translation {got}. "
             "A dropped or added \"not\" reverses a recommendation and reads "

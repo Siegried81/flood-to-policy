@@ -70,6 +70,11 @@ h3 { font-size: 0.95rem; margin: 20px 0 8px; }
 
 .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
 .row label { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+/* The return-period bar: label, slider, and the periods under their notches. */
+.row label.rp-bar { flex-direction: column; align-items: stretch; gap: 2px; min-width: 320px; }
+.rp-bar b { color: var(--text, inherit); }
+.rp-bar input[type="range"] { width: 100%; accent-color: var(--accent, #4b2a7b); }
+.rp-ticks { display: flex; justify-content: space-between; font-size: 0.75rem; }
 
 input[type="text"], input:not([type]), select, textarea, input[type="number"] {
   font: inherit; color: var(--text); background: var(--surface-2);

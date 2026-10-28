@@ -1114,3 +1114,12 @@ def test_the_europe_view_opens_on_the_eu27():
     assert 'useState("EU-27")' in source
     assert "geojson={shown}" in source
     assert "rows={ranked}" in source and "[...rows]" in source
+
+
+def test_the_europe_view_picks_the_return_period_on_a_bar():
+    """A bar from 10 to 500 years, one notch per period in the table, so the
+    nesting reads left to right; it still opens on the 1-in-100 flood."""
+    source = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    assert 'type="range"' in source and 'aria-label="Return period"' in source
+    assert "max={meta.return_periods.length - 1}" in source
+    assert "meta.return_periods.indexOf(returnPeriod)" in source
