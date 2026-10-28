@@ -2,7 +2,7 @@
 
 Read on 2026-10-24. 20 tabs on 19 distinct pages (item 20 repeats item 13), 22 distinct dataset records: the 7 dataset tabs
 plus 15 more listed only inside the three collections. "In the kit" is checked
-against `config/sources.yaml` in this worktree (62 entries then; 73 now).
+against `config/sources.yaml` in this worktree (62 entries on 2026-10-24; 82 on 2026-10-28).
 
 **How each page was read.** The Chrome extension could read
 `developers.google.com`, `joint-research-centre.ec.europa.eu`,
@@ -76,10 +76,7 @@ accepted.
    needs EFAS authorisation (a WMS-T and an SOS service; the licence reads
    "not available"). Worth one email to ask for access. Without it, cite it
    to show that the kit's protection masking follows EFAS practice.
-   **Status:** Corrected by [`cems_flood_wiki_review.md`](cems_flood_wiki_review.md) Q4/Q5: served
-   anonymously as `mapserver:FloodProtectionLevels` on the EFAS WMS-T; since v5.2 its EU part is
-   Bianchi et al. 2022 (PESETA IV, the family of `jrc_flood_protection_standards`) at
-   sub-catchment scale, not per NUTS region. No access request needed.
+   **Status:** corrected, no access request needed; see the status line of item 9.
 6. **Earth Engine v2.1 caveat: the `spurious_depth_category` band.** The JRC
    flags as spurious any modelled depth above 10 m in small channels
    (< 3,000 km²) at RP10, inside a 2 km buffer, in the *global* maps. The
@@ -291,7 +288,7 @@ for an EU NUTS3 brief that must run offline.
 ### 19. JRC Publications — JRC110216 "A new dataset of river flood hazard maps for Europe and the Mediterranean Basin" (ESSD 2022)
 - URL: https://publications.jrc.ec.europa.eu/repository/handle/JRC110216. Dottori, Alfieri, Bianchi, Skoien, Salamon. ESSD 14, 1549–1569, doi:10.5194/essd-14-1549-2022, open access.
 - What it is: the peer-reviewed description and validation of the European hazard maps: 100 m resolution, 329,000 km of river network, validated against official maps for HU, IT, NO, ES and the UK.
-- In the kit: no on 2026-10-24. Since added to `sources.yaml` and the RAG corpus as `jrc_hazard_maps_validation_essd_2022`.
+- In the kit: yes, added after this review to `sources.yaml` and the RAG corpus as `jrc_hazard_maps_validation_essd_2022`.
 - Verdict: **USEFUL.** It is the citable source for the kit's main limitation.
 - Still drawable:
   - the maps find "two-thirds of reference flood extent" on average;

@@ -50,15 +50,15 @@ SERVICE = (
 )
 
 #: Three minutes, which is absurd for one HTTP call and is what this service
-#: needs. Measured 2026-10-06: 25 districts come back in about 40 s and 50 in
-#: 59-75 s. A 60 s timeout cut a request that was working.
+#: needs. Measured: 25 districts come back in about 40 s and 50 in 59-75 s.
+#: A 60 s timeout cuts a request that is working.
 TIMEOUT_S = 180
 
 #: Paging is by offset, and ArcGIS says there is more with `exceededTransferLimit`.
 #:
 #: 25, not the service's advertised `maxRecordCount` of 2000. The districts are
-#: detailed polygons and the endpoint falls over well below its own cap: measured
-#: 2026-10-06, 10 records take ~25 s, 25 take ~40 s, 50 take 59-75 s, and 100 and
+#: detailed polygons and the endpoint falls over well below its own cap: measured,
+#: 10 records take ~25 s, 25 take ~40 s, 50 take 59-75 s, and 100 and
 #: 200 both answer **HTTP 500** - a server-side timeout, not a rejection, so there
 #: is no error message to read. 25 sits with a margin under the break point. The
 #: whole layer is 196 districts, so that is 8 pages and about five minutes, once,
@@ -69,7 +69,7 @@ MAX_PAGES = 50
 #: Requested by name, never as `outFields=*`. The layer carries an attribute
 #: literally called `geometry` beside its real geometry, and asking for every
 #: field in GeoJSON makes the two collide: the service answers HTTP 500, with no
-#: hint as to why. Measured 2026-10-06. These five are what a brief needs - the
+#: hint as to why. Measured. These five are what a brief needs - the
 #: WFD code, the international and local names, the INSPIRE id, and the reporting
 #: country, which is what `check_crosswalk` validates the crosswalk against.
 OUT_FIELDS = (
@@ -108,7 +108,7 @@ COUNTRY_COLUMNS = ("country", "CNTR_CODE")
 #:
 #: The districts and the NUTS3 regions are independent renderings of the same
 #: borders, so their edges disagree by a few hundred metres everywhere and every
-#: district along one picks up a thin strip of its neighbour. Measured 2026-10-06
+#: district along one picks up a thin strip of its neighbour. Measured
 #: on the 196 real districts against the 1,345 NUTS3 regions: by raw
 #: intersection, 109 of the 182 districts the frame reaches touch two or more
 #: countries and one touches eight; with this threshold, exactly one does -
@@ -209,7 +209,7 @@ def check_crosswalk(
       not match.
 
     Contiguity is "every district is in the LARGEST piece", not "the union is one
-    piece". Measured 2026-10-06, the stricter form failed on two correct
+    piece". Measured: the stricter form fails on two correct
     groupings: the Rhine's six districts all sit in one body of 168,166 km2
     alongside six fragments of 0 km2 left by the geometry repair, and the
     Nemunas' two sit in one of 54,014 km2 beside a detached 720 km2 outlier that
@@ -374,7 +374,7 @@ def _overlay(admin: gpd.GeoDataFrame, basins: gpd.GeoDataFrame) -> gpd.GeoDataFr
     Pieces are NOT merged by basin here, and the shares downstream are the area
     of their union rather than the sum of their areas. The WFD layer publishes
     one row per member state per basin, but those rows are disjoint national
-    portions - measured 2026-10-06, the three Scheldt rows overlap by 0 km2 - so
+    portions - measured, the three Scheldt rows overlap by 0 km2 - so
     there is nothing to merge, and no field in the layer to merge them on.
     Overlap is still possible in a frame assembled by hand, and the union handles
     that without needing to know where the frame came from.
@@ -464,8 +464,8 @@ def basin_countries(
     The countries are those of the whole INTERNATIONAL BASIN the district is a
     portion of, not of the district polygon alone. The WFD publishes one polygon
     per member state per basin, each inside one country, so the polygon's own
-    country list answers the wrong question: measured 2026-10-06, grouping by
-    polygon reported every international basin in Europe as unshared. The
+    country list answers the wrong question: measured, grouping by
+    polygon reports every international basin in Europe as unshared. The
     grouping comes from `config/international_basins.yaml`, which is declared
     because the service carries no field for it, and is validated by
     `check_crosswalk`. A district the crosswalk does not mention stays its own
@@ -562,8 +562,8 @@ def shared_basin_exposure(
     state per basin - the Meuse arrives as a French, a Walloon, a Flemish, a
     Luxembourgish and a Dutch district, each lying inside one country - so a
     region's own district polygon can never say whether its water crosses a
-    border. Measured 2026-10-06: by polygon, exactly one of the 196 districts
-    spans more than one country, which reported essentially all of Europe as
+    border. Measured: by polygon, exactly one of the 196 districts
+    spans more than one country, which would report essentially all of Europe as
     drained by water it governs. The grouping into international basins is
     declared in `config/international_basins.yaml`, because the service carries
     no field for it.

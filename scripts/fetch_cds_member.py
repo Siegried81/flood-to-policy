@@ -58,8 +58,8 @@ DATASET = "sis-hydrology-variables-derived-projections"
 OUT_DIR = ROOT / "data" / "raw" / "download" / "cds_hydrology_projections"
 
 #: Every value below was read off the live request form and its constraints file
-#: (`links.form` and `links.constraints` on the collection), on 2026-10-07 for
-#: the models and on 2026-10-12 for the simulations, not recalled: the API spells
+#: (`links.form` and `links.constraints` on the collection), for the models
+#: and for the simulations, not recalled: the API spells
 #: the models `vic_wur` and `e_hypegrid`, the periods `2071_2100`, and the
 #: relative change `relative_change_from_reference_period`. Guessing any of them
 #: produces a request the server rejects with no useful message.

@@ -1,13 +1,12 @@
 # EU Flood-Risk Policy Framework — Reference Report
 
-**Compiled:** 2026-10-05 · **For:** European AI Challenge 2026 (JRC × FARI, 29–30 Oct 2026) · **Use:** RAG corpus + policy brief (Annex 6 template)
+**For:** European AI Challenge 2026 (JRC × FARI, 29–30 Oct 2026) · **Use:** RAG corpus + policy brief (Annex 6 template)
 
 **Verification legend:** ✅ fetched and read the primary source in this session · ⚠️ secondary/press source only · ❌ could not verify
 
-**Local copies.** The documents below are now declared in `config/sources.yaml`
-and fetched to stable paths by `python -m src.fetch`, so they survive a session
-and a fresh clone. The earlier version of this section pointed at a temporary
-session scratchpad that no longer exists.
+**Local copies.** The documents below are declared in `config/sources.yaml` and
+fetched to stable paths by `python -m src.fetch`, so they survive a session and
+a fresh clone.
 
 | Document | On disk after a fetch |
 |---|---|
@@ -16,32 +15,19 @@ session scratchpad that no longer exists.
 | EFAS bimonthly bulletin, June–July 2021 (4.4 MB) | `data/raw/scrape/efas_bulletin_jun_jul_2021.pdf` |
 | Walloon circular on building in flood-prone zones (2.2 MB) | `data/raw/scrape/wallonia_circular_building_in_flood_zones.pdf` |
 | Environmental impact report of the PGRI 2022–2027 (6.6 MB) | `data/raw/scrape/wallonia_flood_risk_management_plan_rie.pdf` |
-| Sendai Framework, English (1,022,502 B, manual step — `sources.yaml` declares the landing page, not the PDF) | `data/raw/download/43291_sendaiframeworkfordrren.pdf` — fetchable directly from `unisdr.org/files/`, HTTP 200 on 6 Oct 2026; it is UNDRR's own `/media/16176/download` link that is JS-gated and returns HTML |
+| Sendai Framework, English (1,022,502 B, manual step — `sources.yaml` declares the landing page, not the PDF) | `data/raw/download/43291_sendaiframeworkfordrren.pdf` — fetchable directly from `unisdr.org/files/`, HTTP 200; it is UNDRR's own `/media/16176/download` link that is JS-gated and returns HTML |
 
-**Most of what this report cites is not declared.** Diffing the sources named
-below against the ids in `config/sources.yaml` (6 October 2026): declared and
-fetched are Directive 2007/60/EC, JRC135679, the EFAS bulletin, the PGRI
-environmental report, the Walloon circular, Walloon Parliament Doc. 894,
+**Which sources the kit can cite.** The retrieval layer refuses to answer from a
+document it does not hold, so a figure from an undeclared source is unciteable
+by the kit itself and has to be either declared in `sources.yaml` and fetched,
+or carried into the brief as a manual citation with its URL. Do the first for
+anything the brief's argument rests on.
+
+Declared as the core policy corpus: Directive 2007/60/EC, JRC135679, the EFAS bulletin, the
+PGRI environmental report, the Walloon circular, Walloon Parliament Doc. 894,
 Regulation (EU) 2024/1689, the HLEG guidelines, the Sendai Framework and the JRC
-repository search — ten of the twelve `policy_corpus`/`context` entries, which is
-the whole policy corpus the kit fetches.
-
-Undeclared, with no local copy, are at least thirteen: Commission Recommendation
-2023/C 56/01 · Decision 1313/2013/EU (UCPM) · COM(2021) 82 · COM(2025) 280 ·
-EEA Report 01/2024 (EUCRA) · the EEA economic-losses indicator (14 Oct 2025) ·
-EIOPA-BoS-25/564 · the EIOPA dashboard input `.xlsx` · Regulation (EU) 2026/1744 ·
-the Commission Staff Working Documents SWD(2025) series · the Walloon Government
-press release of 4 July 2022 · the Assuralia press release of 30 January 2023 ·
-the Belgian Insurance Act of 4 April 2014. The ALTAI assessment list (open item
-11) was never fetched either.
-
-That matters in a specific way rather than in general: the retrieval layer refuses
-to answer from a document it does not hold, so **every figure above that comes
-from one of those thirteen is unciteable by the kit itself** and has to be either
-declared in `sources.yaml` and fetched, or carried into the brief as a manual
-citation with its URL. Do the first for anything the brief's argument rests on.
-
-**Declared on 12 October 2026: twelve of the thirteen.** In `policy_corpus`:
+repository search. Also declared, for twelve of the thirteen other
+documents this report cites: in `policy_corpus`,
 `union_disaster_resilience_goals`, `ucpm_decision`, `eu_adaptation_strategy_2021`,
 `water_resilience_strategy_2025`, `floods_directive_assessment_swd_2025_24`,
 `ai_act_digital_omnibus_2026` (the six EU acts, fetched from the Publications
@@ -50,11 +36,12 @@ Office's CELLAR because eur-lex answers every script with a WAF challenge),
 `eiopa_protection_gap_nutshell_2025`, `wallonia_floods_review_2022`,
 `assuralia_floods_update_2023`; in `context`, `eiopa_protection_gap_dashboard_data`
 (a spreadsheet, which the retrieval layer does not read). They are citable once
-`python -m src.fetch` has run. Three gaps remain, each a manual citation:
+`python -m src.fetch` has run. The ALTAI assessment list (open item 11) was
+never fetched. Three gaps remain, each a manual citation:
 
 - **Belgian Insurance Act of 4 April 2014.** Its official text is
   `https://www.ejustice.just.fgov.be/eli/loi/2014/04/04/2014011239/justel`, and
-  that host's robots.txt disallows the path (checked 2026-10-12), so the kit
+  that host's robots.txt disallows the path, so the kit
   does not fetch it.
 - **The SWD(2025) series** is one document per Member State; only Spain's,
   SWD(2025) 24, has a recorded CELEX number and is declared.
@@ -113,13 +100,13 @@ Office's CELLAR because eur-lex answers every script with a WAF challenge),
 
 **2024–2026 developments — the live policy window**
 - **European Water Resilience Strategy**, **COM(2025) 280 final, 4 June 2025** ✅ `https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:52025DC0280`. Introduces a **"Water Efficiency First"** principle and a target to improve EU water efficiency by **at least 10% by 2030**; commits the Commission to improve **early warning and real-time monitoring for floods and droughts** and to strengthen EU–national–local links.
-- **European Climate Adaptation Plan (ECAP) / European integrated framework for climate resilience and risk management** ⚠️ — announced in von der Leyen's 2024–2029 Political Guidelines, led by Commissioner Hoekstra. Commission pages: `https://climate.ec.europa.eu/areas-action/adaptation-and-resilience-climate-change/european-climate-resilience-and-risk-management-integrated-framework_en` and `https://climate-adapt.eea.europa.eu/en/eu-policy/eu-adaptation-policy/european-climate-adaptation-plan`. Expected as a package (Communication + a legislative proposal for a Regulation + a Recommendation + a Commission Decision), reportedly scheduled for **20 October 2026** — i.e. **nine days before the hackathon**. Reported design features: a **"climate resilience by design"** principle, a **3 °C global-warming reference scenario**, mandatory ownership of major climate risks, an **EU climate viewer**, and support for local authorities. ❌ As of this research the adopted text is not yet on EUR-Lex — treat the content as *announced/expected*, verify on the day, and write the brief so it works either way.
+- **European Climate Adaptation Plan (ECAP) / European integrated framework for climate resilience and risk management** ⚠️ — announced in von der Leyen's 2024–2029 Political Guidelines, led by Commissioner Hoekstra. Commission pages: `https://climate.ec.europa.eu/areas-action/adaptation-and-resilience-climate-change/european-climate-resilience-and-risk-management-integrated-framework_en` and `https://climate-adapt.eea.europa.eu/en/eu-policy/eu-adaptation-policy/european-climate-adaptation-plan`. ✅ **Presented on 27 October 2026 as the EU Framework for Climate Resilience**: Communication COM(2026) 720, *A resilient Europe for a changing climate* (https://climate.ec.europa.eu/document/download/476ef20a-0c66-4be2-a104-70ba96622477_en?filename=com_2026_720_en.pdf, read 28 October 2026), with a proposed European Climate Resilience Law. What it changes for this brief: (1) a **reference global-warming trajectory** of 1.5 °C by 2030, 2 °C by 2050 and **3 °C by 2100** as the baseline for policies and investments; (2) **a single national strategic plan on climate resilience** replaces four instruments, which are the national adaptation strategies and plans under the European Climate Law and the adaptation elements of the National Energy and Climate Plans and Long-Term Strategies (footnote 16): **the Floods Directive's flood risk management plans are not among them**, so the 22 December 2027 review stands; (3) the Commission "intends to encourage Member States to consider climate resilience in their river basin management plans, marine programme of measures, and flood risk management plans", and states that "robust, Union-wide consistent and comparable data and indicators are essential", which is the brief's recommendation 2.
 
 ---
 
 ## 3. Sendai Framework for Disaster Risk Reduction 2015–2030
 
-**Canonical URL:** `https://www.undrr.org/publication/sendai-framework-disaster-risk-reduction-2015-2030` ✅ — **HTTP 200 to a scripted fetch**, re-checked 6 October 2026, and `src.fetch` already holds it at `data/raw/scrape/sendai_framework.html` (51,144 B, `error: null` in `data/raw/manifest.json`). The overview page `https://www.undrr.org/implementing-sendai-framework/what-sendai-framework` also returns 200. The verbatim text below still comes from the official framework PDF ✅ `https://www.unisdr.org/files/43291_sendaiframeworkfordrren.pdf` (1,022,502 B, HTTP 200, measured the same day), for the reason that survives the correction: the canonical URL is a *publication landing page*, so the HTML on disk carries the record and not the framework's own wording. What is still gated is UNDRR's own `/media/16176/download` link, which answers 200 with `text/html` — a JS stub, not the PDF — so take the PDF from `unisdr.org` and not from there.
+**Canonical URL:** `https://www.undrr.org/publication/sendai-framework-disaster-risk-reduction-2015-2030` ✅ — **HTTP 200 to a scripted fetch**, and `src.fetch` already holds it at `data/raw/scrape/sendai_framework.html` (51,144 B, `error: null` in `data/raw/manifest.json`). The overview page `https://www.undrr.org/implementing-sendai-framework/what-sendai-framework` also returns 200. The verbatim text below comes from the official framework PDF ✅ `https://www.unisdr.org/files/43291_sendaiframeworkfordrren.pdf` (1,022,502 B, HTTP 200), because the canonical URL is a *publication landing page*: the HTML on disk carries the record, not the framework's own wording. UNDRR's own `/media/16176/download` link answers 200 with `text/html` — a JS stub, not the PDF — so take the PDF from `unisdr.org`.
 
 Adopted at the Third UN World Conference on DRR, **Sendai, Japan, 14–18 March 2015** (adopted 18 March 2015); endorsed by UN General Assembly **resolution 69/283**.
 
@@ -307,7 +294,7 @@ Adopted at the Third UN World Conference on DRR, **Sendai, Japan, 14–18 March 
 - Commission AI Act page (page dated 3 August 2026) ✅ `https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai`
 - Article/annex texts also checked against `https://artificialintelligenceact.eu/annex/3/`, `/article/50/`, `/article/27/` ⚠️ (reliable unofficial mirror — re-verify any quoted wording against EUR-Lex before publication)
 
-> **Note for the team:** the Digital Omnibus amendment is **after my May 2026 knowledge cutoff** and I verified it in this session. It amends **42 articles and 3 annexes**. Do not rely on pre-July-2026 AI Act commentary.
+> **Note for the team:** the Digital Omnibus amendment was verified at source. It amends **42 articles and 3 annexes**. Do not rely on pre-July-2026 AI Act commentary.
 
 ### Is flood risk assessment high-risk under Annex III? **No — not as such.** Be precise here.
 Annex III headings (verbatim) ✅: 1. **Biometrics** · 2. **Critical infrastructure** · 3. **Education and vocational training** · 4. **Employment, workers' management and access to self-employment** · 5. **Access to and enjoyment of essential private services and essential public services and benefits** · 6. **Law enforcement** · 7. **Migration, asylum and border control management** · 8. **Administration of justice and democratic processes**
@@ -367,7 +354,7 @@ Annex III headings (verbatim) ✅: 1. **Biometrics** · 2. **Critical infrastruc
 
 ## Cross-cutting synthesis for the brief
 
-1. **The policy machinery exists and is on a clock.** Floods Directive third cycle: updated maps were due 22 Dec 2025, third-generation FRMPs are due **22 Dec 2027**. The European Climate Adaptation Plan / integrated climate-resilience framework is expected ~**20 October 2026**, days before the hackathon.
+1. **The policy machinery exists and is on a clock.** Floods Directive third cycle: updated maps were due 22 Dec 2025, third-generation FRMPs are due **22 Dec 2027**. The EU Framework for Climate Resilience (COM(2026) 720) was presented on **27 October 2026**: it asks for climate resilience in the flood risk management plans and for comparable Union-wide data, and leaves the 2027 plan review in place.
 2. **The money case is settled.** Floods are **47% of EUR 822 bn** of EU weather/climate losses 1980–2024 (EEA, 14 Oct 2025, 2024 prices) — the largest single category — and **25% of all those losses fell in 2021–2024 alone**. Hydrological losses are only **~15% insured**.
 3. **The failure mode is uptake, not prediction.** EFAS issued **25 notifications** from **10 July 2021**, including flash-flood notifications for the **Vesdre** before midday on **13 July**; the Walloon hydrological service *"at no point connected to the EFAS Map Viewer"* and did not use EFAS operationally, judging it insufficiently reliable (Doc. 894, 24 March 2022). **33% of Walloon residents received no warning; 56% did not know how to respond** (preprint). The Commission d'enquête's **161 recommendations open with forecasting and alerting**, and its asks are interpretability, interoperability, plain-language messaging, open data and faster alert triggers — i.e. a *decision-support and trust* problem, which is where an AI system can legitimately add value.
 4. **Belgium's insurance gap is about capacity, not coverage.** Near-universal mandatory flood cover attached to fire insurance gives Belgium a **low current EIOPA flood score (1.5)** and a total score of **6** (vs EEA 5.5, Italy/Greece 12) — yet **78% of Belgium's 1980–2024 flood losses were uninsured**, and in 2021 the statutory cap would have paid policyholders only **20%** of assessed damage until the Walloon Region put up **EUR 1 bn** (final split: insurers 41% / Region 59%). Europe-wide, **Italy and Germany flood alone account for 25% of all uninsured nat-cat losses**.
@@ -381,11 +368,11 @@ Annex III headings (verbatim) ✅: 1. **Biometrics** · 2. **Critical infrastruc
 |---|---|---|
 | 1 | Third-cycle Floods Directive dates (22 Dec 2024 / 2025 / 2027) | ⚠️ Arithmetic from Art. 14 + national implementing sources; no single Commission page states all three |
 | 2 | Flood damage total: EUR 170 bn (EUCRA 2024) vs ≈EUR 386 bn (47% of EUR 822 bn, EEA Oct 2025) | ⚠️ Different vintages/price bases — use the EEA 2025 figure, cite with date, do not merge |
-| 3 | UNDRR canonical URL and overview page | ✅ Both return HTTP 200 to a scripted fetch (6 Oct 2026) — no bot block — and the landing page is on disk at 51,144 B with `error: null`. Verbatim text is still taken from the framework PDF, because the canonical URL is a publication landing page rather than the text; UNDRR's own `/media/16176/download` link is the one that answers 200 with a JS stub instead of the PDF |
+| 3 | UNDRR canonical URL and overview page | ✅ Both return HTTP 200 to a scripted fetch, no bot block; verbatim text taken from the framework PDF (see §3) |
 | 4 | Death toll: 39 (Wallonia, Walloon Govt/police) vs 41 + 2 missing (Belgium, VRT/academic) | ⚠️ Report both; no reconciling federal source found |
 | 5 | rescEU has no flood-specific EU-owned reserve; flood modules (HCP, flood containment, flood rescue) sit in the European Civil Protection Pool | ⚠️/❌ Module names not verified against the UCPM implementing decision annex |
 | 6 | Assuralia 4-year update URL returns 404 | ❌ Later Assuralia figures (~74,000 claims, ~EUR 2.3 bn, 98.3% settled) are press-sourced only |
-| 7 | European Climate Adaptation Plan / integrated climate-resilience framework | ❌ Not yet on EUR-Lex; "expected 20 October 2026" is press/EPRS-sourced — re-check on the day |
+| 7 | European Climate Adaptation Plan / integrated climate-resilience framework | ✅ Presented 27 October 2026 as COM(2026) 720; flood risk management plans are not replaced; the legislative proposal still has to be adopted |
 | 8 | AI Act Art. 6(3), Art. 50 and Art. 27 wording | ⚠️ Read via artificialintelligenceact.eu mirror; EUR-Lex HTML truncated on fetch. Re-verify verbatim quotes against the consolidated EUR-Lex text before publication |
 | 9 | Belgian Insurance Act of 4 April 2014, Art. 123; "simple risks" threshold | ❌ Statutory text not read; figure of ≈EUR 1,445,715 is secondary-sourced and index-linked |
 | 10 | EIOPA nutshell says "Seven countries should be closely monitored" then lists eight for flood\* | ⚠️ Inconsistency in EIOPA's own document — quote the list, not the count |
@@ -395,6 +382,6 @@ Annex III headings (verbatim) ✅: 1. **Biometrics** · 2. **Critical infrastruc
 ### Recommended RAG corpus (12 entries, 15 documents, all URL-verified above)
 Directive 2007/60/EC · Commission Recommendation 2023/C 56/01 (Union disaster resilience goals) · Decision 1313/2013/EU (UCPM) · COM(2021) 82 (Adaptation Strategy) · COM(2025) 280 (Water Resilience Strategy) · EEA Report 01/2024 (EUCRA) + EEA economic-losses indicator (14 Oct 2025) · EIOPA-BoS-25/564 + the dashboard `.xlsx` · Sendai Framework (official PDF) · Walloon Parliament Doc. 894 (2021-2022) N° 1 · JRC135679 (CEMS EFAS assessment of the July 2021 Rhine/Meuse floods) · Regulation (EU) 2024/1689 consolidated at 2026-07-27 + Regulation (EU) 2026/1744 · HLEG Ethics Guidelines for Trustworthy AI (2019).
 
-The list reads as 12 entries because three of them pair two documents (the two EEA items, the two EIOPA items, and the two AI-Act regulations) — count 15 if you are counting files to fetch. On 6 October 2026 only **six** of the twelve entries were declared in `sources.yaml` — Directive 2007/60/EC, the Sendai Framework, Doc. 894, JRC135679, the HLEG guidelines, and the AI Act pair at half (Regulation (EU) 2024/1689 is declared, Regulation (EU) 2026/1744 is not). Building this corpus therefore means declaring and fetching nine more documents, not two; see the undeclared list at the top of this report. Since 12 October 2026 all nine are declared (the EIOPA spreadsheet as `context`, the EUCRA report as its landing page), and the corpus is complete once `python -m src.fetch` has run — except that the Sendai entry is declared as its landing page, so the official PDF stays the manual download listed at the top, and the spreadsheet never enters the retrieval index.
+The list reads as 12 entries because three of them pair two documents (the two EEA items, the two EIOPA items, and the two AI-Act regulations) — count 15 if you are counting files to fetch. All of them are declared in `sources.yaml` (the EIOPA spreadsheet as `context`, the EUCRA report as its landing page), and the corpus is complete once `python -m src.fetch` has run — except that the Sendai entry is declared as its landing page, so the official PDF stays the manual download listed at the top, and the spreadsheet never enters the retrieval index.
 
-Note for corpus construction: Doc. 894 and the Walloon Government press release are **French-language**; the Walloon inquiry report is the only source containing the EFAS-non-use finding, so the retrieval pipeline needs to handle FR/EN cross-language retrieval or a translated chunk layer. (This is also a `comparability: cross_language` concern if any of this feeds the Becode comparator repo's dictionary conventions.)
+Note for corpus construction: Doc. 894 and the Walloon Government press release are **French-language**; the Walloon inquiry report is the only source containing the EFAS-non-use finding, so the retrieval pipeline needs to handle FR/EN cross-language retrieval or a translated chunk layer.

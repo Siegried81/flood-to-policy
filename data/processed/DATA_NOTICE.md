@@ -86,13 +86,12 @@ writes a richer local copy with the GISCO borders and NUTS3 lines to
   2018, doi:10.2909/524fa72f-61d7-4364-801e-3e271d7b10bc; CORINE Land Cover
   2018), CC BY 4.0.
 - **Demographic and economic indicators** — Source: Eurostat (demo_r_pjangrp3,
-  ilc_li41, nama_10r_3gdp, accessed 2026-10-07; demo_r_d3dens, nama_10r_2hhinc,
-  accessed 2026-10-12). Values were reshaped, and NUTS2 figures applied to their
+  ilc_li41, nama_10r_3gdp, demo_r_d3dens, nama_10r_2hhinc). Values were reshaped, and NUTS2 figures applied to their
   NUTS3 children. Eurostat bears no responsibility for these derived figures.
 
 ## One legacy column name
 
-`exposure.parquet` was frozen on 2026-10-07, before the poverty rate gained its
+`exposure.parquet` was frozen before the poverty rate gained its
 unit in its name. It carries `poverty_rate`, `poverty_rate_year` and
 `poverty_rate_level`; the current build writes `poverty_rate_pct*`. Both UIs and
 the API read it through `src.demographics.with_current_names`, so the figures are

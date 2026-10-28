@@ -572,7 +572,7 @@ def _text_or_raise(content: object, provider: str) -> str:
 
 
 #: The key variables this module will try, in order. Measured against the live
-#: endpoint on 2026-10-08: the five keys in this project's `.env` belong to five
+#: endpoint: the five keys in this project's `.env` belong to five
 #: DIFFERENT Groq organisations, and the per-minute budget is per organisation
 #: per model - each one reported `Limit 8000` under its own `org_...` id. So
 #: rotating keys really does multiply the requests available in a minute.
@@ -592,7 +592,7 @@ OLLAMA_DEFAULT_MODEL = "llama3.2:3b"
 
 #: The characters a prompt may use, so that the prompt AND the completion fit
 #: inside the provider's PER-MINUTE token budget - not its context window, which
-#: is 131k for `openai/gpt-oss-120b` and irrelevant here. Measured 2026-10-08:
+#: is 131k for `openai/gpt-oss-120b` and irrelevant here. Measured:
 #: Groq answers HTTP 413 above `Limit 8000` tokens a minute on the on-demand
 #: tier, TOON runs about 2.05 characters per token, so 8,000 tokens is roughly
 #: 16,400 characters for both halves together and this leaves the completion its
@@ -791,7 +791,7 @@ def _fallback_reason(exc: Exception) -> str | None:
     back would hide a problem that is still there tomorrow, so those raise.
 
     **413 is the first kind wearing the wrong status code.** Measured against the
-    live endpoint on 2026-10-08, Groq answers a 12,000-token prompt with HTTP 413
+    live endpoint, Groq answers a 12,000-token prompt with HTTP 413
     and the body `Request too large for model 'openai/gpt-oss-120b' ... service
     tier 'on_demand' on tokens per minute (TPM): Limit 8000, Requested 14931`.
     That is a rate limit, not a malformed request: the model's context window is

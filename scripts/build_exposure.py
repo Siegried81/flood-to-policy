@@ -24,9 +24,8 @@ Three things to know before changing anything here:
   raster instead cannot: a population cell lying across two hazard pieces is
   written by both, and `Resampling.average` renormalises over whatever source
   area each piece holds, so both report near-full coverage for the same cell.
-  This script did it that way until 2026-10-06 and the continental RP100 total
-  moved by 0.25% with the stripe count. `tests/test_stripes.py` now pins the
-  invariant; `docs/decisions.md` carries the measurements.
+  Measured on hazard stripes, the continental RP100 total moved by 0.25% with
+  the stripe count. `tests/test_stripes.py` pins the invariant.
 
 * **`exposed_pop` is NOT the figure to accumulate.** It carries the per-unit
   extrapolation onto unobserved ground, so adding it once per window would apply
@@ -86,14 +85,14 @@ PROTECTED_OUT = ROOT / "data" / "processed" / "exposure_protected.parquet"
 
 #: One finished return period, parked on disk before the next one starts.
 #:
-#: The build used to hold every period in memory and write once at the end, which
-#: means an interruption costs the whole run. It did, on 7 October 2026: the
-#: Linux OOM killer took the process during RP100 - 15.7 GB resident against a
-#: 16 GB WSL cap - after seven periods had completed, and every one of them was
-#: lost. A continental pass is about eight minutes, so that was an hour of
-#: compute thrown away by a design choice, not by the crash.
+#: Holding every period in memory and writing once at the end means an
+#: interruption costs the whole run. Measured: the Linux OOM killer took such a
+#: process during RP100 - 15.7 GB resident against a 16 GB WSL cap - after seven
+#: periods had completed, and every one of them was lost. A continental pass is
+#: about eight minutes, so that is an hour of compute thrown away by a design
+#: choice, not by the crash.
 #:
-#: Each period is now written as it finishes and read back at assembly, so a
+#: Each period is written as it finishes and read back at assembly, so a
 #: rerun skips what is already there and an interruption costs ONE period. The
 #: parts are keyed by the parameters that change the numbers, because a part
 #: built at a different depth threshold or in a different mode is not the same
@@ -161,7 +160,7 @@ EXPECTED_BOUNDARY_CRS = "EPSG:3035"
 #: Row windows over the POPULATION grid per return period, not over the hazard
 #: raster - see the module docstring for why that distinction is a correctness
 #: one. Ten divides the global 1 km grid into bands that each read a hazard
-#: region comfortably inside memory on a 63 GiB machine; measured 2026-10-06, a
+#: region comfortably inside memory on a 63 GiB machine; measured, a
 #: nine-period build at this setting completes without swapping. Raising it
 #: lowers the peak further and cannot change the result.
 DEFAULT_STRIPES = 10
@@ -204,8 +203,7 @@ def population_path() -> str:
     The archive also carries a `.ovr` pyramid and two documents; only the single
     `.tif` is the population grid.
 
-    Left zipped, but NOT "for nothing" as this note used to claim. Measured
-    2026-10-07 on the one pass that reads it per polygon rather than per window:
+    Left zipped, but not for free. Measured on the one pass that reads it per polygon rather than per window:
     `total_population` sends `zonal_stats` 1,345 separate polygon windows, each a
     random seek into a compressed stream, and the process read **85.8 GB** from
     disk over about fourteen minutes to produce 1,345 sums. Reading windows out
@@ -260,12 +258,12 @@ def total_population(pop_path: str, admin: gpd.GeoDataFrame) -> pd.Series:
     a 16 GB machine survives the heavy ones - would otherwise repeat this pass
     nine times for an identical answer.
 
-    The cache is named after the raster it summed. It used to be one fixed
-    `total_pop.parquet`, so the first caller to fill it answered for every
+    The cache is named after the raster it summed. One fixed
+    `total_pop.parquet` lets the first caller to fill it answer for every
     raster after it: measured 2026-10-24, the 2010 epoch run read the 2025
     totals back and reported exactly 446,267,469 EU-27 residents for both
-    years. The 2025 grid keeps the original name, so the parts already on disk
-    are still found.
+    years. The default 2025 grid keeps the plain `total_pop.parquet` name, so
+    the parts already on disk are still found.
     """
     stem = Path(pop_path.split("!")[-1]).stem
     default_stem = Path(population_path().split("!")[-1]).stem if POP_ZIP.exists() else None
@@ -298,11 +296,10 @@ def _stripes(path: str, count: int) -> list[Window]:
     population cell belongs to exactly one of these windows, so the per-unit sums
     below are additive by construction and the answer cannot depend on `count`.
 
-    Striping the hazard raster instead - which this did until 2026-10-06 - cannot
-    have that property. A population cell lying across two hazard stripes is
+    Striping the hazard raster instead cannot have that property. A population cell lying across two hazard stripes is
     written by both, and `Resampling.average` renormalises over whatever source
     area each piece happens to hold, so both report a coverage near 1 for the
-    same cell. Measured then: summed coverage reached 1.08 at two stripes and
+    same cell. Measured on hazard stripes: summed coverage reached 1.08 at two stripes and
     1.17 at three, and the continental total moved by 0.25% between 3 and 13.
     """
     with rasterio.open(path) as src:
@@ -330,7 +327,7 @@ def _hazard_window(haz, pop, pop_window: Window):
     LONGITUDE range does not: a row band of the global grid spans the whole
     ellipse, and `transform_bounds` under-reports it badly.
 
-    Measured 2026-10-06 against the real rasters, brute-forced over 16M sample
+    Measured against the real rasters, brute-forced over 16M sample
     points: for one window of ten, `transform_bounds` gives -163.0..163.0 where
     the truth is -180..180, missing 17 degrees on each side. For a single window
     it returns left == right == 0.0, because the global raster's own bounding box
@@ -759,8 +756,7 @@ def main() -> int:
     # Not optional in spirit. Without it the table carries exactly one column
     # `vulnerability_indicators` will offer, the composite index is a weighted
     # mean of one thing, and `sensitivity` certifies every region "robust"
-    # because rescaling a single term never reorders it - see docs/decisions.md,
-    # 2026-10-07. `demographics` raises rather than returning an empty frame, so
+    # because rescaling a single term never reorders it. `demographics` raises rather than returning an empty frame, so
     # an unreachable Eurostat stops the build instead of producing a ranking
     # built on fewer axes than the brief will claim.
     if args.indicators:

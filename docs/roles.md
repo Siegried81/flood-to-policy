@@ -13,11 +13,11 @@ the numbers do not support the recommendations. Someone has to hold the two
 together from hour one.
 
 You are a **Solvay commercial engineer** (economics, strategy) who then became
-**business analyst, data analyst and AI engineer** — five hats, with strategy
-and economics from Solvay. That is not five skills to show off; it is one role:
-**integrator / product owner**. Claim it by doing, not by announcing a title: after the scenario
-briefing, you are the one who writes **the decision-maker's question** on the
-whiteboard in a single sentence, and keeps pointing at it.
+**business analyst, data analyst and AI engineer** — five hats. That is not five
+skills to show off; it is one role: **integrator / product owner**. Claim it by
+doing, not by announcing a title: after the scenario briefing, you are the one
+who writes **the decision-maker's question** on the whiteboard in a single
+sentence, and keeps pointing at it.
 
 ## Hat 0 — Strategist (Solvay): who is in the room, and what they can do with it
 

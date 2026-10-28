@@ -19,7 +19,7 @@ this kit. A future headcount quoted as if it had been measured is not defensible
 
 **A relative change has no upper bound.** Where the 1971-2000 reference discharge
 is near zero - intermittent rivers, arid basins - the ratio explodes. Measured
-2026-10-06 on the 50-year recurrence, 2041-2070 against 1971-2000, RCP 8.5,
+on the 50-year recurrence, 2041-2070 against 1971-2000, RCP 8.5,
 E-HYPEgrid: median +16.9%, minimum -100%, maximum **+16,452,833%**. So this
 module reports the MEDIAN and the quartiles and never a mean or a maximum. A mean
 belongs entirely to that tail, and a maximum is a sentence that ends a pitch.
@@ -177,7 +177,7 @@ def ensemble_change_by_region(
     plausible worlds, and it is the second one that decides whether a regional
     figure can be quoted at all.
 
-    Measured on the real files, 2026-10-06: on the single member
+    Measured on the real files: on the single member
     E-HYPEgrid/EC-EARTH/r12i1p1 under RCP 8.5, BE213 (Turnhout) reads +14% for
     2011-2040, +202% for 2041-2070 and +41% for 2071-2100. That is not a
     trajectory, it is one member moving around. BE256 (Roeselare) reads +55%,
@@ -289,7 +289,7 @@ def read_change(path: str | Path, variable: str | None = None):
     reads in `src/validate.py` are lazy.
 
     The variable is derived from the FILENAME rather than guessed from the
-    subdatasets. Measured 2026-10-06: the CDS does not ship a uniform layout -
+    subdatasets. Measured: the CDS does not ship a uniform layout -
     some files carry `lon`, `lat` and the indicator, and others carry `time_bnds`
     alongside, at which point "the one that is not lon or lat" is two candidates
     and the read fails on a file that is perfectly good. The name already states

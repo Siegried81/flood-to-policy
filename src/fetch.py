@@ -66,7 +66,7 @@ _REJECTION_MARKERS = (
     b"<title>Request Rejected</title>",
     b"Access Denied",
     b"window[\"bobcmn\"]",  # F5/Shape JS bot-defence challenge
-    # AWS WAF / CloudFront challenge, measured on eur-lex.europa.eu 2026-10-06:
+    # AWS WAF / CloudFront challenge, measured on eur-lex.europa.eu:
     # HTTP 202 with `x-amzn-waf-action: challenge` and a 2,035-byte body. That is
     # 35 bytes over MIN_DOCUMENT_BYTES and carries none of the markers above, so
     # it was about to be stored as the AI Act, the Floods Directive and the GDPR.
@@ -258,7 +258,7 @@ class _RobotsCache:
                 raise OSError(f"HTTP {response.status_code}")
             if _is_not_robots(response.text):
                 # A status below 400 is not proof that this is robots.txt, and
-                # trusting it defeated the whole gate. Measured 2026-10-06:
+                # trusting it defeats the whole gate. Measured:
                 # eur-lex.europa.eu answers /robots.txt with HTTP 202 and an AWS
                 # WAF challenge page, publications.jrc.ec.europa.eu with HTTP 200
                 # and its own HTML homepage. `parse()` finds no directives in
@@ -370,7 +370,7 @@ def _is_not_robots(text: str) -> bool:
     an empty ruleset, which `can_fetch` then reads as "everything is allowed":
     eur-lex.europa.eu returns an AWS WAF challenge page under HTTP 202, and
     publications.jrc.ec.europa.eu returns its HTML homepage under HTTP 200.
-    Both were measured on 2026-10-06.
+    Both are measured, not assumed.
 
     The test is deliberately crude - a markup opening tag, or no robots
     directive anywhere in the body. robots.txt has no HTML in it and a real one
@@ -463,10 +463,10 @@ def read_head(path: Path) -> bytes:
 def sha256_of(path: Path) -> str:
     """SHA-256 of a file on disk, read in `CHUNK_BYTES` pieces.
 
-    Streamed for the same reason the download is: the reuse path in `_fetch_one`
-    used `read_bytes()`, which held a whole 300 MB raster in memory to
-    fingerprint it, while the download beside it hashed the same bytes chunk by
-    chunk. One rule for both now.
+    Streamed for the same reason the download is: `read_bytes()` on the reuse
+    path in `_fetch_one` would hold a whole 300 MB raster in memory to
+    fingerprint it, while the download beside it hashes the same bytes chunk by
+    chunk. One rule for both.
     """
     digest = hashlib.sha256()
     with path.open("rb") as handle:

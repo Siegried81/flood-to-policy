@@ -31,7 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "config" / "sources.yaml"
 EXPOSURE = ROOT / "data" / "processed" / "exposure.parquet"
 DEFAULT_FILES = ("README.md", "requirements.txt", "docs/technical_deep_dive.md",
-                 "docs/policy_answer.md")
+                 "docs/policy_answer.md", "docs/limitations.md",
+                 "docs/responsible_ai.md")
 BLOCK = re.compile(r"(<!-- numbers:(\w+) -->)(.*?)(<!-- /numbers -->)")
 
 

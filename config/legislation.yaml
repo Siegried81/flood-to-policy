@@ -43,7 +43,7 @@ instruments:
     in_force: 2007-11-26
     eurlex_url: https://eur-lex.europa.eu/eli/dir/2007/60/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles:
       "4": Preliminary flood risk assessment per river basin district, from available information including past floods and climate-change impacts; completed by 22 December 2011 (Art. 4(4)).
       "5": On the basis of Article 4, Member States identify the areas where a potential significant flood risk exists or might be considered likely to occur (APSFR); shared areas coordinated between the Member States concerned.
@@ -72,7 +72,7 @@ instruments:
     in_force: 2000-12-22
     eurlex_url: https://eur-lex.europa.eu/eli/dir/2000/60/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles:
       "3": River basin districts, the reporting unit the kit's cross-border basin figures are built on; Directive 2007/60/EC reuses them (its Article 3).
       "4": Environmental objectives, which flood risk management plans must take into account under Directive 2007/60/EC Art. 7(3).
@@ -86,7 +86,7 @@ instruments:
     in_force: 2024-08-01
     eurlex_url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
     status: in_force_amended
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles:
       "50": Transparency obligations for providers and deployers of certain AI systems; the Digital Omnibus on AI did not move its dates.
       "Annex III": The high-risk use cases; do not assert the kit falls under it without reading the annex (docs/policy_answer.md, section 8).
@@ -100,7 +100,7 @@ instruments:
     in_force: 2026-07-27
     eurlex_url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   MR:
@@ -112,7 +112,7 @@ instruments:
     in_force: 2023-07-19
     eurlex_url: https://eur-lex.europa.eu/eli/reg/2023/1230/oj
     status: in_force_amended
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   UCPM:
@@ -124,7 +124,7 @@ instruments:
     in_force: 2013-12-21
     eurlex_url: https://eur-lex.europa.eu/eli/dec/2013/1313/oj
     status: in_force_amended
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles:
       "6": Risk management - Member States develop risk assessments and disaster risk management planning and provide summaries to the Commission; the article that makes flood risk assessment a standing duty of a public authority.
 
@@ -137,7 +137,7 @@ instruments:
     in_force: 2021-05-26
     eurlex_url: https://eur-lex.europa.eu/eli/reg/2021/836/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   UDRG:
@@ -149,7 +149,7 @@ instruments:
     in_force: null
     eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023H0215(01)
     status: non_binding
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   GDPR:
@@ -161,7 +161,7 @@ instruments:
     in_force: 2016-05-24
     eurlex_url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles:
       "22": Rights against a decision based solely on automated processing with legal or similarly significant effects; why the kit never decides an individual entitlement (docs/policy_craft.md).
 
@@ -174,7 +174,7 @@ instruments:
     in_force: 1992-06-10
     eurlex_url: https://eur-lex.europa.eu/eli/dir/1992/43/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   BD:
@@ -186,7 +186,7 @@ instruments:
     in_force: 2010-02-15
     eurlex_url: https://eur-lex.europa.eu/eli/dir/2009/147/oj
     status: in_force
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   EUAS:
@@ -198,7 +198,7 @@ instruments:
     in_force: null
     eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021DC0082
     status: non_binding
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   EWRS:
@@ -210,7 +210,7 @@ instruments:
     in_force: null
     eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025DC0280
     status: non_binding
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   SWD-2025-24:
@@ -222,7 +222,7 @@ instruments:
     in_force: null
     eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025SC0024
     status: non_binding
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
 
   CADA:
@@ -234,5 +234,5 @@ instruments:
     in_force: null
     eurlex_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52026PC0502
     status: proposal
-    verified: 2026-10-08
+    verified: 2026-10-28
     articles: {}
