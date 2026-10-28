@@ -210,16 +210,26 @@ export default function EuropeView({ config }) {
       {tab === "Exposure" && exposure && (
         <section className="panel">
           <div className="row">
-            <label>
-              Return period
-              <select
-                value={returnPeriod ?? ""}
-                onChange={(e) => setReturnPeriod(Number(e.target.value))}
-              >
+            {/* A bar from the most to the least frequent flood, one notch per
+                period in the table, so the nesting reads left to right. */}
+            <label className="rp-bar">
+              <span>
+                Return period: <b>1-in-{returnPeriod} years</b>
+              </span>
+              <input
+                type="range"
+                aria-label="Return period"
+                min={0}
+                max={meta.return_periods.length - 1}
+                step={1}
+                value={Math.max(0, meta.return_periods.indexOf(returnPeriod))}
+                onChange={(e) => setReturnPeriod(meta.return_periods[Number(e.target.value)])}
+              />
+              <span className="rp-ticks">
                 {meta.return_periods.map((p) => (
-                  <option key={p} value={p}>1-in-{p} years</option>
+                  <span key={p}>{p}</span>
                 ))}
-              </select>
+              </span>
             </label>
             {/* The server sends null, not 0, when the table carries no
                 exposed_pop column at all. "Not measured" and "zero" must not

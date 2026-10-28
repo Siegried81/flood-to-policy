@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,115<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,119<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -528,7 +528,7 @@ re-measure the rows after any test change.
 | `test_offline_readiness.py` | 56 | the demo runs with the Wi-Fi off: the three verdicts, `--strict`, a rejected file is not present, the two caches `src.fetch` does not fill |
 | `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
 | `test_validate_2021.py` | 16 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total, `--epoch 2020` reading its own tiles and writing its own file |
-| `test_api.py` | 82 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
+| `test_api.py` | 83 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
 | `test_streamlit_app.py` | 67 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
 | `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
 | `test_rag.py` | 80 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
@@ -544,7 +544,7 @@ re-measure the rows after any test change.
 | `test_apsfr.py` | 13 | the two reporting cycles, the dissolve, the claim it must not make |
 | `test_svgmap.py` | 22 | the offline choropleth: quantile classes, signed classes anchored on zero, holes kept, the outermost regions out of the extent, a hatch whose label names the sign rule that drew it, a legend that names its sixths and stays inside the viewBox |
 | `test_demographics.py` | 21 | the sparse cube, the overlapping age buckets, the NUTS2 caveat, the unit in the name and the legacy names, a thinly published newest year, density and income pinned to their units |
-| `test_translate.py` | 34 | a translated figure never moves |
+| `test_translate.py` | 37 | a translated figure never moves |
 | `test_events.py` | 11 | the coverage blind-spot probe |
 | `test_stripes.py` | 9 | the figure does not depend on the window count |
 | `test_environment.py` | 17 | Natura 2000 on flood-prone ground: the union not the sum, true cell areas, the masks, window-size invariance, not measured is not zero |
@@ -600,7 +600,7 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,115<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,119<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->61<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
