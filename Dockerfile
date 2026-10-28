@@ -1,4 +1,4 @@
-# Container image for the flood policy kit (Streamlit map, JSON API, CLI, tests).
+# Container image for flood to policy (Streamlit map, JSON API, CLI, tests).
 #
 # This image is not a packaging nicety here, it is how the geospatial half of the
 # kit runs at all. On the Windows host, `rasterio`, `pyogrio`, `rasterstats` and

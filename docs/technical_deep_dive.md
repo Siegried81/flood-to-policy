@@ -42,7 +42,7 @@ exposure_protected.parquet  context.parquet         regions.geojson
         ▼               ▼                          ▼
    web/ (React)    app/streamlit_app.py      scripts/export_bi.py
    2 views: July   7 tabs, reads the          → bi/data/*.csv
-   2021, Europe    parquets directly          → bi/FloodPolicyKit.pbip
+   2021, Europe    parquets directly          → bi/FloodToPolicy.pbip
    (5 tabs, SVG                                 (Power BI, docs/power_bi.md)
    choropleth)
 ```
@@ -194,13 +194,12 @@ is never short of source. A population cell belongs to exactly one window by
 construction, so nothing is written twice and the per-unit sums are additive
 whatever the window count.
 
-Cutting the hazard raster instead cannot have that property, and this repository
-shipped that version until 6 October 2026. A population cell lying across two
-hazard stripes is written by both, and `Resampling.average` renormalises over
-whatever source area each piece happens to hold — so both pieces reported a
-coverage near 1 for the same cell instead of roughly a half each. Summed coverage
-reached **1.08 at two stripes and 1.17 at three**, when it must be 1, and the
-continental RP100 total moved by **0.25% between 3 and 13 stripes**: 29,808,232
+Cutting the hazard raster instead cannot have that property. A population cell
+lying across two hazard stripes is written by both, and `Resampling.average`
+renormalises over whatever source area each piece happens to hold — so both
+pieces report a coverage near 1 for the same cell instead of roughly a half each. Measured on two
+continental builds cut that way, summed coverage reached **1.08 at two stripes
+and 1.17 at three**, when it must be 1, and the continental RP100 total moved by **0.25% between 3 and 13 stripes**: 29,808,232
 against 29,732,746 people, with 215 of 1,345 regions disagreeing and the worst
 (PL514) by 14.7%. `tests/test_stripes.py` pins the invariant at 1, 2, 3, 5, 7 and
 13 windows. See `docs/decisions.md` for the dated record.
@@ -308,7 +307,7 @@ Two choices are load-bearing and both fail silently if got wrong:
 
 One row per region, everything `exposure.parquet` must not hold: a numeric
 column there is picked up by `api/main.py::vulnerability_indicators` and enters
-a min-max-scaled weighted mean. Three layers were added on 24 October 2026:
+a min-max-scaled weighted mean. Three of its layers need a word:
 
 - **Residual exposure** - `residual_exposed_pop_rp*`, read from
   `exposure_protected.parquet` (§3.6). A region missing from that run reads
@@ -369,8 +368,7 @@ both read as zero regions agreeing on the sign. It reports both sign counts,
 (all of them).
 It also carries `regions_size_uncertain`: regions whose members lie more than
 100 points apart — the full range at two members, the interquartile range above
-two — which neither UI ranks (see `docs/decisions.md`, 2026-10-13 and
-2026-10-25).
+two — which neither UI ranks (see `docs/decisions.md`, 2026-10-25).
 
 `/api/approve` is the only route that writes. `/api/translate` is the only one
 that can refuse its own output: a translation that changed a figure or moved a
@@ -503,19 +501,13 @@ down in advance.
 **<!-- numbers:tests_collected -->1,115<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
-The platform history matters more than any one run. On 12 October 2026, in WSL2,
-every test then collected passed, while the same day Windows blocked `rasterio`
-again. Re-run on 14 October 2026: still blocked on Windows
-(the five raster modules, 59 tests, do not collect), and in WSL2 all 702 pass
-once `test_climate.py`'s dry-run test stopped reading the CDS files already in
-`data/` (`fetch_cds_member.py` now resolves `OUT_DIR` at call time). Re-run on
-23 October 2026: rasterio imports on Windows again and every test collects and
-passes there. Do not quote either as a property of the platform — Smart App Control moved to enforcement on 7 October
-2026 and refused rasterio's unsigned DLLs, which left 433 collectable and 431
-passing on Windows while WSL2 ran the lot; by the next morning it allowed the
-same wheel again with nothing reinstalled. **The policy moves both ways, so
-re-measure instead of citing either state**, and keep the WSL2 venv for the
-mornings it flips back — see the note in `requirements.txt`. The suite mocks the network
+Do not quote a Windows run as a property of the platform. Smart App Control
+has blocked and allowed `rasterio`'s unsigned DLLs several times with nothing
+reinstalled, leaving part of the suite uncollectable on Windows while WSL2 ran
+the lot (see [`limitations.md` §4](limitations.md#4-risks-accepted-for-a-ten-day-build)).
+**The policy moves both ways, so re-measure instead of citing either state**,
+and keep the WSL2 venv for the mornings it flips back — see the note in
+`requirements.txt`. The suite mocks the network
 away, which is exactly what hides a missing 300 MB raster — so
 `scripts/check_offline_readiness.py` answers the question `pytest` cannot, in
 byte counts, and exits 1 when the demo would still need a connection.
@@ -527,9 +519,8 @@ docs disagrees with the repository. Edit the prose, never the digit.
 
 Per-file counts measured 27 October 2026 with
 `pytest --collect-only -q -p no:cacheprovider | grep '::' | cut -d: -f1 | sort | uniq -c`;
-they sum to the marked total above. Forty-nine files. Typed counts go stale:
-an earlier table listed twenty-two files summing to 473, and the next one
-forty-three summing to 989 while the suite held 1,090.
+they sum to the marked total above. Fifty files. Typed counts go stale, so
+re-measure the rows after any test change.
 
 | File | Tests | Guards |
 |---|---|---|
@@ -587,17 +578,21 @@ forty-three summing to 989 while the suite held 1,090.
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
 React dev server on their own ports (8599, 8099, 5199, so a demo already
-running is never touched), drives every tab of both UIs with Playwright in
-headless Chromium, writes `docs/screenshots/*.png` and stops what it started -
-about two minutes. Headless because it is reproducible: re-run it after any
-change to the UI instead of re-taking screenshots by hand. Draft, Ask and
-Translate are captured empty on purpose, since filling them calls a model.
+running is never touched), drives them with Playwright in headless Chromium and
+stops what it started - about two minutes. Headless because it is reproducible:
+re-run it after any change to the UI instead of re-taking screenshots by hand.
+The React shots follow the scope: the July 2021 view, one story map per named
+place (`react_story_*.png`: the Ahr, Liège on the Meuse and the Vesdre, ...) and
+the Europe exposure map for context. Run with `HOSTED=1` they match the public
+Space (Natural Earth borders). Only the React shots are kept in
+`docs/screenshots/`, credited in the README; nothing it does calls a model.
 
 `test_data_io.py` earns its three tests: a dead `pyproj` is the silent failure in
 this stack. `geopandas` still imports, `GeoDataFrame(..., crs=...)` still returns
 an object, and only a `UserWarning` says the CRS was dropped — after which every
-zonal statistic is the right arithmetic on the wrong piece of Europe. Measured on
-6 October 2026, the whole suite passed with `pyproj` stubbed out. Now it does not.
+zonal statistic is the right arithmetic on the wrong piece of Europe. Without
+these tests the whole suite would pass with `pyproj` stubbed out; with them it
+does not.
 
 ---
 
@@ -608,15 +603,15 @@ zonal statistic is the right arithmetic on the wrong piece of Europe. Measured o
 | <!-- numbers:tests_collected -->1,115<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
-| <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
+| <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->61<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
-| the 0.25% stripe discrepancy | two continental RP100 builds, 6 October 2026 |
+| the 0.25% stripe discrepancy | two continental RP100 builds that cut the hazard raster |
 | 4.85% of cells carry a value | a 1,468,800-cell window of Belgian land, RP100 |
 | the permanent-water figures | the Benelux at RP10 and RP100 |
 
 **One caveat on the Benelux figures.** 5,065,526, 4,344,955, 13,771,935 and the
-ratios drawn from them were all measured **before** the windowing fix of
-6 October 2026, on a build whose answer depended on its stripe count. They are
+ratios drawn from them were all measured on a build that cut the hazard
+raster, whose answer depended on its stripe count. They are
 kept because the comparisons they support — sparse-vs-AOI, masked-vs-unmasked —
 are ratios between two runs of the same code, and those survive. The absolute
 counts do not: re-derive any of them before putting it in a brief.

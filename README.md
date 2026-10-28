@@ -9,6 +9,18 @@ what the next round of the Floods Directive should change. Built for the
 **Live demo (July 2021 and Europe views, no install):**
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
 
+| The July 2021 view | The Vesdre, house by house | Power BI, EU-27 |
+|---|---|---|
+| [![July 2021 view](docs/screenshots/react_july2021.png)](docs/screenshots/react_july2021.png) | [![Liège, the Meuse and the Vesdre](docs/screenshots/react_story_liege_meuse_vesdre.png)](docs/screenshots/react_story_liege_meuse_vesdre.png) | [![Power BI overview](docs/screenshots/power_bi_00_overview.png)](docs/screenshots/power_bi_00_overview.png) |
+
+Every place's story map and every Power BI page are in
+[`docs/screenshots/`](docs/screenshots/) (pages described in
+[`docs/power_bi.md`](docs/power_bi.md)); `scripts/screenshots/take_screenshots.ps1`
+re-takes the web ones. Credits: observed flood © European Union, Copernicus
+Emergency Management Service (EMSR517, EMSR518, EMSR520); flood hazard, population
+and buildings © European Union, JRC, CC BY 4.0; country borders Natural Earth
+(public domain); regions © EuroGeographics for the administrative boundaries.
+
 | | What the data says |
 |---|---|
 | **51 %** | of the 3,740 residents the July 2021 water reached in the Ahr valley lived *outside* the European 1-in-100-year flood zone (Copernicus EMS first map, GHS-POP 2020). |
@@ -65,13 +77,11 @@ story) and responsible AI use. This repository is the evidence behind all three.
 
 ## Why this exists
 
-The challenge is **not** a coding contest. The winning team will be the one that
-turns geospatial data into **three clear, costed, actionable recommendations**
-for a public decision-maker. The most sophisticated model does not win.
-
-The gap in most teams is the middle: political-science students cannot process a
-raster, and computer-science students cannot write for a decision-maker. This
-repo is built for whoever bridges the two.
+The challenge is **not** a coding contest: it rewards **three clear, costed,
+actionable recommendations** for a public decision-maker, not the most
+sophisticated model. The gap in most teams is the middle (political-science
+students cannot process a raster, computer-science students cannot write for a
+decision-maker), and this repo is built for whoever bridges the two.
 
 ## The one equation everything hangs on
 
@@ -173,26 +183,24 @@ a connection.
 
 `Dockerfile` and `docker-compose.yml` exist because `rasterio`, `pyogrio`,
 `rasterstats` and `tiktoken` could not load their native libraries on this
-Windows host. The `pyogrio`/`pyproj` caps in `requirements.txt` bought back three
-of them. Windows Smart App Control then moved to enforcement on 2026-10-07 and
-refused `rasterio`'s own GDAL build, which no pin fixed; by 2026-10-08 it allowed
-the same wheel again with nothing reinstalled. **The policy moves both ways, so
-measure rather than believe either state** — measured 2026-10-14 it blocked
-`import rasterio` again; measured 2026-10-23 it allows it, and the Windows venv
-collects the whole suite, as the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,115<!-- /numbers --> collected, nothing deselected, all passing** (the
-climate dry-run test that used to read the CDS files already in `data/` now
-honours its patched directory). The WSL2 venv stays, because it is the only route that does
-not depend on the policy's mood and it is where a continental raster build
-belongs. **The `app` image was built and run on 2026-10-12:** `rasterio`,
-`pyogrio`, `rasterstats` and `tiktoken` all import inside it. Measured
-2026-10-19, `docker compose --profile tools run --rm test` on a fresh build
-gives 703 passed, 0 failed, without `data/` or `.env`; the image now carries
-`docs/`, `README.md` and `pytest.ini`, which four tests and the AI log tab
-read. An image built on
-2026-10-09 could not import `rasterio` (`libexpat.so.1` missing) while a fresh
-build of the same Dockerfile can, so rebuild rather than trust an old local
-image: `docker compose build`. The `portable` image has not been built yet.
+Windows host; the `pyogrio`/`pyproj` caps in `requirements.txt` bought back three
+of them. Windows Smart App Control then refused `rasterio`'s own GDAL build, which
+no pin fixed, on some days and not others with nothing reinstalled (the details
+are in `requirements.txt`). **The policy moves both ways, so measure rather than believe
+either state.** Measured 2026-10-23, the Windows venv collects the whole suite, as
+the WSL2 venv does:
+**<!-- numbers:tests_collected -->1,115<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
+only route that does not depend on the policy, and it is where a continental
+raster build belongs.
+
+**The `app` image builds and runs:** all four libraries import inside it.
+`docker compose --profile tools run --rm test` on a fresh build, last measured on
+a smaller suite than today's, gave 703 passed, 0 failed, without `data/` or
+`.env`; the image carries `docs/`, `README.md` and `pytest.ini`, which four tests
+and the AI log tab read. A stale local image can fail to import `rasterio`
+(`libexpat.so.1` missing) where a fresh build of the same Dockerfile succeeds, so
+rebuild rather than trust an old local image: `docker compose build`. The `portable` image has not
+been built yet.
 
 **VS Code dev container.** `.devcontainer/` opens the editor inside that image
 (`Ctrl+Shift+P` → *Dev Containers: Reopen in Container*): a `dev` service with
@@ -217,24 +225,14 @@ never published; build it locally.
 
 ## Docs, in reading order
 
-| Doc | Read it for |
-|---|---|
-| [`docs/README.md`](docs/README.md) | **Start here.** The index: the twenty-minute read, one sentence per file with its measured size, and the full reading order |
-| [`docs/strategy.md`](docs/strategy.md) | **Read first.** The question most teams will not ask, and the dataset almost nobody will find |
-| [`docs/scope.md`](docs/scope.md) | **Read first.** The funnel: July 2021 in BE/DE/NL at the core, Europe at NUTS3 as the context, and what that changes about the data |
-| [`docs/plan.md`](docs/plan.md) | The 23-day preparation calendar and what to do today |
-| [`docs/datasets.md`](docs/datasets.md) | Every dataset: what it is, its CRS, its traps |
-| [`docs/geospatial_crash_course.md`](docs/geospatial_crash_course.md) | CRS, zonal stats, raster alignment — the bugs that cost hours |
-| [`docs/policy_context.md`](docs/policy_context.md) | Floods Directive, Sendai, the 2021 Belgian floods, the insurance gap |
-| [`docs/policy_answer.md`](docs/policy_answer.md) | **The spine.** The question as the organisers ask it, the four findings with their measured figures, and the three recommendations with the article, the authority and the date behind each |
-| [`docs/policy_craft.md`](docs/policy_craft.md) | How to write the brief and the five-minute demo |
-| [`docs/responsible_ai.md`](docs/responsible_ai.md) | The HLEG grid, the AI-usage log, what AI must not decide |
-| [`docs/roles.md`](docs/roles.md) | Your five hats, and the Annex 5 roles (Coder, Researcher, Communicator) for a team formed on the day |
-| [`docs/power_bi.md`](docs/power_bi.md) | The Power BI project: opening it, the cover and eight story pages, drill-down and drill-through, the model and measures, the map to add |
-| [`docs/workflow.md`](docs/workflow.md) | Why a workflow and not an agent, and where the human gate sits |
-| [`docs/decisions.md`](docs/decisions.md) | The dated record of every change to what a number means. Read it before quoting a figure from an older run |
-| [`docs/limitations.md`](docs/limitations.md) | What the figures cannot say, what was designed and not built, what an authority would still have to do, and the risks accepted to ship in ten days |
-| [`docs/technical_deep_dive.md`](docs/technical_deep_dive.md) | How it works and why it is built that way: the four CRSs, what the exposure number means, why the windows are on the population grid, the UI contract, what each test guards |
+[`docs/README.md`](docs/README.md) is the index: the twenty-minute read, one
+sentence per file with its measured size, and the full reading order. Read
+[`docs/strategy.md`](docs/strategy.md) and [`docs/scope.md`](docs/scope.md)
+first; [`docs/policy_answer.md`](docs/policy_answer.md) is the spine (the
+question as the organisers ask it, the four findings with their measured
+figures, the three recommendations with the article, authority and date behind
+each); [`docs/decisions.md`](docs/decisions.md) is the dated record of every
+change to what a number means, to read before quoting a figure from an older run.
 
 ## Quick start
 
@@ -246,23 +244,15 @@ neither pytest nor rasterio.
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,115<!-- /numbers --> tests, offline: no network, no model
-                                        # All collected and passing 2026-10-23 on
-                                        # Windows. Smart App Control blocks
-                                        # rasterio on Windows some days and not
-                                        # others (blocked 2026-10-14), so re-measure
-                                        # rather than trust this number — see
-                                        # requirements.txt for the whole story.
-                                        #   wsl -d Ubuntu
+                                        # Windows: re-measure, Smart App Control may block
+                                        # rasterio (see above). WSL2: wsl -d Ubuntu, then
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q
-.venv/bin/python -m src.fetch           # 57 geodata downloads + 25 policy_corpus
-                                        # + 3 context = 85 files (sources.yaml of
-                                        # 27 Oct; ≈6.96 GiB on disk on 25 Oct,
-                                        # when it was 84 files)
-                                        # (done 25 Oct; re-run only to fill gaps)
+.venv/bin/python -m src.fetch           # 57 geodata downloads + 25 policy_corpus + 3 context
+                                        # = 85 files (done 25 Oct; re-run only to fill gaps)
 .venv/bin/python scripts/build_exposure.py --stripes 72 # -> data/processed/exposure.parquet
 .venv/bin/python scripts/build_context.py  --stripes 72 # -> data/processed/context.parquet
 .venv/bin/python scripts/build_geometry.py             # -> data/processed/regions.geojson
-.venv/bin/python scripts/export_bi.py                  # -> bi/data/, read by bi/FloodPolicyKit.pbip (docs/power_bi.md)
+.venv/bin/python scripts/export_bi.py                  # -> bi/data/, read by bi/FloodToPolicy.pbip (docs/power_bi.md)
 .venv/bin/python scripts/check_offline_readiness.py   # exits 1 if the demo needs the network
 .venv/bin/python scripts/check_offline_readiness.py --strict  # evening before: a WARN blocks too
 .venv/bin/python scripts/docs_numbers.py --check      # exits 1 if a doc's number no longer matches the code
@@ -288,6 +278,67 @@ public build even when `--full` has been run; the `--full` file is what
 `POST /api/approve` requires the `X-Approve-Token` header when `FLOOD_APPROVE_TOKEN` is set. Unset, it relies on the API being published on 127.0.0.1 only (`docker-compose.yml`).
 
 `HOSTED=1` turns the API into a public demo: `/api/draft`, `/api/translate`, free-text `/api/ask` and `/api/approve` answer 403 before any model is called, and the React UI greys them (it reads `GET /api/config`). The July 2021 view, the React app's first page, reads `event_2021_web.json` and needs no raw data.
+
+The React UI is the one to demo: it draws the choropleth as **SVG from GeoJSON**,
+with no tile provider and no API key, so the map still works with the network
+unplugged. Streamlit is the fallback that needs no `npm`.
+
+Ubuntu and WSL ship no `python` on `PATH`, only `python3`. Calling `.venv/bin/...`
+directly instead of activating the venv keeps that distinction out of the way and
+removes the one failure mode of a hackathon morning: running against system Python
+because the activation was forgotten.
+
+**`--stripes` is memory, not meaning:** the windows are disjoint, so the figures do
+not depend on it, and `tests/test_stripes.py` holds that. The default of 10 was
+enough on a workstation and is not enough inside a 16 GB WSL VM: a nine-period
+run at 24 was killed by the OOM killer on the 100-year period, which floods more
+cells than the frequent ones. 72 peaks around 7.5 GB. The exposure build **parks
+each return period** in `data/processed/exposure_parts/` as it finishes and reuses
+what is already there, so an interrupted run costs one period rather than all of
+them; `--return-period` narrows what is computed without ever shrinking the frozen
+table, and `--rebuild` recomputes a parked period.
+
+### Data to fetch before the event
+
+The raw downloads are **not** committed (`data/` is ignored), except four files in
+`data/processed/`: `exposure.parquet`, `context.parquet`, `event_2021_web.json`
+and `DATA_NOTICE.md`. `.venv/bin/python -m src.fetch` downloads what
+`config/sources.yaml` declares, **85 files** (counted 27 Oct; ≈6.96 GiB measured on
+25 Oct, when it was 84); the breakdown by section and why the printed count is
+files, not sources, is in
+[`docs/datasets.md`](docs/datasets.md#what-the-whole-download-costs). It ran on
+25 October; never start it at the venue: the Wi-Fi of a 60-person hackathon will
+not move gigabytes of raster. The run is idempotent, so an interrupted download costs only
+the files still missing.
+
+Of the sources outside `src.fetch`, three need preparing before the event, each
+for its own reason (HERA, the EFAS July 2021 reanalysis and the C3S ECDE
+indicators have their own fetch scripts, listed under Layout):
+
+- **JRC Risk Data Hub** wants an EU Login bearer token that expires after 10
+  hours: the account is created now, the responses are cached the day before,
+  and the token is refreshed on the morning of the event.
+- **EEA river basin districts** is a REST service that takes about five minutes
+  over 8 pages and answers HTTP 500 to a page it dislikes. `src/basins.py`
+  caches it to `data/processed/basins_cache/` (288 MiB); fetch it once before
+  the event.
+- **Copernicus CDS hydrology projections** are fetched by
+  `scripts/fetch_cds_member.py` (one member per request, under the form's 1000
+  cap, `--all-missing` for the rest of the ensemble; `CDSAPI_KEY` or
+  `~/.cdsapirc`), or by hand through the CDS form. Either way the `.nc` files
+  land in `data/raw/download/cds_hydrology_projections/`.
+
+`scripts/check_offline_readiness.py` skips `access: api` and `folder` entries, so
+none of the three appears in its per-file table, but each has a check of its own:
+the RDH cache is a **FAIL** when empty (it is the only offline route to a loss
+figure), the basins cache and the CDS folder are **WARN** when absent (the map
+and the brief run without them; the shared-basin and climate layers simply say
+so). The verdict has three states (`READY`, `READY WITH CAVEATS`, `BLOCKED`), and
+`--strict`, the mode to run the evening before, turns every caveat into a block:
+an `ANTHROPIC_API_KEY` or `GROQ_API_KEY` left in `.env` is a caveat on any other
+day and the thing that routes the demo through the venue Wi-Fi on that one. At
+the event a personal key is not allowed at all (Annex 3): remove it, and use the
+team key or local Ollama.
 
 ### Live demo
 
@@ -319,10 +370,9 @@ set. Draft and Translation call a language model and stay local.
 
 `api/mcp_server.py` exposes the kit to an AI agent (Claude Desktop, Claude Code,
 any MCP client) as **three tools shaped around a question, not around a route**.
-During the event (29-30 October) use no personal `ANTHROPIC_API_KEY` or
-`GROQ_API_KEY`: Annex 3 allows only the organisers' account or the team key,
-and local Ollama needs neither. Claude Code burns tokens fastest, so use it
-sparingly there.
+The no-personal-key rule above holds here too; Claude Code burns the team's
+tokens fastest, so use it sparingly during the event
+([`docs/responsible_ai.md`](docs/responsible_ai.md)).
 
 | Tool | The question it answers |
 |---|---|
@@ -362,74 +412,12 @@ curl -s localhost:8010/api/ask -H 'Content-Type: application/json' -d '{"spec": 
   "sort": {"column": "exposed_share", "descending": true}}}'
 ```
 
-`--stripes` is memory, not meaning: the windows are disjoint, so the figures do
-not depend on it, and `tests/test_stripes.py` holds that. The default of 10 was
-enough on a workstation and is not enough inside a 16 GB WSL VM — a nine-period
-run at 24 was killed by the OOM killer on the 100-year period, which floods more
-cells than the frequent ones. 72 peaks around 7.5 GB.
-
-The exposure build **parks each return period** in `data/processed/exposure_parts/`
-as it finishes and reuses what is already there, so an interrupted run costs one
-period rather than all of them, and `--return-period` narrows what is computed
-without ever shrinking the frozen table. `--rebuild` recomputes a parked period.
-
-Ubuntu and WSL ship no `python` on `PATH`, only `python3`. Calling `.venv/bin/...`
-directly instead of activating the venv keeps that distinction out of the way, and
-removes the one failure mode of a hackathon morning: running against system Python
-because the activation was forgotten.
-
-The React UI is the one to demo: it draws the choropleth as **SVG from GeoJSON**,
-with no tile provider and no API key, so the map still works with the network
-unplugged. Streamlit is the fallback that needs no `npm`.
-
-The raw downloads are **not** committed (`data/` is ignored), except four files in
-`data/processed/`: `exposure.parquet`, `context.parquet`, `event_2021_web.json`
-and `DATA_NOTICE.md`. Run `.venv/bin/python -m src.fetch` to
-download what `config/sources.yaml` declares — **85 files** (counted 27 Oct;
-≈6.96 GiB measured on 25 Oct, when it was 84); the
-breakdown by section and why the printed count is files, not sources, is in
-[`docs/datasets.md`](docs/datasets.md#what-the-whole-download-costs). It ran on
-25 October; never start it at the venue — the Wi-Fi of a 60-person hackathon will
-not move gigabytes of raster. The run is idempotent, so an interrupted download costs only the files
-that are still missing.
-
-Of the sources outside `python -m src.fetch`, three need preparing before the
-event, each for its own reason (HERA, the EFAS July 2021 reanalysis and the C3S
-ECDE indicators have their own fetch scripts, listed under Layout):
-
-- **JRC Risk Data Hub** wants an EU Login bearer token that expires after 10
-  hours, so the account is created now, the responses are cached the day before,
-  and the token is refreshed on the morning of the event.
-- **EEA river basin districts** is a REST service that takes about five minutes
-  over 8 pages and answers HTTP 500 to a page it dislikes. `src/basins.py`
-  caches it to `data/processed/basins_cache/` — 288 MiB, fetch it once before
-  the event.
-- **Copernicus CDS hydrology projections** are fetched by
-  `scripts/fetch_cds_member.py` (one member per request, under the form's 1000
-  cap, `--all-missing` for the rest of the ensemble; `CDSAPI_KEY` or
-  `~/.cdsapirc`), or by hand through the CDS form. Either way the `.nc` files
-  land in `data/raw/download/cds_hydrology_projections/`.
-
-`scripts/check_offline_readiness.py` skips `access: api` and `folder` entries, so none of the
-three appears in its per-file table — but all three have a check of their own:
-the RDH cache is a **FAIL** when empty (it is the only offline route to a loss
-figure), the basins cache and the CDS folder are **WARN** when absent (the map
-and the brief run without them; the shared-basin and climate layers simply say
-so). The verdict has three states — `READY`, `READY WITH CAVEATS`, `BLOCKED` —
-and `--strict` turns every caveat into a block, which is the mode to run the
-evening before: an `ANTHROPIC_API_KEY` or `GROQ_API_KEY` left in `.env` is a caveat on any other day and
-the thing that routes the demo through the venue Wi-Fi on that one. At the event
-a personal key is not allowed at all (Annex 3): remove it, and use the team key
-or local Ollama. See
-[`docs/datasets.md`](docs/datasets.md).
-
 ## Licence and data credits
 
 The code is MIT ([`LICENSE`](LICENSE)). The data is not: the files committed
 under `data/processed/` (the two frozen tables `exposure.parquet` and
 `context.parquet`, and the public July 2021 view `event_2021_web.json`) keep
-their sources' licences, listed with the
-exact credit each requires in
+their sources' licences, listed with the exact credit each requires in
 [`data/processed/DATA_NOTICE.md`](data/processed/DATA_NOTICE.md). In short:
 © EuroGeographics for the administrative boundaries (Eurostat/GISCO, NUTS 2024,
 non-commercial use); flood hazard and population/built-up © European Union, JRC

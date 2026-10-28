@@ -1,18 +1,22 @@
-"""Headless screenshots of every Streamlit tab and every React view.
+"""Headless screenshots of every Streamlit tab, and of the React app's July 2021 view.
 
 Assumes the three servers are already up (take_screenshots.ps1 starts them):
 Streamlit on 8599, FastAPI on 8099, Vite dev on 5199 proxying /api to 8099.
 Streamlit is filled over a websocket and its tabs only exist by clicking, so a
 plain `chrome --screenshot` captures a skeleton; Playwright waits in real time.
 No tab action here calls a model: Ask/Draft/Translate are left on their empty
-state, only the offline "Rank" button on the React Vulnerability view is pressed.
+state. The React app is captured for its scope, July 2021: the opening view,
+then one story map per named place (Ahr, Liege on the Meuse and the Vesdre,
+...), then a single Europe tab, the exposure map, for context.
 
 Usage: python take_screenshots.py [out_dir] [streamlit_url] [react_url] [dark|light]
 
 Dark by default, matching docs/screenshots/*.png; both UIs follow the
 browser colour scheme. Files are suffixed _light for the light theme.
 """
+import re
 import sys
+import unicodedata
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -35,11 +39,13 @@ STREAMLIT_TABS = [
 ]
 REACT_TABS = [
     ("Exposure", "react_map", None),
-    ("Context", "react_context", None),
-    ("Vulnerability", "react_vulnerability", "Rank"),
-    ("Draft", "react_draft", None),
-    ("Translation", "react_translation", None),
 ]
+
+
+def slug(label):
+    """A file-name-safe form of a place label: "Liège (Meuse–Vesdre)" -> "liege_meuse_vesdre"."""
+    plain = "".join(c for c in unicodedata.normalize("NFKD", label) if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", "_", plain.lower()).strip("_")
 
 
 def full_height_shot(page, name, scroller=None):
@@ -85,28 +91,35 @@ def main():
         page.goto(REACT_URL)
         page.wait_for_load_state("networkidle")
         page.wait_for_selector("svg path", timeout=60_000)
+        # The app opens on the July 2021 view; the Europe tabs sit behind "Europe".
+        page.wait_for_timeout(2000)
+        full_height_shot(page, "react_july2021")
+        # One shot per named place: the story map, its legend and its facts.
+        places = page.locator("[aria-label='Choose a place'] button")
+        for i in range(places.count()):
+            button = places.nth(i)
+            label = button.inner_text().strip()
+            button.click()
+            page.wait_for_timeout(1500)
+            name = "react_story_" + slug(label)
+            page.locator(".ev-story").screenshot(path=str(OUT / f"{name}{SUFFIX}.png"))
+            print(f"  {name}{SUFFIX}.png")
+        page.get_by_role("tab", name="Europe", exact=True).click()
+        page.wait_for_load_state("networkidle")
         for label, name, button in REACT_TABS:
-            page.get_by_role("button", name=label, exact=True).or_(
-                page.get_by_role("tab", name=label, exact=True)).first.click()
+            tab = page.get_by_role("button", name=label, exact=True).or_(
+                page.get_by_role("tab", name=label, exact=True)).first
+            # With HOSTED=1 the model tabs are greyed out: there is nothing to capture.
+            if tab.is_disabled():
+                print(f"  {name}{SUFFIX}.png skipped: tab disabled (hosted mode)")
+                continue
+            tab.click()
             page.wait_for_load_state("networkidle")
             if button:
                 page.get_by_role("button", name=button, exact=True).click()
                 page.wait_for_load_state("networkidle")
             page.wait_for_timeout(2000)
             full_height_shot(page, name)
-            if name == "react_map":
-                # Same framing as docs/screenshots/chart.png: nested-extents
-                # note, map and legend, nothing else.
-                box = page.evaluate("""(() => {
-                    const svg = document.querySelector('svg');
-                    const top = svg.parentElement.previousElementSibling || svg.parentElement;
-                    const legend = svg.parentElement.nextElementSibling || svg.parentElement;
-                    const a = top.getBoundingClientRect(), b = legend.getBoundingClientRect();
-                    return {x: a.left, y: a.top + window.scrollY, width: a.width,
-                            height: b.bottom - a.top};
-                })()""")
-                page.screenshot(path=str(OUT / f"react_map_crop{SUFFIX}.png"), clip=box, full_page=True)
-                print(f"  react_map_crop{SUFFIX}.png")
         browser.close()
 
     if errors:
