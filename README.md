@@ -189,7 +189,7 @@ no pin fixed, on some days and not others with nothing reinstalled (the details
 are in `requirements.txt`). **The policy moves both ways, so measure rather than believe
 either state.** Measured 2026-10-23, the Windows venv collects the whole suite, as
 the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,115<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
+**<!-- numbers:tests_collected -->1,119<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
 only route that does not depend on the policy, and it is where a continental
 raster build belongs.
 
@@ -243,7 +243,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,115<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,119<!-- /numbers --> tests, offline: no network, no model
                                         # Windows: re-measure, Smart App Control may block
                                         # rasterio (see above). WSL2: wsl -d Ubuntu, then
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q

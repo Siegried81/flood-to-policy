@@ -177,6 +177,8 @@ def test_a_meaning_change_that_keeps_the_digits_is_refused(monkeypatch, src, out
     ("Hainaut should not be prioritised [S1].", "Henegouwen mag niet worden geprioriteerd [S1].", "nl"),
     ("It isn't required [S1].", "Ce n'est pas requis [S1].", "fr"),
     ("Neither Namur nor Liège is covered [S1].", "Ni Namur ni Liège ne sont couverts [S1].", "fr"),
+    ("No new body, no new money [S1].", "Ni nouvel organe, ni nouvel argent [S1].", "fr"),
+    ("The issue it cannot solve alone; no new body, no new money [S1].", "La question qu'ils ne peuvent résoudre seuls ; aucune nouvelle instance, aucun financement supplémentaire [S1].", "fr"),
     ("Hainaut is no longer exposed [S1].", "Le Hainaut n'est plus exposé [S1].", "fr"),
     ("Only Hainaut is exposed [S1].", "Seul le Hainaut n'est exposé qu'en partie [S1].", "fr"),
     ("This is not only a river risk [S1].", "Ce n'est pas seulement un risque fluvial [S1].", "fr"),
@@ -200,3 +202,10 @@ def test_check_without_a_language_compares_figures_and_citations_only():
     translate.check("Hainaut should not be prioritised [S1].", "Le Hainaut doit être priorisé [S1].")
     with pytest.raises(translate.TranslationFailed, match="decimal point"):
         translate.check("Water deeper than 1.5 m [S1].", "Eau de plus de 15 m [S1].")
+
+
+def test_a_pair_reading_does_not_hide_a_dropped_not(monkeypatch):
+    """Either reading of "ni ... ni" may match, but a lost "not" still fails."""
+    monkeypatch.setattr(translate, "complete", _model("Ni nouvel organe, ni nouvel argent ; il faut agir [S1]."))
+    with pytest.raises(translate.TranslationFailed, match="negations"):
+        translate.translate("No new body, no new money; it should not act [S1].", "fr")
