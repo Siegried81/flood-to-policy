@@ -306,7 +306,7 @@ def districts(
             raise BasinsUnavailable(
                 f"{url} still reported more records after {MAX_PAGES} pages of "
                 f"{PAGE_SIZE}, which is {MAX_PAGES * PAGE_SIZE} districts against "
-                f"the 196 the layer held on 2026-10-06. The offset is almost "
+                f"the 196 the layer holds. The offset is almost "
                 f"certainly being ignored; check the service by hand."
             )
     except requests.RequestException as exc:
