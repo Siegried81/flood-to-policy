@@ -1,4 +1,4 @@
-"""Write the Power BI report of `bi/FloodPolicyKit.pbip` as PBIR files.
+"""Write the Power BI report of `bi/FloodToPolicy.pbip` as PBIR files.
 
 The report is a story: a cover that states the seven findings and links to
 the page behind each, seven story pages (the headline, behind the defences,
@@ -13,7 +13,7 @@ if one function writes them all.
 Run it once to (re)build the layout; then `scripts/validate_bi_report.py`
 checks every file against Microsoft's schemas. Once the report has been edited
 and saved in Power BI Desktop, the saved files are the source: running this
-again overwrites `bi/FloodPolicyKit.Report/definition/` and the theme.
+again overwrites `bi/FloodToPolicy.Report/definition/` and the theme.
 
 Every field is named here as (table, column or measure) and
 `tests/test_export_bi.py` checks each one against the TMDL model, so a rename
@@ -28,9 +28,9 @@ import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "bi" / "FloodPolicyKit.Report"
+REPORT = ROOT / "bi" / "FloodToPolicy.Report"
 DEFINITION = REPORT / "definition"
-THEME_NAME = "FloodPolicyKit.json"
+THEME_NAME = "FloodToPolicy.json"
 THEME_PATH = REPORT / "StaticResources" / "RegisteredResources" / THEME_NAME
 
 SCHEMA = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition"
@@ -269,7 +269,7 @@ def button(name: str, box: tuple, label: str, target: str, *, active: bool = Fal
 
 def nav_bar(page: str) -> list:
     """The same bar on every story page: the kit's name, then one button per page."""
-    brand = text(f"{page}_brand", (M, NAV_Y + 4, 176, NAV_H), [("FLOOD POLICY KIT  ·  EU-27", 9, RESIDUAL, True)])
+    brand = text(f"{page}_brand", (M, NAV_Y + 4, 176, NAV_H), [("FLOOD TO POLICY  ·  EU-27", 9, RESIDUAL, True)])
     x0, gap = M + 184, 6
     bw = (CW - 184 - gap * (len(STORY) - 1)) // len(STORY)
     return [brand] + [button(f"{page}_nav_{target}", (x0 + i * (bw + gap), NAV_Y, bw, NAV_H), label, target,
@@ -1021,7 +1021,7 @@ PAGES = (overview, headline, defences, where, downstream, at_stake, who, declare
 def theme() -> dict:
     """The custom theme: page and card colours, the BuPu ramp, Segoe UI throughout."""
     return {
-        "name": "FloodPolicyKit",
+        "name": "FloodToPolicy",
         "dataColors": [EXPOSURE, RESIDUAL, RAMP[2], RAMP[3], ACCENT, NEUTRAL, MUTED, RAMP[1]],
         "foreground": INK, "foregroundNeutralSecondary": MUTED, "foregroundNeutralTertiary": NEUTRAL,
         "background": CARD_BG, "backgroundLight": PAGE_BG, "backgroundNeutral": LINE,
@@ -1083,7 +1083,7 @@ def build(report: Path = REPORT) -> list[Path]:
     put(report / "definition.pbir", {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
         "version": "4.0",
-        "datasetReference": {"byPath": {"path": "../FloodPolicyKit.SemanticModel"}}})
+        "datasetReference": {"byPath": {"path": "../FloodToPolicy.SemanticModel"}}})
     put(definition / "version.json", {
         "$schema": f"{SCHEMA}/versionMetadata/{VERSIONS['versionMetadata']}/schema.json", "version": "2.0.0"})
     put(definition / "report.json", report_json())

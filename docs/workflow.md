@@ -22,8 +22,9 @@ retrieve ──► draft ──► verify ──► approve ──► END
    └──► refuse ──────────────────────┘   (nothing retrieved: the human still sees it)
 ```
 
-One LLM call per run, at most. No tool loop, no redraft loop. The graph cannot take an action nobody
-designed, and that sentence is worth more to a jury than any capability claim.
+One LLM call per run, at most. No tool loop, no redraft loop. The graph cannot
+take an action nobody designed, and that sentence is worth more to a jury than
+any capability claim.
 
 ### Which path is live
 
@@ -61,11 +62,12 @@ one behind the gate. That is the whole design in one line.
 | `MIN_GROUNDING` | 0.7 | A draft whose vocabulary drifted away from the passages arriving unflagged. It is the share of the draft's content words found in any passage - not a share of cited sentences, and blind to numbers and negations |
 | `interrupt()` | — | Anything at all reaching the brief without a human reading it (in the graph; the live routes use a separate approve call) |
 
-The redraft limit is 0 on purpose: a redraft resent the same prompt, so it was a
-re-roll rather than a correction, and it doubled the cost of the drafts that
-needed the most scrutiny. A weak draft goes to the human with its grounding
-score and its issues: invalid citations, unsupported numbers and uncited sentences. A person reading a draft marked "weakly
-grounded" is a better outcome than a model asked to try again blind.
+The redraft limit is 0 on purpose: a redraft resends the same prompt, so it is a
+re-roll rather than a correction, and it doubles the cost of the drafts that
+need the most scrutiny. A weak draft goes to the human with its grounding score
+and its issues: invalid citations, unsupported numbers and uncited sentences. A
+person reading a draft marked "weakly grounded" is a better outcome than a model
+asked to try again blind.
 
 ## Human-in-the-loop: which pattern, and why
 
@@ -94,18 +96,18 @@ returns its hash without touching the network; one that fails is moved aside as
 *will* run collection several times, and a half-finished run should only cost you
 the files that are actually missing.
 
-**Idempotency is only as good as what counts as "already fetched".** Five entries
-in `sources.yaml` used to point at the *directory* holding their files, and a
-directory listing is valid HTML comfortably above the minimum document size — so
-`_fetch_one` stored the listing as the data, and the disk check then declared the
-source permanently done. A silent success, repeated on every later run, with no
-data in it. `expand()` is the fix: an entry's `files:` list becomes one job per
-file, ids become `<entry id>/<file stem>`, and the count `fetch_all` prints is
-the number of jobs (57 for `geodata` and 85 across all three sections, with
-`api` and `folder` entries skipped rather than counted; derived from
-`sources.yaml` on 27 October 2026) rather than of
-declared entries, of which there are 79. Entries with no `files:` key pass through untouched, so every
-single-file source keeps its previous on-disk path.
+**Idempotency is only as good as what counts as "already fetched".** An entry
+that points at the *directory* holding its files fetches a directory listing,
+which is valid HTML comfortably above the minimum document size — so it would be
+stored as the data, and the disk check would declare the source permanently
+done: a silent success, repeated on every later run, with no data in it. Hence
+`expand()`: an entry's `files:` list becomes one job per file, ids become
+`<entry id>/<file stem>`, and the count `fetch_all` prints is the number of jobs
+(57 for `geodata` and 85 across all three sections, with `api` and `folder`
+entries skipped rather than counted; derived from `sources.yaml` on 27 October
+2026) rather than of declared entries, of which there are 79. Entries with no
+`files:` key pass through untouched, so every single-file source keeps its
+on-disk path.
 
 ## Verification is not an LLM call
 

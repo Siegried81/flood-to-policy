@@ -20,7 +20,7 @@ absence of data becomes a claim of absence.
 **HTTP 200 is not success here.** An absent or expired token does not produce a
 clean 401. The host sits behind an F5/Shape bot defence that answers with a
 JavaScript challenge page under status 200 - measured against
-`/admin/hazard/items` on 2026-10-06. So the body is inspected, and
+`/admin/hazard/items`. So the body is inspected, and
 `fetch._why_not_a_document` is reused rather than re-implemented: there is one
 definition in this repo of "this response is not the thing I asked for".
 
@@ -190,7 +190,7 @@ def flood_losses(
 ) -> list[dict]:
     """Observed flood losses, optionally for one country. Filtered HERE, not there.
 
-    **The server ignores `admin_hazard_type`.** Measured 2026-10-06: a request
+    **The server ignores `admin_hazard_type`.** Measured: a request
     for Belgium with `admin_hazard_type="Flood"` came back with 1,297 rows of
     which 793 are floods and the rest are Storm (413), Extreme temperature (63)
     and Earthquake (28). The parameter is in the published spec, it is accepted,

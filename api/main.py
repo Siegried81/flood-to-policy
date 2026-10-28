@@ -86,12 +86,12 @@ DEV_ORIGINS = ["http://localhost:5190", "http://127.0.0.1:5190"]
 #:
 #: The index is a weighted mean of min-max scaled columns, so anything numeric
 #: left out of this set joins it silently. `total_pop` is the trap that proved
-#: it: the 2026-10-06 rebuild added the column as a denominator, and the index
-#: immediately offered it as an indicator - which ranks a region as vulnerable
-#: for being populous, not for being flooded. Any column added to the parquet
-#: has to be judged against this list in the same pass.
+#: it: added to the table as a denominator, it is offered as an indicator unless
+#: listed here - which ranks a region as vulnerable for being populous, not for
+#: being flooded. Any column added to the parquet has to be judged against this
+#: list in the same pass.
 #:
-#: Judged 2026-10-07, when the Eurostat join landed: `share_over_65` and
+#: The Eurostat columns `share_over_65` and
 #: `poverty_rate_pct` ARE indicators and stay out of this set - they are properties
 #: of the people, which is what the index is supposed to weigh, and they are the
 #: reason it has more than one axis at all. Their `_year` and `_level` companions
@@ -356,8 +356,8 @@ def _context() -> pd.DataFrame:
 
 
 #: Percentage points of spread between members above which a region's median
-#: is a size nobody can quote. Set on context.parquet 2026-10-13, 2071-2100, with
-#: two chains: the two top regions of Europe, DE94H (+253%) and DK014 (+210%),
+#: is a size nobody can quote. Set on a two-chain build of context.parquet,
+#: 2071-2100: the two top regions of Europe, DE94H (+253%) and DK014 (+210%),
 #: rested on chains 322 and 240 points apart, one reading +92% and the other
 #: +414%. The median of two chains is their mean, so it hides that.
 MODEL_SPREAD_PP = 100.0
@@ -427,10 +427,9 @@ def climate_periods(df: pd.DataFrame) -> list[dict]:
       table rather than assumed. Measured on `data/processed/context.parquet`
       2026-10-25: all three periods carry **16** chains (eight simulations
       through two hydrological models) on the 1,198 regions that were measured
-      at all, and 0 on the other 147. An earlier version of this
-      docstring claimed one chain for 2071-2100; the built table does not say
-      that, and the fixture in `tests/test_api.py` that uses one chain for that
-      period is exercising the branch below, not describing the archive.
+      at all, and 0 on the other 147. The fixture in `tests/test_api.py` that
+      uses one chain for 2071-2100 exercises the branch below; it does not
+      describe the archive.
     - `regions_agreeing_on_sign` is the count a reader must see before writing
       "river discharge increases here". At one member it is 0 by construction -
       `src.climate.ensemble_change_by_region` refuses to call a single member
@@ -566,9 +565,9 @@ def vulnerability(req: VulnerabilityRequest) -> dict:
     ranked = sensitivity(
         # Within one period the table already holds one row per region, so this is
         # a guard against a table that repeats a region for some other reason. It
-        # can no longer decide which return period the ranking is built on, which
-        # is what it silently did when the whole table was passed: it kept the
-        # first row per region, and the periods are concatenated rarest-last.
+        # cannot decide which return period the ranking is built on, as it would
+        # silently if the whole table were passed: it keeps the first row per
+        # region, and the periods are concatenated rarest-last.
         df.drop_duplicates(subset=[key]),
         {c: 1.0 for c in req.indicators},
         perturbation=req.perturbation,

@@ -3,7 +3,7 @@
 `src/rdh.py` fetches the rows. This module is the layer between those rows and a
 table a brief can print, and it exists because three properties of the real
 response each produce a wrong number in a way that does not look wrong. All three
-were measured against the cached Belgian answer - 1,297 rows, fetched 2026-10-06,
+were measured against the cached Belgian answer - 1,297 rows,
 `losses__admin_hazard_type-Flood_admin_unit_country_code-BE.json` under
 `data/processed/rdh_cache/` - and the arithmetic is reproduced in
 `tests/test_losses.py` so that it stays checkable rather than remembered.

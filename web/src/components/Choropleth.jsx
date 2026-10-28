@@ -24,7 +24,7 @@ const NO_DATA = "#d9d9d9";
 // Regions drawn but kept OUT of the frame, mirrored from src/svgmap.py: the
 // Canaries, Madeira, the Azores, the French overseas regions and Svalbard. With
 // them in the extent the viewBox spans 119 x 102 degrees against 69 x 37
-// without - 4.8 times the area, measured on regions.geojson on 2026-10-09 -
+// without - 4.8 times the area, measured on regions.geojson -
 // and the continent shrinks to a strip in the top right. They are still drawn (off
 // frame) and counted in the caption, never dropped from the data.
 const OUTERMOST = ["FRY", "PT20", "PT30", "ES70", "NO0B"];

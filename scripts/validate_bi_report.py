@@ -45,7 +45,7 @@ SKIP = {"schemas", "data", ".pbi"}
 
 #: Files Power BI Desktop writes back without a `$schema` when it saves the
 #: project (measured 2026-10-25 after the owner saved the .pbip once).
-DESKTOP_OWNED = {"FloodPolicyKit.pbip", "definition.pbism", "definition.pbir", "diagramLayout.json"}
+DESKTOP_OWNED = {"FloodToPolicy.pbip", "definition.pbism", "definition.pbir", "diagramLayout.json"}
 
 #: Schema versions Power BI Desktop writes before Microsoft publishes them, read
 #: against the newest published one. Desktop saved visuals as visualContainer

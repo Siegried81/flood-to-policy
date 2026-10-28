@@ -320,3 +320,24 @@ def test_the_europe_map_draws_and_counts_the_eu27_only():
     svg = P.europe_svg([_square(c, i, 50) for i, c in enumerate(["DEB12", "BE335", "CH011"])], shares)
     assert "DEB12" in svg and "CH011" not in svg
     assert "of 3</b> EU-27 regions" in P.europe_text(shares, _exposure())
+
+
+def test_unreported_countries_come_from_the_context_table():
+    context = pd.DataFrame({
+        "nuts_id": ["IE061", "IE062", "LT011", "BE335", "NO011"],
+        "apsfr_cycle": ["2018"] * 5,
+        "apsfr_country_reported": [False, False, False, True, False],
+    })
+    # Norway is outside the EU-27, so the EU statistic never names it.
+    assert P.unreported_countries(context) == ("2018", ["Ireland", "Lithuania"])
+
+
+def test_europe_map_names_the_unreported_states_only_when_given(page):
+    assert "Not in the European risk-area layer" not in page
+    out = P.render_page(countries=_countries(), products=_products(), exposure=_exposure(),
+                        unreported=("2018", ["Ireland", "Lithuania"]))
+    assert "Not in the European risk-area layer (2018 cycle): Ireland, Lithuania." in out
+
+
+def test_eu27_names_cover_every_eu27_code():
+    assert P.EU27 == frozenset(P.EU27_NAMES) and len(P.EU27) == 27

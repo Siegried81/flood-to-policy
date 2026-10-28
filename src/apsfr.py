@@ -21,7 +21,7 @@ beside it, and the conclusion left to a human.
 **The declared AREA is not comparable between Member States.** `apsfr_share` is
 a defensible figure *within* one country and a trap across two, because the
 Directive sets what must be designated and leaves the geometry convention
-national. Measured 2026-10-08 on the 2018 cycle: the share of national territory
+national. Measured on the 2018 cycle: the share of national territory
 declared runs from 99.908% (BE, essentially one polygon over the whole country)
 to 0.004% (ES, CY), a factor of 23,095. The shape index - perimeter over that of
 an equal-area circle - separates the two conventions: 1.5 for Belgium and 1.5 for
@@ -30,7 +30,7 @@ reported as a ribbon rather than a zone. Germany's 648 polygons total 76 km2;
 Belgium's 28 total 30,695 km2. So rank `apsfr_declared` across countries if you
 must, never `apsfr_share`, and say which convention a national figure follows.
 
-**Two further traps, both measured 2026-10-07 on the live service.**
+**Two further traps, both measured on the live service.**
 
 *The layer carries two reporting cycles.* `cYear` is 2010 for 496 polygons across
 5 countries and 2018 for 12,173 across 25. AT, DE, ES and FR appear in BOTH, so a
@@ -93,7 +93,7 @@ TIMEOUT_S = 180
 #: The VALUE is measured, not chosen for round numbers. These are small features:
 #: the median polygon is about 0.001 km2, a hundred metres across, and several
 #: countries report narrow river corridors. Tested on Italy, the largest
-#: contributor, 300 polygons per tolerance, 2026-10-07:
+#: contributor, 300 polygons per tolerance:
 #:
 #:     tolerance        payload   survive a structure repair   median area
 #:     0.001  (~110 m)  1.35 MB   169 of 300                   0.0008 km2
@@ -119,8 +119,8 @@ MAX_PAGES = 200
 #: Thinning the repaired polygons with `simplify(25 m, preserve_topology=True)`
 #: before the overlay looks obviously right - the overlay against 1,345 regions
 #: should be dominated by vertex count, and 25 m against regions kilometres
-#: across should be free. Measured end to end on the real layer, 2026-10-07, it
-#: is wrong twice over:
+#: across should be free. Measured end to end on the real layer, it is wrong
+#: twice over:
 #:
 #:     exact geometry      1,071 s
 #:     thinned at 25 m     4,683 s     <- 4.4x SLOWER
@@ -233,7 +233,7 @@ def cycles(*, use_cache: bool = True) -> pd.DataFrame:
     """Which countries reported in which cycle, so a gap can be told from a silence.
 
     A country absent from `LATEST_CYCLE` has not necessarily stopped designating
-    areas - measured 2026-10-07, Lithuania appears in the 2010 cycle of this
+    areas - measured, Lithuania appears in the 2010 cycle of this
     service and not in the 2018 one. Reporting "LT declared nothing" off the
     current cycle alone would be false, so the brief needs this table beside the
     shares.
@@ -350,8 +350,8 @@ def declared_by_region(
 
     # The column that stops a false accusation.
     #
-    # The layer does not cover every Member State. Measured 2026-10-07 against
-    # the service: it holds 26 country codes across BOTH cycles, and IRELAND is
+    # The layer does not cover every Member State. Measured against the
+    # service: it holds 26 country codes across BOTH cycles, and IRELAND is
     # not one of them - zero polygons, for a State that certainly designates
     # areas under Article 5. So `apsfr_declared == False` has two completely
     # different causes, and only one of them is about the State: either it

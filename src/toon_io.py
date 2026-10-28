@@ -132,8 +132,8 @@ def fit_rows(df: pd.DataFrame, name: str, max_chars: int) -> pd.DataFrame:
     **Characters, not tokens, and deliberately.** `token_report` needs tiktoken,
     which Windows Smart App Control blocks on the development machine, so a
     token-budgeted prompt would be correct only where the tokenizer loads - and
-    silently unbudgeted on the laptop that runs the demo. Measured 2026-10-08 on
-    the real exposure table, TOON encodes at about 2.05 characters per token, so
+    silently unbudgeted on the laptop that runs the demo. Measured on the real
+    exposure table, TOON encodes at about 2.05 characters per token, so
     a character budget is a stable proxy and it is one that always works.
 
     **Why a budget exists at all.** The provider's ceiling is per minute, not per

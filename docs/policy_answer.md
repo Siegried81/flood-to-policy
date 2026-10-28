@@ -1,6 +1,6 @@
 # The answer: what we are asked, what we found, who has to act
 
-**Written 2026-10-08, figures re-derived up to 2026-10-25** (the July 2021
+**Figures re-derived up to 2026-10-25** (the July 2021
 figures and the R3 evidence on 2026-10-27). Every figure here comes from
 `data/processed/event_2021_*.parquet`,
 `data/processed/exposure.parquet`, `data/processed/context.parquet`, the cached
@@ -66,10 +66,9 @@ page welcomes AI, data science, engineering, environmental science, political
 science, communication and journalism. Prizes to the top three; first prize
 includes an internship and a trip to the JRC site at Ispra.
 
-The organisers' practical information (PDF and e-mail of 12 October 2026)
-confirmed the shape before the annexes fixed it: the final submission is due
-by 13:30 on 30 October, and the AI sheet is compiled from the running note in
-the team's AI log. The e-mail and Annex 4 call the visual output a
+The organisers' practical information (PDF and e-mail) adds
+that the AI sheet is compiled from the running note in the team's AI log. The
+e-mail and Annex 4 call the visual output a
 **"policy tool"**, so the Streamlit and React apps can be the deliverable, not
 only a demo aid. Second prize is an AI Blindspots workshop, third Bozar tickets. The
 datasets come from the JRC and Copernicus, with access and AI licences sent a
@@ -84,11 +83,10 @@ That is answerable with what is already built, it is a finding about
 *preparation* (which is what was asked), and it puts the limitation section at
 the centre instead of in an apology at the end.
 
-## 3. The measured base, 2026-10-08
+## 3. The measured base
 
 `exposure.parquet`: **12,105 rows** = **<!-- numbers:nuts3_regions -->1,345<!-- /numbers -->** NUTS3 regions x **9** return
-periods, 15 columns, 37 country codes. `context.parquet`: 1,345 rows, 200 columns (29 on 2026-10-08; the
-density, income, Natura 2000 and later layers came after).
+periods, 15 columns, 37 country codes. `context.parquet`: 1,345 rows, 200 columns.
 
 | Figure, 1-in-100-year river flood | Value |
 |---|---|
@@ -158,7 +156,7 @@ which the Directive permits.
 
 ### 4.2 Two EU-27 Member States are absent from the Commission's own layer
 
-Verified live on the EEA service, 2026-10-08:
+Verified live on the EEA service:
 
 | Cycle | Polygons | Countries |
 |---|---|---|
@@ -209,11 +207,9 @@ unbounded, so a mean or a maximum is meaningless here.
 **Agreement** follows the IPCC AR6 convention: a direction is *robust* where at
 least 80 % of the members point the same way (13 of 16). Unanimity is reported
 beside it, because it is the stricter test and the one a sceptic will ask for;
-with sixteen members one outlier chain is enough to break it. Until 2026-10-25
-the table held two chains of one climate run, and "both agree" was then the
-same test as both rules here — which is why the earlier counts (976, 994, 943)
-were so much higher: two hydrological models forced by the same climate do not
-sample climate uncertainty at all.
+with sixteen members one outlier chain is enough to break it. The eight climate
+simulations are what make agreement meaningful: two hydrological models forced
+by the same climate run do not sample climate uncertainty at all.
 
 **69 EU-27 regions** are simultaneously in the EU-27 top decile of exposure
 share today and rising by 2041-2070 with at least 80 % of the members agreeing
@@ -320,7 +316,7 @@ action 1 is the case's own (Q4); R1 and R2 here are its action 2, R3 its action 
 | **By whom** | The EEA, with the Irish Office of Public Works and the Lithuanian Environmental Protection Agency as reporters; DG ENV as the Directive's guardian. |
 | **How** | Article 15 reporting, already the legal route. |
 | **By when** | Before the Commission's next implementation report under **Article 16** (22 December 2030), which otherwise rests on a layer missing two members. |
-| **Evidence** | 4.2, verified live 2026-10-08: 25 countries in the 2018 cycle, Ireland in neither cycle. |
+| **Evidence** | 4.2, verified live: 25 countries in the 2018 cycle, Ireland in neither cycle. |
 
 ### R3 — Use Article 8(5) on one named shared basin, as a test case
 
@@ -396,15 +392,12 @@ this page adds is the current legislative context a JRC jury will know:
 
 ## 10. Open, and known
 
-- `context.parquet` was rebuilt on 2026-10-08 after the `shared_with` repair,
-  and the two counts now coincide exactly as predicted: **810** regions with a
-  partner, **810** with a cross-border share, **zero** contradictions.
-- The poverty rate carries its unit in its name since 2026-10-12:
-  `poverty_rate_pct` is a percentage beside `share_over_65`, a fraction. Values
-  did not change; a table or export from an older build says `poverty_rate`
-  (the committed `exposure.parquet` still does), and the API and both UIs read it under the new name for one release.
-- The full suite now collects **<!-- numbers:tests_collected -->1,112<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control blocked `rasterio` on
-  Windows on 2026-10-07, allowed it the next morning with nothing reinstalled,
-  and blocked it again on 2026-10-12, so the policy moves both ways and the only safe habit is to
-  re-measure rather than quote this line. The WSL2 venv stays as the route that
-  does not depend on it.
+- In `context.parquet` the two cross-border counts coincide: **810** regions
+  with a partner, **810** with a cross-border share, **zero** contradictions.
+- The poverty rate carries its unit in its name: `poverty_rate_pct` is a
+  percentage beside `share_over_65`, a fraction. A table or export from an older
+  build says `poverty_rate` (the committed `exposure.parquet` still does), and
+  the API and both UIs read it under the new name for one release.
+- The full suite collects **<!-- numbers:tests_collected -->1,115<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control has blocked
+  `rasterio` on Windows on some days and allowed it on others
+  with nothing reinstalled, so re-measure rather than quote this line; the WSL2 venv is the route that does not depend on it.

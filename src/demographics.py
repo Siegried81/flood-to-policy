@@ -51,7 +51,7 @@ TIMEOUT_S = 120
 #: region look more vulnerable than it is.
 #:
 #: `Y_GE65` exists as a code and returns an EMPTY series at NUTS3, so there is no
-#: ready-made bucket to use instead. Checked 2026-10-07.
+#: ready-made bucket to use instead.
 AGES_65_PLUS = ("Y65-69", "Y70-74", "Y75-79", "Y80-84", "Y_GE85")
 
 #: Column names that changed, old -> current. The poverty rate is a percentage
@@ -189,8 +189,8 @@ def _latest(frame: pd.DataFrame) -> tuple[pd.DataFrame, str]:
 
     And not "the most recent year with any value" either: Eurostat releases a
     new year country by country, so the newest year is often a fraction of the
-    map. Measured 2026-10-12 on `nama_10r_3gdp` (MIO_EUR, NUTS3): 1,307 regions
-    in 2023 and 536 in 2024, so "any value" picked 2024 and left GDP blank for
+    map. Measured on `nama_10r_3gdp` (MIO_EUR, NUTS3): 1,307 regions
+    in 2023 and 536 in 2024, so "any value" picks 2024 and leaves GDP blank for
     roughly 770 regions that 2023 covers.
 
     So, walking back from the newest year, a year is taken once it covers at

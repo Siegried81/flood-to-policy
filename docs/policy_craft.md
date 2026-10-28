@@ -2,13 +2,13 @@
 
 Non-technical craft for the JRC/FARI flood-risk challenge, Brussels, 29–30 October 2026.
 Scope: policy brief, science-for-policy expectations, jury demo, decision-maker dataviz, failure modes, responsible-AI deliverable.
-Written 2026-10-05. Every claim is either sourced (links in §8) or marked **[judgement]** / **[unverified]**.
+Every claim is either sourced (links in §8) or marked **[judgement]** / **[unverified]**.
 
 ---
 
 ## 0. What is actually being judged
 
-From the official JRC event page ([source](https://joint-research-centre.ec.europa.eu/events/european-ai-challenge-2026-data-policy-2026-10-29_en)), verified 2026-10-05:
+From the official JRC event page ([source](https://joint-research-centre.ec.europa.eu/events/european-ai-challenge-2026-data-policy-2026-10-29_en)), verified:
 
 | Deliverable | Official wording | Craft implication |
 |---|---|---|
@@ -127,7 +127,7 @@ The JRC has published a **Competence Framework 'Science for Policy' for research
 
 Sources: [K4P framework page](https://knowledge-for-policy.ec.europa.eu/visualisation/competence-framework-%E2%80%98science-policy%E2%80%99-researchers_en) and the project page naming the underlying report, [*Competences for Policymaking*, JRC129623](https://publications.jrc.ec.europa.eu/repository/handle/JRC129623), which contains "the full frameworks, including the complete list of learning outcomes on the four levels of proficiency". A companion framework for **policymakers** ("Innovative Policymaking") has 7 clusters: advise the political level, innovate, work with evidence, be futures literate, engage with citizens and stakeholders, collaborate, communicate.
 
-**[unverified]** the 27 individual competence names — they render only inside an interactive visualisation I could not extract; pull them from JRC129623 (free PDF) if she wants to quote them.
+**[unverified]** the 27 individual competence names — they render only inside an interactive visualisation I could not extract; pull them from JRC129623 (free PDF) before quoting them.
 
 Why this matters tactically: a jury of JRC staff recognises its own framework. Saying "we treated this as a *communicate* and *understand policy* problem as much as a modelling problem, in the Science4Policy sense" is a 10-second signal that you know the house. Do it once; twice is sycophancy.
 
@@ -347,7 +347,7 @@ A schedule, because the failure modes in §5 are mostly time-allocation failures
 - End of day 1: `[N]` has its frozen value and the hero map exists, ugly.
 
 **Day 2**
-- Morning: **the number is already frozen** — it was frozen at **17:30 on Thursday, Day 1** (see `docs/roles.md`, and `app/streamlit_app.py`, whose freeze banner shows which cached run is on screen). Freeze means no re-running the analysis, whatever anyone finds. Day 2 morning quotes the frozen table; it does not produce it.
+- Morning: **the number is already frozen** (Day 1, 17:30; see `docs/roles.md`, and `app/streamlit_app.py`, whose freeze banner shows which cached run is on screen). Freeze means no re-running the analysis, whatever anyone finds: Day 2 quotes the frozen table, it does not produce it.
 - Midday: brief to final (§1.4 skeleton), map to final (§4), responsible-AI table to final (§6.1).
 - **T-3h: the reconciliation pass.** One named person checks that the number, units, rounding, place names and dates are identical across brief, dashboard, slide and script. Fixes §5.13.
 - **T-2h: two timed rehearsals** with the actual slide, plus 10 minutes drilling the five Q&A answers (§3.4).
@@ -372,10 +372,10 @@ A schedule, because the failure modes in §5 are mostly time-allocation failures
 
 ## 8. Sources
 
-Verified by direct fetch or search on 2026-10-05 unless flagged.
+Verified by direct fetch or search unless flagged.
 
 **The event**
-- JRC, European AI Challenge 2026: From Data to Policy — https://joint-research-centre.ec.europa.eu/events/european-ai-challenge-2026-data-policy-2026-10-29_en (deliverables confirmed; the judging criteria came later, in the organisers' Annex 4)
+- JRC, European AI Challenge 2026: From Data to Policy — https://joint-research-centre.ec.europa.eu/events/european-ai-challenge-2026-data-policy-2026-10-29_en (deliverables confirmed; the judging criteria are in the organisers' Annex 4)
 - FARI calendar — https://www.fari.brussels/calendar
 
 **Policy-brief conventions**
