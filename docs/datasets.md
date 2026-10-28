@@ -1,6 +1,6 @@
 # Datasets
 
-Verified against the live sources on **2026-10-06** — headers parsed, sizes
+Verified against the live sources — headers parsed, sizes
 measured with HEAD requests, endpoints called with a real token. Anything marked
 *to verify* is still open; never on the day.
 
@@ -50,16 +50,16 @@ file, which is how a single named archive inside a download portal gets pinned. 
 `files:` present and "expands to more than one job" are different questions, and
 the second is the one that moves the printed count.
 
-Five entries used to point at the directory holding the files instead, and a
-directory listing is valid HTML well above the minimum document size: `fetch`
-stored the listing as the data, and the idempotency check then treated the source
-as permanently done. A silent success with nothing in it. The resolved URLs now
-live in `sources.yaml`, with the human-readable portal page kept beside them as
-`landing:` for provenance.
+Entries point at the files, never at the directory holding them: a directory
+listing is valid HTML well above the minimum document size, so `fetch` would
+store the listing as the data and the idempotency check would then treat the
+source as permanently done - a silent success with nothing in it. The
+human-readable portal page is kept beside the resolved URL as `landing:` for
+provenance.
 
-Nine return periods alone are **2.61 GiB**. All 84 files then declared were on
-disk on 2026-10-25, and the 85th (`natural_earth_countries`) since 2026-10-26;
-re-run `python -m src.fetch` only after changing `sources.yaml`.
+Nine return periods alone are **2.61 GiB**. All 85 declared files are on disk
+(the 85th, `natural_earth_countries`, since 2026-10-26); re-run
+`python -m src.fetch` only after changing `sources.yaml`.
 
 Those counts are `src.fetch.expand()` over `sources.yaml` as it stood on
 2026-10-27 and the byte totals are the declared files measured on disk on
@@ -91,7 +91,7 @@ by axis.
 
 **`/vsicurl/` is for a country window, and the wrong tool for the European run.**
 The files are tiled and the server honours HTTP range requests, so a windowed
-read pulls only the tiles it touches. Measured on RP100, 2026-10-06: a Belgium
+read pulls only the tiles it touches. Measured on RP100: a Belgium
 window is **220 tiles and 2.4 MiB over the wire — 0.76% of the file**. The
 EU27+EFTA bbox is **35,525 tiles and 172 MiB — 56% of the file, fetched in tens
 of thousands of requests**, which at this repo's own one-request-per-second-per-host
@@ -132,7 +132,7 @@ four times finer than the hazard maps. Estimated from Sentinel-1 SAR extent
 | Band | flood depth in **CENTIMETRES** |
 | Type | **uint16, nodata 0**, and **9999 = permanent or seasonal water** |
 | Storage | one-row strips (60,000 of them), **not tiled** |
-| CRS | **Equi7Grid Europe**, azimuthal equidistant. The file declares a user-defined projection (`ProjectedCSTypeGeoKey` 32767) and names no code, so pass the proj4 string. `pyproj` does resolve its WKT to **EPSG:27704** (measured 2026-10-06), which is useful to know and is not what the file says |
+| CRS | **Equi7Grid Europe**, azimuthal equidistant, user-defined in the file: pass the proj4 string (below) |
 | Licence | CC-BY 4.0 · DOI `10.2905/0bc96690-b89c-4909-9166-c2c322a20130` |
 
 **Centimetres against the hazard maps' metres.** This is fact 2 above, and it is
@@ -150,8 +150,7 @@ GDAL does not turn it into NaN.
 32767` (user-defined) with only an ESRI citation string, so the file names no
 code of its own — though `pyproj` does resolve its WKT to **EPSG:27704**
 ("WGS 84 / Equi7 Europe"), whose proj4 is the string below. Its own
-`ProjCenterLong` is 24.0 and `ProjCenterLat` 53.0, the right way round (checked
-2026-10-06). Passing the proj4 string is still the safe move, because the file
+`ProjCenterLong` is 24.0 and `ProjCenterLat` 53.0, the right way round. Passing the proj4 string is still the safe move, because the file
 itself claims no code:
 
 ```
@@ -262,7 +261,7 @@ Products: `cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EM
 
 Triggered by the Belgian National Crisis Center, 2021-07-14. Two AOIs: **AOI01
 Liège**, **AOI02 Rochefort**. The products sit in a public S3 bucket that answers
-anonymously — verified 2026-10-06 with no credentials and a default User-Agent;
+anonymously — verified with no credentials and a default User-Agent;
 the portal's login link does not gate that path.
 
 **Two delineations per AOI, not one — four packages in total:**
@@ -288,8 +287,8 @@ AOI01 holds **151** polygons in `DEL_PRODUCT` and 390 in `DEL_MONIT01`; AOI02
 holds 284 and 1,195.
 
 **EMSR517 is the German side of the same event**, and `sources.yaml` declares
-one package of it (`cems_emsr517_germany_2021`, AOI01 only, 7,136,350 B, verified
-2026-10-06). **AOI01 is not the Ahr.** Its locality is *Moselle*: the
+one package of it (`cems_emsr517_germany_2021`, AOI01 only, 7,136,350 B, verified).
+**AOI01 is not the Ahr.** Its locality is *Moselle*: the
 Trier/Mosel area, `areaOfInterestA` bounds 6.345–7.588 °E, 49.543–50.375 °N,
 south of the Ahr valley. Its `observedEventA` layer is 8 polygons totalling about
 **0.28 km²**, so it scores the model on the Mosel, not on the German flood the
@@ -372,9 +371,9 @@ catalogue itself tags *"donnée obsolète"*.
 Two layers from the region itself, both EPSG:31370 and CC-BY 4.0, downloaded the
 same way as the hazard series. Only the **extent** layer is actually reachable:
 the depth layer's download URL answers HTTP 404 with *"Download Dataset
-Expired"* (checked 6 October 2026), because the SPW geoportal mints
+Expired"*, because the SPW geoportal mints
 single-use result URLs rather than permanent ones. A by-hand download of the
-same record, made 10 October 2026, is on disk under the declared name (see the
+same record is on disk under the declared name (see the
 entry's `verified:` note in `sources.yaml`). `scripts/validate_2021.py` reads it
 as an extent (depth > 0) alongside the extent layer, the JRC observed layer and
 EMSR518, and writes `data/processed/validation_2021.parquet`; the depth-vs-depth
@@ -402,8 +401,8 @@ truth itself, and that belongs in the brief.
   everywhere — say so before quoting a per-commune depth. **❌ Not downloadable
   as declared:** the result URL in `sources.yaml` returns HTTP 404 *"Download
   Dataset Expired"*; the copy on disk (`wallonia_observed_water_depth_2021.zip`,
-  500,736,096 B, `ZONES_INONDEES_2021_IDW450_HEAU.tif` inside) is the by-hand
-  download of 10 October. To refresh it, re-mint
+  500,736,096 B, `ZONES_INONDEES_2021_IDW450_HEAU.tif` inside) is a by-hand
+  download. To refresh it, re-mint
   the download from the catalogue record and discover the names through
   `atom_service.xml` → `atom_dataset.xml` under the record's uuid.
 
@@ -425,11 +424,11 @@ the two.
 |---|---|---|
 | GISCO NUTS3 2024 | `NUTS_RG_01M_2024_3035_LEVL_3.geojson`, 25 MB | **The working unit**: 1,345 NUTS3 polygons in the file (1,165 EU-27, 46 EFTA, 134 candidate and potential-candidate), EPSG:3035, one file, one vintage |
 | GISCO LAU 2024 | `LAU_RG_01M_2024_3035.shp.zip`, 39 MB | Pan-European; filter `CNTR_CODE == "BE"` → **581** communes. `GISCO_ID` = `BE_<NIS5>` |
-| Eurostat population by age | `demo_r_pjangrp3` | NUTS3, every country. Checked live 2026-10-06: BE332, sex=T, age=TOTAL → 637,220 |
-| Eurostat at-risk-of-poverty | `ilc_li41` | **NUTS2 only.** Checked live 2026-10-06: BE33 → 14.6 — `BE33` being a NUTS2 code is that caveat confirmed, not assumed |
-| Eurostat GDP | `nama_10r_3gdp` | NUTS3. Checked live 2026-10-06: BE332 = 26,435.29 MIO_EUR for 2024, status `p` (provisional); the table holds 2023 = 25,450.93. **Pin the unit** — `MIO_EUR`, `MIO_PPS` and `EUR_HAB` are three different numbers, and mixing them is silent. Read from 2023 since 2026-10-12: 2024 is published for 536 NUTS3 units only |
-| Eurostat population density | `demo_r_d3dens` | NUTS3, `PER_KM2`. Checked live 2026-10-12: BE332 = 808.5 (2024). 2024 sits on NUTS 2021 codes, so 66 of the 1,345 NUTS 2024 regions are blank (8 new Belgian codes, ITG2D-H, HR, EE, NO, RS, XK) - a vintage mismatch, not an empty region. Context, not an indicator |
-| Eurostat household income | `nama_10r_2hhinc` | **NUTS2 only.** Pinned `na_item=B6N`, `direct=BAL`, `unit=PPS_EU27_2020_HAB`. Checked live 2026-10-12: BE33 = 21,300 PPS per inhabitant (2023; 2024 covers 63 of 296 NUTS2 regions). EU-27 only. Context, not an indicator |
+| Eurostat population by age | `demo_r_pjangrp3` | NUTS3, every country. Checked live: BE332, sex=T, age=TOTAL → 637,220 |
+| Eurostat at-risk-of-poverty | `ilc_li41` | **NUTS2 only.** Checked live: BE33 → 14.6 — `BE33` being a NUTS2 code is that caveat confirmed, not assumed |
+| Eurostat GDP | `nama_10r_3gdp` | NUTS3. Checked live: BE332 = 26,435.29 MIO_EUR for 2024, status `p` (provisional); the table holds 2023 = 25,450.93. **Pin the unit** — `MIO_EUR`, `MIO_PPS` and `EUR_HAB` are three different numbers, and mixing them is silent. Read from 2023: 2024 is published for 536 NUTS3 units only |
+| Eurostat population density | `demo_r_d3dens` | NUTS3, `PER_KM2`. Checked live: BE332 = 808.5 (2024). 2024 sits on NUTS 2021 codes, so 66 of the 1,345 NUTS 2024 regions are blank (8 new Belgian codes, ITG2D-H, HR, EE, NO, RS, XK) - a vintage mismatch, not an empty region. Context, not an indicator |
+| Eurostat household income | `nama_10r_2hhinc` | **NUTS2 only.** Pinned `na_item=B6N`, `direct=BAL`, `unit=PPS_EU27_2020_HAB`. Checked live: BE33 = 21,300 PPS per inhabitant (2023; 2024 covers 63 of 296 NUTS2 regions). EU-27 only. Context, not an indicator |
 | Statbel population | `TF_SOC_POP_STRUCT_2026` | **565** communes, 11,867,634 people at 2026-01-01, single years of age 0–100 |
 | Statbel income | `TF_PSNL_INC_TAX_MUNTY` | 2005–**2023** only, on the **pre-merger** 581 geography |
 
@@ -438,10 +437,10 @@ geometries *and* different code sets, and a file with no year in its name is a
 trap.
 
 **Both Statbel files are pipe-delimited and encoded UTF-8 WITH A BOM** (`EF BB
-BF`) — read them with `encoding="utf-8-sig"`. This page previously said
-ISO-8859-1, which was wrong in the dangerous direction: the mojibake that warning
-was trying to prevent is exactly what *forcing* latin-1 produces ("Région
-flamande" → "RÃ©gion flamande"). Verified byte by byte on 2026-10-06. Plain
+BF`) — read them with `encoding="utf-8-sig"`. ISO-8859-1 is wrong in the
+dangerous direction: the mojibake it is meant to prevent is exactly what
+*forcing* latin-1 produces ("Région
+flamande" → "RÃ©gion flamande"). Verified byte by byte. Plain
 `encoding="utf-8"` is not enough either — the BOM stays glued to the first column
 name, so a lookup on `CD_REFNIS` fails on a key that looks right on screen.
 
@@ -472,7 +471,7 @@ which caches every response under `data/processed/rdh_cache/`; `src/losses.py`
 turns those rows into a table joinable to the NUTS3 analysis, and enforces the
 two traps below rather than trusting a reader to remember them.
 
-Called for real on 2026-10-06: **77 hazards**, and **1,297 loss rows for
+Called for real: **77 hazards**, and **1,297 loss rows for
 Belgium** spanning **1983–2024**, including the July 2021 flood (EU event code
 `FLEU202107120015`, national code `FLBE202107130001`, 67 rows). This is the layer
 nothing else in the kit has: what a flood actually *cost* — economic loss, people
@@ -582,7 +581,7 @@ absent, so **fetch it before the event**.
 
 ### Three ways this service answers HTTP 500
 
-All measured 2026-10-06, all with no error message to read.
+All measured, all with no error message to read.
 
 - **`outFields=*`** — the layer carries an attribute literally named `geometry`
   beside its real geometry, and in GeoJSON the two collide. Name the fields.
@@ -663,7 +662,7 @@ rather than a colour ramp.
 It is **not** evidence that an undeclared area is wrongly undeclared: see
 [`limitations.md`](limitations.md#1-what-the-figures-cant-say).
 
-**Trap 1 — two reporting cycles in one layer.** Measured 2026-10-07: `cYear` is
+**Trap 1 — two reporting cycles in one layer.** Measured: `cYear` is
 2010 for 496 polygons across 5 countries (AT, DE, ES, FR, LT) and 2018 for 12,173
 across 25. AT, DE, ES and FR are in **both**, so a query that does not pin the
 cycle designates the same ground twice and an area share can exceed 1.
@@ -710,8 +709,8 @@ Like the WFD layer, it must be fetched once **before** the event: nothing in
 
 Article 6(5) of the Floods Directive asks flood risk maps to show the potential
 adverse consequences for the **environment** and for **cultural heritage**.
-Since 2026-10-12 the kit measures Natura 2000, and since 2026-10-25 CORINE land
-cover; cultural heritage is still not measured, and no heritage source is declared.
+The kit measures Natura 2000 and CORINE land cover; cultural heritage is not
+measured, and no heritage source is declared.
 
 - **Natura 2000** ✅ — `eea_natura2000_gpkg`, the end-2024 release as one
   GeoPackage (1,360,171,008 B, SHA-256 `fc947b01…964f42`, EPSG:3035, CC-BY-4.0,
@@ -735,12 +734,12 @@ cover; cultural heritage is still not measured, and no heritage source is declar
   Copernicus Land Monitoring Service and needs a registered account and an
   accepted licence, so it was fetched by hand. The CLC 2018 status raster at
   100 m (`u2018_clc2018_v2020_20u1_raster100m`) sits under
-  `data/raw/download/clms_corine_2018/`, and since 2026-10-25 `src/landcover.py`
+  `data/raw/download/clms_corine_2018/`, and `src/landcover.py`
   reads it into `context.parquet` as `corine_rp100_footprint_km2` and the
   `corine_rp100_share_*` columns: the share of the RP100 footprint (same 0.5 m
   threshold and masks) under homes, industry and commerce, transport, other
   artificial land, agriculture, natural land and water, for 1,295 of the 1,345
-  regions. Found 2026-10-12 and not used: the EEA datashare serves
+  regions. Found and not used: the EEA datashare serves
   the CLC 2018 *accounting layer* (`CLC2018ACC_V2018_20.tif`, 215,355,481 B,
   100 m, EPSG:3035) anonymously, under
   `eea_r_3035_100_m_clc-2018-acc_p_2017-2018_v01_r00`. It is a variant built for
@@ -756,7 +755,7 @@ while risk that *moves* is a decision.
 
 **On disk**: two hand-made request archives (91,492,658 B and 45,730,014 B,
 12 NetCDF files) plus the two VIC-WUR 2071–2100 files of a third, whose
-22,881,344 B archive is no longer on disk — **14 NetCDF files** for the
+22,881,344 B archive is not kept on disk — **14 NetCDF files** for the
 EC-EARTH/CCLM4-8-17 chain — plus 42 one-member archives
 fetched on 2026-10-25 by `scripts/fetch_cds_member.py`, each holding RP5 and
 RP50 — **98 NetCDF files**, all 48 members (eight simulations × two models ×
@@ -764,7 +763,7 @@ three periods) — return values of annual maximum river discharge at 2, 5, 10
 and 50 years, for 2011–2040, 2041–2070 and 2071–2100, each against the 1971–2000
 reference, as a **relative change in percent**.
 
-**What the two hand-fetched chains put on disk**, re-derived from the filenames 2026-10-07 — the
+**What the two hand-fetched chains put on disk**, re-derived from the filenames — the
 names carry the whole request, which is why `src/climate.py` parses them rather
 than trusting a sidecar:
 
@@ -774,25 +773,18 @@ than trusting a sidecar:
 | 2041–2070 | RP5, RP50 | RP5, RP50 |
 | 2071–2100 | RP2, RP5, RP10, RP50 | RP5, RP50 |
 
-All of it RCP 8.5, member `r12i1p1`, against the 1971–2000 reference, and **two
-model chains on every period** since the VIC-WUR 2071–2100 files landed on
-7 October 2026. Until they did, the far-future period had one chain, and a single
-member cannot agree with itself: `ensemble_agrees_on_sign_2071_2100` was False
-for all 1,345 regions, so the +25.6% median showed and licensed no sentence about
-the direction of the change. With the second chain the median is **+20.3%** —
-the lone member was overstating it by 5.3 points — and **943 of 1,198 regions**
-now agree on the sign, the lowest agreement of the three periods, which is where
-anyone would expect the chains to diverge most. The gap was never a missing
-period — the time coverage was always complete — it was one empty cell of the
-model-by-period grid, which is a different thing and much easier to miss.
-(Those are the two-chain figures. Since 2026-10-25 every period holds 16
-members; the current figures are in
-[`policy_answer.md` §4.4](policy_answer.md#44-the-reference-discharge-is-rising-where-people-already-live-in-the-way).)
+All of it RCP 8.5, member `r12i1p1`, against the 1971–2000 reference, with
+**two model chains on every period**. A single member cannot agree with itself,
+so a period held by one chain licenses no sentence about the direction of the
+change. That gap is one empty cell of the model-by-period grid rather than a
+missing period, which is a different thing and much easier to miss. Since
+2026-10-25 every period holds 16 members; the current figures are in
+[`policy_answer.md` §4.4](policy_answer.md#44-the-reference-discharge-is-rising-where-people-already-live-in-the-way).
 
 `scripts/fetch_cds_member.py` makes that request reproducibly, and verifies every
 downloaded filename against what was asked before anything enters this
 directory: the failure that matters is not an empty download, it is the *wrong
-member* landing where the ensemble is computed. Since 2026-10-12 it knows the
+member* landing where the ensemble is computed. It knows the
 dataset's eight simulations (read off the CDS constraints file: EC-EARTH r12i1p1
 with CCLM4-8-17, RACMO22E and RCA4; HadGEM2-ES r1i1p1 with RACMO22E and RCA4;
 MPI-ESM-LR r1i1p1 and r2i1p1 with REMO2009, r1i1p1 with RCA4), checks the GCM
@@ -809,18 +801,17 @@ them with.
 frozen `context.parquet` is built from all eight simulations the dataset offers
 under RCP 8.5, each routed through **two** hydrological models —
 `E-HYPEgrid-EUR-11` and `VIC-WUR-EUR-11` — so the 50-year return value has
-**16 members on all three periods**. Until then it was `ICHEC-EC-EARTH`
-`r12i1p1` driving `CLMcom-CCLM4-8-17-v1` alone: two hydrological opinions of one
+**16 members on all three periods**; the single `ICHEC-EC-EARTH` `r12i1p1` /
+`CLMcom-CCLM4-8-17-v1` chain before it was two hydrological opinions of one
 climate, which sample no climate uncertainty at all.
 `climate.ensemble_change_by_region` reports the spread across whatever members
-are present - the range and, since 2026-10-12, the quartiles of the members'
-medians - and two sign columns: `ensemble_agrees_on_sign` (every member) and,
-since 2026-10-25, `ensemble_robust_on_sign` (at least 80 % of members, the
-IPCC AR6 "robust" rule), which is the one the UIs read. Neither claims
-agreement from a single member — where only one file exists both are `False`
-by construction, which is the honest answer and not a bug. That is what
-2071–2100 looked like until its VIC-WUR files arrived, and it is still what any
-period reduced to one chain will look like.
+are present - the range and the quartiles of the members' medians - and two
+sign columns: `ensemble_agrees_on_sign` (every member) and
+`ensemble_robust_on_sign` (at least 80 % of members, the IPCC AR6 "robust"
+rule), which is the one the UIs read. Neither claims agreement from a single
+member — where only one file exists both are `False` by construction, which is
+the honest answer and not a bug, and what any period reduced to one chain will
+look like.
 
 **The two models do not ship the same subdatasets.** The E-HYPE files hold `lon`,
 `lat` and the indicator; the VIC-WUR files hold `time_bnds` as well. So "the
@@ -878,7 +869,7 @@ letting a juror find it.
 
 ## EMO-1 observed precipitation, 2021 ✅ read
 
-`emo1_precipitation_2021` (`data/raw/download/emo1_precipitation_2021.nc`) is now
+`emo1_precipitation_2021` (`data/raw/download/emo1_precipitation_2021.nc`) is
 read by `src/rainfall.py` and `scripts/rainfall_jul2021.py`, which write
 `data/processed/rainfall_jul2021.parquet`: the four-day July 2021 event rain
 (days ending 13-16 July at 06:00) per NUTS3 region, mean, max, 95th percentile

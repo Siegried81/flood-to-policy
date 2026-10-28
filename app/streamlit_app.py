@@ -65,7 +65,7 @@ def _build_state(path: Path) -> float | None:
     its own `exists()` check cached the *absence* too: once the page had run
     while a table was missing, it kept answering "no exposure table yet" for the
     life of the process - after the build it tells the reader to run had finished
-    and written the file. Measured 2026-10-08 while a test moved the tables aside
+    and written the file. Measured while a test moved the tables aside
     for seventy seconds: a server that reran in that window never came back.
     The mtime is in the key for the other half of the same problem - a rebuilt
     table is a different table, and the banner above it claims to name the run on
@@ -158,10 +158,10 @@ def _load_geometry(mtime: float) -> list[dict]:
 def _freeze_banner(df: pd.DataFrame, key: str | None = None) -> None:
     """Say out loud which run is on screen. Half the failure mode is not knowing.
 
-    The region identifier rides along here when there is only one of them. It
-    used to have a selectbox of its own, which asked the reader to choose and
-    then offered no choice; replacing that with a label just moved the dead
-    control one step along. It is a property of the run, like the row count and
+    The region identifier rides along here when there is only one of them. A
+    selectbox of its own would ask the reader to choose and then offer no
+    choice, and a label in its place only moves the dead control one step
+    along. It is a property of the run, like the row count and
     the timestamp, so it belongs in the line that already states those.
     """
     stamp = datetime.fromtimestamp(EXPOSURE_CACHE.stat().st_mtime)
@@ -382,8 +382,7 @@ with map_tab:
         if horizons:
             layers.append("Change in river discharge, by horizon")
         # Offered only when there are two. Without `context.parquet` there is no
-        # horizon to colour, and a radio with one option is the dead control the
-        # identifier selector used to be.
+        # horizon to colour, and a radio with one option is a dead control.
         layer = (
             st.radio("Colour the map by", layers, horizontal=True)
             if len(layers) > 1
@@ -480,8 +479,8 @@ with map_tab:
         # An iframe, not `st.html`: `st.html` sanitises its body with DOMPurify
         # and the entire <svg> came back stripped — 1,345 paths enqueued, zero
         # `stHtml` nodes in the DOM, no console error, and a caption underneath
-        # cheerfully reporting "1,338 regions coloured". Verified in the browser
-        # on 2026-10-08. An iframe renders the markup as given.
+        # cheerfully reporting "1,338 regions coloured". Verified in the browser.
+        # An iframe renders the markup as given.
         #
         # `st.iframe`, not `st.components.v1.html`: the old call logs "will be
         # removed after 2026-06-01", a date already behind us, and this is the
@@ -977,7 +976,7 @@ with draft_tab:
             # do nothing with, times every row, and it would dominate the prompt.
             #
             # `view`, not `exposure`: the whole table is nine nested scenarios, and
-            # this tab used to send `exposure.head(200)` — which is file order, so
+            # `exposure.head(200)` would be file order — so
             # Albania through Germany at the 10-year period, whatever the reader
             # had selected above. The page's contract is one scenario everywhere.
             #

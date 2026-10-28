@@ -7,9 +7,8 @@ the kit's **EU-wide** work, which answers the question a jury asks next, *is
 this a one-off?*, and gives the recommendation its scale and its named actor:
 25.7 million EU-27 residents in the undefended 1-in-100 footprint, risk-area
 declarations that cannot be compared between Member States, and the climate
-projections ([`policy_answer.md`](policy_answer.md)). The European work is not
-dropped; it moves from the centre to the context, which is also where a
-comparison between countries earns its place.
+projections ([`policy_answer.md`](policy_answer.md)). The European work is the
+context, which is also where a comparison between countries earns its place.
 
 This page is the design that follows from that, and it is the reason the data
 choices differ from an obvious Belgian pipeline.
@@ -33,8 +32,8 @@ for anything you present as a European finding.
 
 ## What the NUTS3 choice produces on disk
 
-Three files, all derived. Since 2026-10-23 both frozen tables are committed, so a
-fresh checkout has the frozen figures; the geometry is not (its GISCO boundaries
+Three files, all derived. Both frozen tables are committed, so a fresh checkout
+has the frozen figures; the geometry is not (its GISCO boundaries
 carry their own terms, see `data/processed/DATA_NOTICE.md`) and is built in
 seconds from the fetched boundary file. Until it exists the React choropleth
 renders nothing while reporting no error at all.
@@ -72,7 +71,7 @@ Keep the 100 m tiles only for the zoom-in.
 
 `NUTS_RG_01M_2024_3035_LEVL_3.geojson` (25,247,626 B) or the same layer as a
 shapefile, `NUTS_RG_01M_2024_3035_LEVL_3.shp.zip` (7,324,754 B) — both measured
-by `Content-Length` on 6 October 2026. The GeoJSON is what `sources.yaml`
+by `Content-Length`. The GeoJSON is what `sources.yaml`
 declares, and it is the larger of the two by a factor of three: that is the
 format's text encoding, not more detail. EPSG:3035, one file, every country, one
 vintage. Statbel, the Walloon geoportal
@@ -89,11 +88,11 @@ harmonised source:
 
 | Need | Eurostat dataset | Level | State |
 |---|---|---|---|
-| Population by age | `demo_r_pjangrp3` | NUTS3 | Declared and read; checked live 2026-10-06 (BE332 total = 637,220). `share_over_65` in `exposure.parquet` |
-| At-risk-of-poverty rate | `ilc_li41` | NUTS2 | Declared and read; checked live 2026-10-06 (BE33 = 14.6). `poverty_rate` in `exposure.parquet` |
-| GDP | `nama_10r_3gdp` | NUTS3 | Declared and read; checked live 2026-10-06 (BE332 = 26,435.29 MIO_EUR, flagged provisional). `gdp_meur` in `context.parquet`, read from 2023 by the coverage rule below (BE332 = 25,450.93) |
-| Population density | `demo_r_d3dens` | NUTS3 | Declared and read; checked live 2026-10-12 (BE332 = 808.5 per km2, 2024). In `context.parquet` |
-| Disposable household income | `nama_10r_2hhinc` | NUTS2 | Declared and read; checked live 2026-10-12 (BE33 = 21,300 PPS per inhabitant, 2023). In `context.parquet` |
+| Population by age | `demo_r_pjangrp3` | NUTS3 | Declared and read; checked live (BE332 total = 637,220). `share_over_65` in `exposure.parquet` |
+| At-risk-of-poverty rate | `ilc_li41` | NUTS2 | Declared and read; checked live (BE33 = 14.6). `poverty_rate` in `exposure.parquet` |
+| GDP | `nama_10r_3gdp` | NUTS3 | Declared and read; checked live (BE332 = 26,435.29 MIO_EUR, flagged provisional). `gdp_meur` in `context.parquet`, read from 2023 by the coverage rule below (BE332 = 25,450.93) |
+| Population density | `demo_r_d3dens` | NUTS3 | Declared and read; checked live (BE332 = 808.5 per km2, 2024). In `context.parquet` |
+| Disposable household income | `nama_10r_2hhinc` | NUTS2 | Declared and read; checked live (BE33 = 21,300 PPS per inhabitant, 2023). In `context.parquet` |
 
 On the GDP endpoint, **pin the unit**: `MIO_EUR`, `MIO_PPS` and `EUR_HAB` are
 three different numbers, mixing them is silent, and recent years carry a
@@ -120,7 +119,7 @@ which is open and needs no credentials.
 ### Hazard: unchanged
 
 The JRC maps already cover Europe — that is what they are. Nine return periods,
-272–350 MB each, measured 2026-10-06. Downloading all nine is **2.61 GiB**, and
+272–350 MB each. Downloading all nine is **2.61 GiB**, and
 the whole `geodata` section — 51 entries, 111 jobs once the multi-file ones are
 expanded: 57 files to download, 19 runtime API calls, and 35 files under six
 `folder` entries that `src.fetch` skips (30 HERA files that
@@ -181,8 +180,7 @@ acts on:
   European question.
 - **Cross-border river basins**: the Meuse runs through France, Belgium and the
   Netherlands. A flood does not stop at NUTS boundaries, and pointing that out
-  is an argument for EU-level action rather than national action — exactly the
-  kind of conclusion this jury exists to hear.
+  is an argument for EU-level action rather than national action.
 - **Who is already covered by insurance and who is not** — the protection gap
   varies enormously across the EU, and that variation is a policy lever.
 
@@ -217,6 +215,7 @@ the ground truth, which is what makes "the model misses X%" a defensible number
 instead of an artefact of one delineation.
 
 One conversion to get right before any of that: the satellite-derived depth maps
-are in **centimetres** and the hazard maps in **metres**. The validation is a
-depth comparison, so this is exactly where a factor-100 error would hide behind a
-plausible result.
+are in **centimetres** and the hazard maps in **metres**, so a depth comparison
+is exactly where a factor-100 error would hide behind a plausible result
+([`strategy.md`](strategy.md#the-find-that-changes-the-plan) has the unit, the
+9999 water flag and the CRS).

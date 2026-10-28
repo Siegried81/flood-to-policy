@@ -1,4 +1,4 @@
-# Flood policy kit in Linux: Streamlit map, JSON API, the offline check, the tests.
+# Flood to policy in Linux: Streamlit map, JSON API, the offline check, the tests.
 #
 #   docker compose up --build                            # Streamlit on :8501, data bind-mounted
 #   docker compose --profile api up --build              # + JSON API / React UI on :8010

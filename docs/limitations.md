@@ -1,12 +1,12 @@
 # Limitations: what the kit does not claim
 
-The kit is a ten-day build on open data. Three dates are in play:
-`exposure.parquet` was last built on 2026-10-07 (nine return periods; see
-[`data/processed/DATA_NOTICE.md`](../data/processed/DATA_NOTICE.md)), the European
-figures were read off it as the measured base of 2026-10-08
-([`policy_answer.md` §3](policy_answer.md#3-the-measured-base-2026-10-08)), and
-`context.parquet` has been rebuilt layer by layer since (the full climate ensemble
-on 2026-10-25); the July 2021 tables were built on 2026-10-26, and their infrastructure table (`event_2021_infrastructure.parquet`) on 2026-10-27. This page gathers
+The kit is a ten-day build on open data, and its tables were not all built at
+once: `exposure.parquet` is the frozen table (nine return periods; see
+[`data/processed/DATA_NOTICE.md`](../data/processed/DATA_NOTICE.md)) and the European
+figures are read off it as the measured base
+([`policy_answer.md` §3](policy_answer.md#3-the-measured-base)),
+`context.parquet` is rebuilt layer by layer (the full climate ensemble
+on 2026-10-25), and the July 2021 tables were built on 2026-10-26, their infrastructure table (`event_2021_infrastructure.parquet`) on 2026-10-27. This page gathers
 in one place what its figures cannot support, what was designed and not built,
 what a public authority would still have to do before acting on it, and the
 shortcuts accepted to ship it. Every bullet points at the file that holds the
@@ -74,7 +74,7 @@ Netherlands; 27 products, 4 Belgian, 22 German, 1 Dutch).
 - **Nine scenarios, never a sum.** The return periods are nested extents: EU-27
   exposed population reads 16,704,818 at RP10, 25,737,004 at RP100 and
   30,730,197 at RP500. A headcount quoted without its return period is not a
-  number. [`policy_answer.md` §3](policy_answer.md#3-the-measured-base-2026-10-08),
+  number. [`policy_answer.md` §3](policy_answer.md#3-the-measured-base),
   [`geospatial_crash_course.md`](geospatial_crash_course.md#return-period-what-a-100-year-flood-is-not).
 - **Nested in intent, not cell by cell.** Each JRC depth raster is a separate
   model run, so a rarer period can be shallower in places. Measured 2026-10-23
@@ -102,7 +102,7 @@ Netherlands; 27 products, 4 Belgian, 22 German, 1 Dutch).
   `exposed_pop`.
   [`technical_deep_dive.md` §3.3-3.4](technical_deep_dive.md#33-four-columns-and-why-none-is-not-00),
   [`src/exposure.py`](../src/exposure.py) `exposed_population` docstring,
-  [`policy_answer.md` §3](policy_answer.md#3-the-measured-base-2026-10-08).
+  [`policy_answer.md` §3](policy_answer.md#3-the-measured-base).
 - **A population cell is wholly in or wholly out of a region.** The induced
   error scales with perimeter over area: around 1-3 % for a commune and 30-50 %
   for a Belgian statistical sector. Nothing smaller than a commune should be
@@ -205,9 +205,9 @@ Netherlands; 27 products, 4 Belgian, 22 German, 1 Dutch).
   [`responsible_ai.md`](responsible_ai.md#say-what-ai-must-not-decide).
 - **Two indicators, two scales, and NUTS2 applied to NUTS3.** `poverty_rate_pct`
   is a Eurostat percentage (1.4 to 50.7) published at NUTS2 and applied to each
-  NUTS3 child; `share_over_65` is a fraction (0.027 to 0.372). Since 2026-10-12
-  the percentage says so in its name; an export from an older build, the frozen
-  `exposure.parquet` included, still calls it `poverty_rate`. [`decisions.md`, 2026-10-08 "two indicators, two scales"](decisions.md#2026-10-08--two-vulnerability-indicators-keep-their-published-units),
+  NUTS3 child; `share_over_65` is a fraction (0.027 to 0.372). Each keeps its
+  published unit, and the percentage says so in its name; the frozen
+  `exposure.parquet`, and any export made from it, still calls it `poverty_rate`.
   [`scope.md`](scope.md#demographics-eurostat-not-statbel).
 - **Who is not in the data.** Undocumented residents, people in temporary
   housing and seasonal workers are absent from a residential population grid.
@@ -257,12 +257,10 @@ Netherlands; 27 products, 4 Belgian, 22 German, 1 Dutch).
 - **Sixteen regions are off the viewport.** The outermost regions (prefixes
   `FRY`, `PT20`, `PT30`, `ES70`, `NO0B`) are drawn but do not set the extent,
   which would otherwise grow 6.5-fold in area; the caption names them.
-  [`src/svgmap.py`](../src/svgmap.py) `OUTERMOST`,
-  [`decisions.md`, 2026-10-08 "there was no map"](decisions.md#2026-10-08--offline-svg-choropleth-added-the-app-had-no-map).
+  [`src/svgmap.py`](../src/svgmap.py) `OUTERMOST`.
 - **The retrieval layer cites only what it holds.** Of the thirteen documents
-  `policy_context.md` cited without a declaration on 6 October 2026, twelve are
-  declared since 12 October and enter the index only once `python -m src.fetch`
-  has run. Still unciteable by the kit: the Belgian Insurance Act of 4 April
+  `policy_context.md` cites beyond the core sources, twelve are declared and
+  enter the index only once `python -m src.fetch` has run. Still unciteable by the kit: the Belgian Insurance Act of 4 April
   2014 (its official ELI is disallowed by the host's robots.txt), the SWD(2025)
   assessments other than Spain's, and the full EUCRA report (its landing page
   only). A draft is passed only above a 0.7 lexical grounding score and
@@ -278,7 +276,7 @@ written intent rather than from memory.
   and `src/landcover.py` since 2026-10-25); no heritage source is declared at
   all. Design: [`datasets.md`](datasets.md#environment-natura-2000-and-corine-land-cover-measured).
 - **Depth-against-depth validation.** The Walloon IDW depth layer is on disk (a
-  by-hand download of 10 October, its declared URL dead); no code compares it
+  by-hand download, its declared URL dead); no code compares it
   with the model yet. Design: [`datasets.md`](datasets.md#wallonia-observed-july-2021--the-second-ground-truth--one-layer-verified-one-dead).
 - **The model-versus-observation map for Europe.** The satellite-derived flood
   depth series covers 2015-2025; only the July 2021 file is declared and
@@ -294,41 +292,39 @@ written intent rather than from memory.
   [`policy_context.md` §5](policy_context.md).
 - **Monetised built-up exposure.** Needs damage curves. Design:
   [`src/assets.py`](../src/assets.py) module docstring.
-- **The `portable` Docker image.** The `app` image was built and run on
-  2026-10-12 (the geospatial stack imports in it; see the root
+- **The `portable` Docker image.** The `app` image builds and runs (the
+  geospatial stack imports in it; see the root
   [`README.md`](../README.md)); the `portable` image, the one that carries the
   data for the event, has not been built yet.
 - **The dress rehearsal on an unprepared region.** Scheduled for 26-28 October
   on Valencia 2024 or Emilia-Romagna 2023, precisely to find what is secretly
   hard-coded. Design: [`plan.md`](plan.md#week-4-why-the-dress-rehearsal-matters-most).
 
-**Built after the freeze.** Items that left this list, with what still bounds them.
+**Built after the freeze.** Built beside the frozen tables, with what still bounds them.
 
-- **Natural-language access to the exposure table** (2026-10-12). One model
+- **Natural-language access to the exposure table.** One model
   call writes a whitelisted query spec, pandas answers it, and every answer
   names its return period and the definition of each column used. It returns
   rows, never sums or means, and only columns defined in `src/nlquery.py`
   `COLUMNS` are queryable; the context table is not. The model can misread a
   question into a valid spec that answers a different one, so the spec is shown
-  with every answer. [`src/nlquery.py`](../src/nlquery.py),
-  [`decisions.md`, 2026-10-12](decisions.md#2026-10-12--plain-language-questions-over-the-exposure-table-apiask).
-- **The undeclared policy sources** (2026-10-12). Twelve of the thirteen are
+  with every answer. [`src/nlquery.py`](../src/nlquery.py).
+- **The undeclared policy sources.** Twelve of the thirteen are
   declared in `config/sources.yaml`, eleven in the retrieval corpus and the
   EIOPA input spreadsheet as `context`; the six EU acts come from the
   Publications Office's CELLAR because eur-lex answers every script with a WAF
   challenge. Not declared: the Belgian Insurance Act (robots.txt disallows its
   ELI), the SWD(2025) series beyond Spain's (CELEX numbers never recorded); the
   EUCRA entry is its landing page, not the report.
-  [`decisions.md`, 2026-10-12](decisions.md#2026-10-12--twelve-cited-policy-sources-declared-arxiv-pdf-now-indexed).
-- **Units in column names** (2026-10-12). `poverty_rate` is `poverty_rate_pct`,
-  its companions `poverty_rate_pct_year` and `poverty_rate_pct_level`; values
-  unchanged. A table frozen before the rename is read under the new names by the
-  API, Streamlit and the MCP tools, and `/api/vulnerability` still accepts
-  `poverty_rate` with a `renamed` notice, for one release. CSV exports made
-  before the rename keep the old header. `share_over_65` keeps its name:
+  [`config/sources.yaml`](../config/sources.yaml).
+- **Units in column names.** The poverty column is `poverty_rate_pct`,
+  its companions `poverty_rate_pct_year` and `poverty_rate_pct_level`. The
+  frozen table, which still says `poverty_rate`, is read under the new names by
+  the API, Streamlit and the MCP tools, and `/api/vulnerability` still accepts
+  `poverty_rate` with a `renamed` notice, for one release. A CSV export from the
+  frozen table keeps the old header. `share_over_65` keeps its name:
   "share" already says fraction.
-  [`decisions.md`, 2026-10-12](decisions.md#2026-10-12--poverty_rate-renamed-poverty_rate_pct).
-- **Population density and household income** (2026-10-12). Context, and one
+- **Population density and household income.** Context, and one
   of them is NUTS2.
   `pop_density_per_km2` (`demo_r_d3dens`, 2024) and
   `household_income_pps_per_hab` (`nama_10r_2hhinc`, net disposable income in
@@ -337,13 +333,12 @@ written intent rather than from memory.
   children and covers the EU-27 only (1,165 of 1,345 regions); density is
   published on NUTS 2021 codes and leaves 66 NUTS 2024 regions blank.
   [`src/demographics.py`](../src/demographics.py) `context_indicators`.
-  `gdp_meur` is read from the newest substantially published year since the
-  same day (2023, 1,292 regions).
-  [`decisions.md`, 2026-10-12](decisions.md#2026-10-12--density-and-income-added-to-context-gdp-year-rule-fixed).
-- **Natura 2000 on flood-prone ground** (2026-10-12). Measured as area, and
+  `gdp_meur` is read from the newest substantially published year (2023,
+  1,292 regions).
+- **Natura 2000 on flood-prone ground.** Measured as area, and
   only in the EU-27. Article 6(5)(c) asks flood risk maps to show the protected areas
   potentially affected, and Article 2(2) counts the environment and cultural
-  heritage among the consequences that make up flood risk. Since 2026-10-12 `context.parquet` carries the Natura 2000
+  heritage among the consequences that make up flood risk. `context.parquet` carries the Natura 2000
   area on flood-prone ground (RP100, >= 0.5 m, masked like the exposure table):
   38,246 km2 of 769,990 km2 of Natura land, 5.0 %. It is an area, not a harm -
   a floodplain forest is meant to flood - and it says nothing about which
@@ -353,17 +348,16 @@ written intent rather than from memory.
   is still not measured (§2).
   [`src/environment.py`](../src/environment.py),
   [`datasets.md`](datasets.md#environment-natura-2000-and-corine-land-cover-measured).
-- **The full CDS ensemble: the code** (2026-10-12) **and the files** (2026-10-25).
+- **The full CDS ensemble** (2026-10-25).
   `scripts/fetch_cds_member.py --all-missing` requests every one of the eight
   simulations through both gridded models for the three periods (48 requests,
-  42 of them missing on 2026-10-12, one member each) and verifies the GCM, the regional
+  one member each) and verifies the GCM, the regional
   model, the realisation, the model and the period of every file before it
   enters the ensemble directory; the ensemble reports the quartiles of its
   members' medians. It is tested with a mocked CDS client, and was run with a
   CDS key on 2026-10-25: all 48 members (98 files) are on disk and in
   `context.parquet` (`scripts/build_context.py --only climate`, the same day).
-  [`scripts/fetch_cds_member.py`](../scripts/fetch_cds_member.py),
-  [`decisions.md`, 2026-10-12](decisions.md#2026-10-12--ensemble-members-keyed-by-regional-model-quartiles-added).
+  [`scripts/fetch_cds_member.py`](../scripts/fetch_cds_member.py).
 
 ## 3. What a Member State or the Commission would still have to do
 
@@ -425,48 +419,32 @@ Only what the repository shows.
   continental build. CI now has the tables too, which means a test that strays
   outside the frozen harness passes there as well: hide the parquet and re-run
   to check a test honestly.
-  [`.gitignore`](../.gitignore), [`scope.md`](scope.md#what-the-nuts3-choice-produces-on-disk),
-  [`decisions.md`, 2026-10-08 "cached there is no table"](decisions.md#2026-10-08--loaders-cached-no-table-forever).
-- **The offline check fails today.** Run 2026-10-08: 51 of 52 declared files
-  present (3.8 GiB), `wallonia_observed_water_depth_2021` missing behind a dead
-  URL (a one-off download job of the Walloon geoportal, to be requested again);
-  `GROQ_API_KEY` set, so the draft tab goes over the network. Exit code 1.
-  `src/rag.py` now defaults to `llama3.2:3b`, the model the demo laptop has
-  pulled, so a container started without `.env` asks for the same name. The
-  check skips every `access: api` source, so the Risk Data Hub is covered only
-  through its cache check, and the basin districts and the CDS files through
-  their own WARN checks. Since 2026-10-12, 65 files are declared: the twelve
-  policy documents added that day are missing until the next fetch, and the
-  arXiv paper is now expected as `nist_robust_ai_alignment_limits.pdf`, so the
-  check stays BLOCKED until `python -m src.fetch` has run once more. Run
-  2026-10-23: that fetch has run, the Walloon depth layer is the by-hand
-  download of 10 October under its declared name (see its `sources.yaml`
-  entry), and 65 of 65 files are present (5.6 GiB). It still blocks on one
-  thing: Ollama answers on the owner's PC with no model pulled. Run
-  2026-10-25: 84 of 84 declared files present (7.0 GiB), the manifest records
-  65 of them (WARN), and it blocks on Ollama alone, not running;
-  `ANTHROPIC_API_KEY` is set, so the draft tab goes over the network (WARN).
+  [`.gitignore`](../.gitignore), [`scope.md`](scope.md#what-the-nuts3-choice-produces-on-disk).
+- **The offline check still blocks.** Last run 2026-10-25: 84 of 84 declared
+  files present (7.0 GiB), the manifest records 65 of them (WARN), and it
+  blocks on Ollama alone, not running; `ANTHROPIC_API_KEY` is set, so the draft
+  tab goes over the network (WARN). The Walloon depth layer is a by-hand
+  download under its declared name, its declared URL being dead
+  (see its `sources.yaml` entry). `src/rag.py` defaults to `llama3.2:3b`, the
+  model the demo laptop has pulled, so a container started without `.env` asks
+  for the same name. The check skips every `access: api` source, so the Risk
+  Data Hub is covered only through its cache check, and the basin districts and
+  the CDS files through their own WARN checks.
   [`scripts/check_offline_readiness.py`](../scripts/check_offline_readiness.py),
   root [`README.md`](../README.md).
-- **Dead configuration keys.** `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` and
-  `LLM_PROVIDER` are no longer in `.env` or `.env.example` and are read by no
-  code; `folium` and `streamlit-folium` are still pinned in `requirements.txt`
-  and imported nowhere. Both were recorded as decisions rather than removed in
-  the same pass as a feature. [`decisions.md`, 2026-10-08 "the draft tab could never have worked"](decisions.md#2026-10-08--draft-tab-fixed-413-fallback-ranked-prompt-groq-key-rotation),
-  [`decisions.md`, 2026-10-08 "there was no map"](decisions.md#2026-10-08--offline-svg-choropleth-added-the-app-had-no-map),
-  [`requirements.txt`](../requirements.txt).
+- **Dead dependencies.** `folium` and `streamlit-folium` are still pinned in
+  `requirements.txt` and imported nowhere; the map is the offline SVG of
+  `src/svgmap.py`. [`requirements.txt`](../requirements.txt).
 - **Per-file test counts are typed by hand.** The total in
   `technical_deep_dive.md` §7 is filled by `scripts/docs_numbers.py`; the
-  per-file rows are not, and they drift: the table of 10 October had three
-  wrong or missing rows by 12 October, and two more (`test_api.py`, `test_rag.py`)
-  by 14 October. Re-measured on 27 October: 49 files, summing to the
-  <!-- numbers:tests_collected -->1,090<!-- /numbers --> collected; re-measure the
+  per-file rows are not, and they drift between edits. Re-measured on
+  27 October: 50 files, summing to the
+  <!-- numbers:tests_collected -->1,115<!-- /numbers --> collected; re-measure the
   file count after any test change (the total is filled by the script). [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
-- **Whether the suite runs on Windows depends on a policy that has changed
-  state four times on record.** Smart App Control blocked `rasterio`'s DLL on
-  2026-10-07, allowed it again the next morning with nothing reinstalled,
-  blocked it again by 2026-10-12 (still on 2026-10-14) and allowed it again by
-  2026-10-23; the WSL2 venv is the route that does not depend on it. Root [`README.md`](../README.md),
+- **Whether the suite runs on Windows depends on a policy outside the repo.**
+  Smart App Control has both blocked and allowed `rasterio`'s DLL with nothing
+  reinstalled; it allowed it on 2026-10-23. The WSL2 venv is the route that
+  does not depend on it. Root [`README.md`](../README.md),
   [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
 - **Six downloaded data inputs carry no `licence:`** (nor do 22 of the 28 scraped policy and context documents, or 13 of the 19 `access: api` sources). `gisco_nuts3`, `gisco_lau`,
   `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`,
@@ -477,19 +455,17 @@ Only what the repository shows.
 - **The prompt budget is in characters, not tokens.** Groq refuses above 8,000
   tokens per minute; the budget is `rag.PROMPT_CHAR_BUDGET` because `tiktoken`
   does not load everywhere, at a measured 2.05 characters per token on the real
-  table. [`decisions.md`, 2026-10-08 "the draft tab could never have worked"](decisions.md#2026-10-08--draft-tab-fixed-413-fallback-ranked-prompt-groq-key-rotation).
+  table. [`src/rag.py`](../src/rag.py).
 - **Tracing, when on, sends prompts off the machine.** LangSmith traces leave
   for LangChain's servers; acceptable here because the corpus is public and the
   table is open data, and said so rather than hidden.
   [`responsible_ai.md`](responsible_ai.md#tracing-let-the-tool-keep-the-log).
-- **Some documented absolute figures predate the windowing fix.** The Benelux
-  counts in `technical_deep_dive.md` §8 were measured before 2026-10-06 on a
-  build whose answer depended on its stripe count; the ratios survive, the
-  absolutes do not. [`technical_deep_dive.md` §8](technical_deep_dive.md#8-where-the-numbers-in-this-file-come-from).
+- **Some documented absolute figures come from a stripe-dependent build.** The
+  Benelux counts in `technical_deep_dive.md` §8 were measured on a build whose
+  answer depended on its stripe count; the ratios hold, the absolutes do not. [`technical_deep_dive.md` §8](technical_deep_dive.md#8-where-the-numbers-in-this-file-come-from).
 - **The map's visible height is a browser check, not a test.** The iframe
   height is not among the assertable element fields, so legend clipping is
   guarded by a written measurement rather than by the suite.
-  [`decisions.md`, 2026-10-08 "the legend was off-screen"](decisions.md#2026-10-08--stiframe-with-content-height-map-legend-now-visible).
 - **The two UIs show different views of the same table.** The React app is the
   one to demo: run live it needs the API and a Vite build, while its static build
   (`VITE_STATIC=1`) needs no API, reads the API's answers frozen into

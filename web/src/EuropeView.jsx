@@ -31,8 +31,8 @@ export const EUROPE_SOURCES = [
     + "Europe v3.1.1, doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81. © European Union, CC BY 4.0.",
   "Population and built-up surface — JRC Global Human Settlement Layer, GHS-POP and "
     + "GHS-BUILT-S R2023A, epoch 2025 at 1 km. © European Union, CC BY 4.0.",
-  "Share over 65 and poverty rate — Source: Eurostat (demo_r_pjangrp3, ilc_li41, accessed "
-    + "2026-10-07). Values were reshaped, and NUTS2 figures applied to their NUTS3 children. "
+  "Share over 65 and poverty rate — Source: Eurostat (demo_r_pjangrp3, ilc_li41). "
+    + "Values were reshaped, and NUTS2 figures applied to their NUTS3 children. "
     + "Eurostat bears no responsibility for these derived figures.",
   "WFD river basin districts — © European Environment Agency, CC BY 4.0.",
   "Floods Directive areas of potential significant flood risk (APSFR) — Source: European "

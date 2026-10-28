@@ -152,7 +152,7 @@ And a fifth that is not an EPSG code at all. The satellite-derived observed dept
 maps are on **Equi7Grid Europe**, an azimuthal equidistant grid declared
 user-defined in the file (`ProjectedCSTypeGeoKey 32767`) with only an ESRI
 citation string. The file names no EPSG code for it - its own
-`ProjCenterLong` is 24.0 and `ProjCenterLat` 53.0 — the right way round, checked 2026-10-06. pyproj and rasterio do match its WKT to EPSG:27704
+`ProjCenterLong` is 24.0 and `ProjCenterLat` 53.0 — the right way round, checked. pyproj and rasterio do match its WKT to EPSG:27704
 ("WGS 84 / Equi7 Europe"), but that is a lookup, not what the file declares. You
 have to hand the proj4 string over yourself:
 
@@ -341,7 +341,7 @@ codes are prefixes of each other. The Belgian chain, all the way down:
 | NUTS3 | `BE332` | Arr. Liège |
 
 `BE332` is one arrondissement of about 637,220 people (Eurostat `demo_r_pjangrp3`,
-checked 2026-10-06). The EU-27 has **1,165 NUTS3 regions** on the NUTS 2024
+checked live). The EU-27 has **1,165 NUTS3 regions** on the NUTS 2024
 vintage this kit pins (the GISCO file also carries EFTA and the candidate
 countries, 1,345 polygons in all), and
 that is this project's working unit: fine enough to rank and map meaningfully,

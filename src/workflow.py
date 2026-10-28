@@ -56,7 +56,7 @@ def tracing_status() -> dict:
     has_key = bool(os.getenv("LANGSMITH_API_KEY"))
     return {
         "enabled": enabled and has_key,
-        "project": os.getenv("LANGSMITH_PROJECT", "flood-policy-kit"),
+        "project": os.getenv("LANGSMITH_PROJECT", "flood-to-policy"),
         # The half-configured case is the one worth naming: tracing asked for but
         # no key means nothing is recorded, and nothing warns you.
         "note": (
@@ -282,15 +282,15 @@ _FIRST_WORD = re.compile(r"[^\W_]+", re.UNICODE)
 def _record(decision: object, draft: str) -> BriefState:
     """Turn what the human sent into one of three recorded outcomes.
 
-    Three, because `approved: True` on both of the old branches made a rejection
-    unrepresentable: "No. This is wrong, do not publish it." came back as
-    `approved: True` with that sentence as the brief text, a
-    `{"decision": "reject"}` dict came back approved and stringified, and an
-    accidental resume with `None` published the word "None".
+    Three, because two branches that both return `approved: True` make a
+    rejection unrepresentable: "No. This is wrong, do not publish it." comes back
+    as `approved: True` with that sentence as the brief text, a
+    `{"decision": "reject"}` dict comes back approved and stringified, and an
+    accidental resume with `None` publishes the word "None".
 
     Free text is still an edit and is still used verbatim - never fed back to the
-    model, because that would hand the last word back to the machine. What changed
-    is that ambiguity now fails closed, and it fails closed asymmetrically on
+    model, because that would hand the last word back to the machine. Ambiguity
+    fails closed, and it fails closed asymmetrically on
     purpose: an edit misread as a rejection publishes nothing and says so, while a
     rejection misread as an edit puts the objection into a policy brief as if it
     were the section. The first is a visible annoyance, the second is the exact

@@ -1,6 +1,6 @@
 """Export the frozen tables as the flat files the Power BI project reads.
 
-`bi/FloodPolicyKit.pbip` is a third front end beside Streamlit and React, and a
+`bi/FloodToPolicy.pbip` is a third front end beside Streamlit and React, and a
 third front end is a third place where a figure can drift. So it computes
 nothing: every number it shows is written here, from the same two frozen
 parquets and the same helpers the app uses, and `tests/test_export_bi.py`

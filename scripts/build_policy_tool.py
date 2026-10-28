@@ -1,7 +1,8 @@
 """Build the challenge policy tool: one offline HTML file and PNG snapshots of it.
 
 Reads the frozen July 2021 tables (`data/processed/event_2021_*.parquet`), the
-Europe table (`exposure.parquet`), the cached EMS layers
+Europe tables (`exposure.parquet`, and `context.parquet` for the States absent
+from the European risk-area layer), the cached EMS layers
 (`data/raw/challenge_2021/ems/*.gpkg`, written by `scripts/event_2021.py`), the
 JRC 1-in-100-year hazard raster and the GISCO NUTS3 boundaries, and writes
 `docs/perso/policy_tool/policy_tool.html` plus PNG snapshots. That folder is
@@ -300,6 +301,7 @@ def main(argv: list[str] | None = None) -> int:
     products = pd.read_parquet(PROCESSED / "event_2021_products.parquet")
     countries = pd.read_parquet(PROCESSED / "event_2021_countries.parquet")
     exposure = pd.read_parquet(PROCESSED / "exposure.parquet")
+    context = pd.read_parquet(PROCESSED / "context.parquet")
 
     first = P.first_pass(products)
     layers = {}
@@ -313,6 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         place_layers=layers, locator=locator(products), europe_features=europe_features(),
         title=args.title, question=args.question,
         recommendation=args.recommendation, actor=args.actor,
+        unreported=P.unreported_countries(context),
         built=f"Built {dt.date.today().isoformat()}.",
     )
     args.out.mkdir(parents=True, exist_ok=True)

@@ -3,7 +3,7 @@
 # WHY THIS FILE EXISTS
 # The EEA WISE layer `WFD2016_RiverBasinDistrict_WM` publishes one polygon per
 # member state per basin, and carries no field that says which polygons are
-# portions of the same basin. Measured 2026-10-06: the Scheldt arrives as four
+# portions of the same basin. Measured: the Scheldt arrives as four
 # Belgian/Dutch rows plus a French one, and the three Belgian/Dutch rows overlap
 # by 0 km2 - they are disjoint national portions. So grouping by row, which is
 # all the service supports, answers "is this polygon in more than one country"
@@ -12,8 +12,8 @@
 # the grouping, and the grouping has to be declared.
 #
 # WHERE IT COMES FROM
-# The layer's own `nameTextInternational` field, read for all 196 districts on
-# 2026-10-06 through
+# The layer's own `nameTextInternational` field, read for all 196 districts
+# through
 #   .../WFD2016_RiverBasinDistrict_WM/MapServer/0/query
 #   ?where=1=1&returnGeometry=false
 #   &outFields=thematicIdIdentifier,countryCode,nameText,nameTextInternational
@@ -38,7 +38,7 @@
 # from this file, never "catchment".
 
 vintage: WFD2016            # the reporting round this layer belongs to
-derived: 2026-10-06
+derived: null  # the derivation date was not re-checked: the service's robots.txt is unreadable to the gate
 
 basins:
 

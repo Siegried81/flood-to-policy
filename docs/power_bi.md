@@ -1,6 +1,6 @@
 # Power BI — the same figures, in the tool a ministry already has
 
-`bi/FloodPolicyKit.pbip` is a Power BI **project** (the text format: a
+`bi/FloodToPolicy.pbip` is a Power BI **project** (the text format: a
 semantic model in TMDL and a report in PBIR, one JSON file per page and per
 visual), so it lives in git and a change shows up as a diff. Save it as
 `.pbix` from Power BI Desktop to hand it on.
@@ -18,7 +18,7 @@ exactly the columns the export writes.
    This writes `bi/data/regions.csv`, `bi/data/exposure.csv` and, when
    `data/processed/regions.geojson` exists, `bi/data/regions.topojson`.
    `bi/data/` is not committed.
-2. Open `bi/FloodPolicyKit.pbip` in Power BI Desktop (a 2026 release: the
+2. Open `bi/FloodToPolicy.pbip` in Power BI Desktop (a 2026 release: the
    report is in PBIR).
 3. If the repository is not at `C:\flood-to-policy`:
    **Transform data → Edit parameters → DataFolder**, set it to the full path
@@ -41,14 +41,14 @@ pick one and the others follow; none picked means 1-in-100.
 | [Overview (cover)](screenshots/power_bi_00_overview.png) | Europe's flood exposure at a glance | six tiles, each a big figure with a context line and a button to the page behind it - people exposed (25.7 M), still exposed behind the defences (7.25 M), people a year behind the defences (207,308, a lower bound - the JRC's own estimate is about 160,000), share in a shared basin (63.3 %), built-up added since 2010 (423 km²), farmland share of the footprint (72 %); a chart "from 25.7 million to 7.3 million" (no defences, held, still exposed); a panel with Liège, July 2021, the declared areas and how to explore |
 | [1. Headline](screenshots/power_bi_01_headline.png) | 25.7 million people in the EU-27 live where a 1-in-100-year river flood reaches | return-period tiles, the return period shown, four cards (people exposed, share exposed, share in a shared basin, expected annual exposure), people exposed by return period on the BuPu ramp - the tiles do not filter this chart, so it always shows the nesting - and the "undefended figures" note |
 | [2. Behind the defences](screenshots/power_bi_02_defences.png) | Behind the dykes, 7.3 million still live where the 1-in-100 flood reaches | tiles, the share held by the design standards, five cards (exposed without defences, still exposed behind them, residual people a year, hospitals and schools still in the footprint), undefended against residual by return period, the share held by country (ranked, coloured on the BuPu ramp), and a stacked bar of where the 7.3 million sit - bar length = no defences, dark = still exposed, light = held - with drill-down to regions |
-| [3. Where](screenshots/power_bi_03_where.png) | Four countries hold three in five of the EU's exposed - the highest shares are elsewhere | tiles, a bar chart on the Geography hierarchy (length = people, colour = share exposed on the BuPu ramp), a matrix of countries opening into regions, the Shape map placeholder, the EuroGeographics credit |
+| [3. Where](screenshots/power_bi_03_where.png) | Four countries hold three in five of the EU's exposed - the highest shares are elsewhere | tiles, a bar chart on the Geography hierarchy (length = people, colour = share exposed on the BuPu ramp), a searchable Region slicer, a matrix of countries opening into regions, the EuroGeographics credit |
 | [4. Downstream of someone else](screenshots/power_bi_04_downstream.png) | Nearly two in three of the EU's exposed live in a river basin shared with another country | tiles, three cards, people exposed in shared basins by main basin (drills to regions), a decomposition tree (basin, country, region, in the order the reader picks), a matrix of basins and their partner countries |
 | [5. What is at stake](screenshots/power_bi_05_at_stake.png) | What the water covers - and 423 km² more built in the floodplain since 2010 | five cards (built-up added since 2010, its growth +14.5 %, footprint under homes 5,438 km², under industry and commerce 2,044 km², footprint area 148,003 km²), the footprint's land use (CORINE 2018), the regions whose floodplain is sealed more than the region around it (Arr. Liège 46.5 % against 14.1 %), and July 2021 in the EFAS reanalysis by region |
 | [6. Who is exposed](screenshots/power_bi_06_who.png) | Older and poorer regions are not more exposed - the link is weak, and if anything the other way | two scatters, one dot per region sized by people exposed: share exposed against the over-65 share, and against the poverty rate; a caption on what regional averages cannot say |
 | [7. Declared vs exposed](screenshots/power_bi_07_declared.png) | Declared areas do not follow exposure: Belgium declares almost all its land, Germany and Spain almost none | the median region's declared share by country (drills to regions), a scatter of declared share against share exposed, a caption on why declarations are not comparable |
 | [8. Rivers changing](screenshots/power_bi_08_rivers.png) | 1991-2020: river peaks did not grow in most EU regions - they came later in the year | five cards (annual peak trend, river cells with a significant rise, share of years peaking in winter, peak date shift, flood days trend), winter against summer peak trends by country (drills to regions), a matrix of countries opening into regions with every HERA figure, a caption on what a 30-year model reanalysis can say. Blank, never zero, on a machine where the HERA layer has not run |
-| [Region detail](screenshots/power_bi_09_region_detail.png) | (drillthrough) | back button, the region's name, five cards, undefended against residual across the nine return periods, its profile (age, poverty, declared share, main shared basin, partners) and its 2041-2070 climate signal (median, quartiles, whether at least 80 % of the 16 simulations agree) |
-| Country detail | (drillthrough) | the same layout for a whole country: its name, the five cards and the return-period chart over all its regions, a profile that reads over several regions (number of regions, over-65 share and poverty rate weighted by population, the median region's declared share, share exposed in a shared basin, share held by the defences) and the climate signal as "n of m regions" agreeing |
+| [Region detail](screenshots/power_bi_09_region_detail.png) | (drillthrough; shown for Arr. Verviers, the Vesdre valley) | back button, the region's name, five cards, undefended against residual across the nine return periods, its profile (age, poverty, declared share, main shared basin, partners) and its 2041-2070 climate signal (median, quartiles, whether at least 80 % of the 16 simulations agree) |
+| [Country detail](screenshots/power_bi_11_country_detail.png) | (drillthrough; shown for Belgium) | the same layout for a whole country: its name, the five cards and the return-period chart over all its regions, a profile that reads over several regions (number of regions, over-65 share and poverty rate weighted by population, the median region's declared share, share exposed in a shared basin, share held by the defences) and the climate signal as "n of m regions" agreeing |
 | [Tooltip: place](screenshots/power_bi_10_tooltip.png) | (tooltip, 320 × 240) | the place hovered, people exposed, share exposed, still exposed behind the defences, share held |
 
 The titles and figures are true at 1-in-100 for the EU-27, measured on
@@ -145,7 +145,7 @@ basin name can carry a comma.
 
 ## The theme
 
-`bi/FloodPolicyKit.Report/StaticResources/RegisteredResources/FloodPolicyKit.json`,
+`bi/FloodToPolicy.Report/StaticResources/RegisteredResources/FloodToPolicy.json`,
 registered in `definition/report.json` as the custom theme
 (`themeCollection.customTheme` and a `RegisteredResources` resource package).
 Light grey page, white cards with a thin border, rounded corners and a faint
@@ -159,14 +159,14 @@ every report file for one. If Desktop opens the report without it (no grey
 page), apply it once by hand: **View → Themes → Browse for themes →** that
 file.
 
-## Add the map — the one thing done by hand
+## A map, optional and local
 
-Page 3 (Where) keeps a labelled box for it. Insert a **Shape map**: Location
-`Regions[nuts_id]`, Color saturation `Share exposed`, then **Format → Map
-settings → Custom map →** `bi/data/regions.topojson`, and resize it over the
-note. In Desktop the Shape map may need **Options → Preview features → Shape
-map visual**. It is not generated because the Shape map stores the TopoJSON
-inside the report, and the boundaries are not committed (GISCO terms, see
+Page 3 (Where) needs no map: the matrix of countries and regions carries it. To
+show a map in a local demo, insert a **Shape map**: Location `Regions[nuts_id]`,
+Color saturation `Share exposed`, then **Format → Map settings → Custom map →**
+`bi/data/regions.topojson` (Desktop may need **Options → Preview features →
+Shape map visual**). Never commit it: the Shape map stores the TopoJSON inside
+the report, and the boundaries are not committed (GISCO terms, see
 `data/processed/DATA_NOTICE.md`). The page already carries the credit
 "© EuroGeographics for the administrative boundaries".
 

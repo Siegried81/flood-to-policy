@@ -35,7 +35,7 @@ geodata:
     access: download
     crs: EPSG:4326          # NOT 3035, and NOT 100 m - see caveat
     # The url above is a DIRECTORY listing, so it is not fetchable on its own.
-    # Nine return periods plus the two companion masks, measured 2026-10-06:
+    # Nine return periods plus the two companion masks, measured:
     # 272,286,610 / 293,735,892 / 298,074,166 / 304,739,764 / 309,424,632 /
     # 318,236,424 / 323,117,744 / 335,098,080 / 349,928,950 B for RP10..RP500,
     # 112,287,284 B permanent water and 74,730,820 B spurious depth.
@@ -68,7 +68,7 @@ geodata:
       absent. JRC states plainly these are NOT official hazard maps.
       Tiled Deflate (256x256, 110162x51992 px, 53% of tiles empty) and the server
       honours HTTP range requests, so /vsicurl/ is the right tool FOR A COUNTRY
-      WINDOW and the wrong one for the European run. Measured 2026-10-06 on
+      WINDOW and the wrong one for the European run. Measured on
       RP100: a Belgium window is 220 tiles and 2.4 MiB over the wire, 0.76% of
       the file; the EU27+EFTA bbox is 35,525 tiles and 172 MiB, i.e. 56% of the
       file fetched in tens of thousands of requests. At this repo's own
@@ -82,7 +82,7 @@ geodata:
       patch the depth maps.
     doi: 10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: jrc_observed_flood_depth
     url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/CEMS-EFAS/European_Satellite-Derived_Flood_Depth_Maps/
@@ -123,14 +123,14 @@ geodata:
       seasonal water rather than a 99 m flood - mask it before any statistic.
       The CRS is Equi7Grid Europe, declared user-defined (ProjectedCSTypeGeoKey
       32767) with only an ESRI citation string, though pyproj resolves its WKT to EPSG:27704 ("WGS 84 / Equi7 Europe") and
-      the file's own ProjCenter keys are the right way round (ProjCenterLong 24.0, ProjCenterLat 53.0, checked 2026-10-06). Pass the proj4
+      the file's own ProjCenter keys are the right way round (ProjCenterLong 24.0, ProjCenterLat 53.0). Pass the proj4
       string, not the file's keys:
       "+proj=aeqd +lat_0=53 +lon_0=24 +x_0=5837287.81977 +y_0=2121415.69617
       +datum=WGS84 +units=m".
       Stored as one-row strips (60,000 of them), not tiled, so a windowed read is
       not cheap here - but the file is only 38 MB, so just download it.
     doi: 10.2905/0bc96690-b89c-4909-9166-c2c322a20130
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: ghsl_pop_europe
     url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2025_GLOBE_R2023A_54009_1000/V1-0/GHS_POP_E2025_GLOBE_R2023A_54009_1000_V1_0.zip
@@ -147,7 +147,7 @@ geodata:
       tools report an unnamed CRS. Pass the full WKT or
       "+proj=moll +lon_0=0 +datum=WGS84 +units=m", not a code.
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: ghsl_built_europe
     url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_BUILT_S_GLOBE_R2023A/GHS_BUILT_S_E2025_GLOBE_R2023A_54009_1000/V1-0/GHS_BUILT_S_E2025_GLOBE_R2023A_54009_1000_V1_0.zip
@@ -172,9 +172,9 @@ geodata:
       Same Mollweide trap as GHS-POP: the GeoTIFF carries an ESRI WKT string and
       no projected EPSG code, so pass the WKT or the proj4 string, not a code.
       The non-residential variant (GHS_BUILT_S_NRES) is NOT at the mirrored path
-      this entry follows - checked 2026-10-06, it answers 404.
+      this entry follows - it answers 404.
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: jrc_flood_protection_standards
     url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/PESETAIV/Paper_floods/floodProtection_v2019_paper.zip
@@ -483,7 +483,7 @@ geodata:
     access: download
     crs: ESRI:54009
     # The url above is a directory of 375 tiles. Both Belgian tiles confirmed
-    # present 2026-10-06: 41,973,700 B and 95,509,568 B.
+    # present: 41,973,700 B and 95,509,568 B.
     files:
       - GHS_POP_E2025_GLOBE_R2023A_54009_100_V1_0_R3_C19.zip
       - GHS_POP_E2025_GLOBE_R2023A_54009_100_V1_0_R4_C19.zip
@@ -497,7 +497,7 @@ geodata:
       Antwerp (51.22 N) and the northern border strip sit in R3. Taking only R4
       silently truncates northern Flanders while the total still looks plausible.
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: ghsl_pop_100m_tiles_2020
     url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2020_GLOBE_R2023A_54009_100/V1-0/tiles/
@@ -550,7 +550,7 @@ geodata:
 
   - id: cems_emsr518_belgium_2021
     # The activation page is HTML; the products sit in a public S3 bucket, which
-    # answers anonymously - verified 2026-10-06 with no credentials and a default
+    # answers anonymously - verified with no credentials and a default
     # User-Agent. The portal's /accounts/login/ link does not gate this path.
     url: https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR518/
     landing: https://mapping.emergency.copernicus.eu/activations/EMSR518/
@@ -558,7 +558,7 @@ geodata:
     # TWO delineations per AOI, not one: the first product and a later monitoring
     # pass. Taking only DEL_PRODUCT keeps the flood as first mapped and misses
     # how far it had spread days later, which is the extent the hazard maps
-    # should actually be scored against. Sizes measured 2026-10-06.
+    # should actually be scored against. Sizes measured.
     files:
       - EMSR518_AOI01_DEL_PRODUCT_r1_VECTORS_v1_vector.zip   # Liege, first,      34,180,203 B
       - EMSR518_AOI01_DEL_MONIT01_r1_VECTORS_v1_vector.zip   # Liege, monitoring, 23,520,959 B
@@ -576,9 +576,9 @@ geodata:
       and no reference products. If the plan needs a damage layer for the Belgian
       2021 floods, it does not exist here.
       EMSR517 is the German side of the same event; do not mix them up.
-      The "151 polygons" figure above predates this check and was not re-verified
-      on 2026-10-06: the zips were sized, not opened.
-    verified: 2026-10-06
+      The "151 polygons" figure above was not re-verified: the zips were sized,
+      not opened.
+    verified: null
 
   - id: drmkc_risk_data_hub
     url: https://drmkc.jrc.ec.europa.eu/risk-data-hub-api/risk-data-hub-service
@@ -592,10 +592,10 @@ geodata:
       and unauthenticated calls hit a bot-defence challenge rather than a clean
       401. Create the account now and cache responses to disk; do not call this
       live in front of a jury. Everything else in this file is open.
-    verified: 2026-10-06 (live call made - 77 hazards, 1,297 loss rows for BE)
+    verified: null  # live call made: 77 hazards, 1,297 loss rows for BE
 
   - id: wallonia_flood_hazard_official
-    # Resolved 2026-10-06 through the Walloon CSW. The catalogue root that used to
+    # Resolved through the Walloon CSW. The catalogue root that used to
     # be here is an HTML page, so it was fetched and stored as data.
     url: https://geoservices.wallonie.be/geotraitement/spwdatadownload/results/68cfc9ff-651a-4757-b792-6bde0e238c2f/
     landing: https://metawal.wallonie.be/geonetwork/srv/fre/catalog.search#/metadata/14084108-2c7b-4091-b62d-ff0fc235213a
@@ -643,7 +643,7 @@ geodata:
       The debordement-only product (uuid a3fa00be..., Version 2007) is OBSOLETE;
       do not use it, and do not use the 2016 or 2020 records the catalogue tags
       "donnee obsolete".
-    verified: 2026-10-06
+    verified: null
 
   # Observed July 2021 flooding, from the region itself - a SECOND ground truth,
   # independent of Copernicus EMSR518. Two sources that overlap are what turns
@@ -675,7 +675,7 @@ geodata:
       with tres faible): hit rates differ by about 2.1x depending on which
       Walloon truth is used (3.3x for JRC RP100). Name the truth beside
       every hit rate, and never pool the two.
-    verified: 2026-10-06
+    verified: null
 
   - id: wallonia_observed_water_depth_2021
     url: https://geoservices.wallonie.be/geotraitement/spwdatadownload/results/59f97c7e-c501-4e92-8c47-047d000f4c13/
@@ -703,12 +703,13 @@ geodata:
       record: "Zones inondees IDW - Hauteur d'eau - juillet 2021" (the dataset,
       not its WMS/REST visualisation services); download as GeoTIFF in
       EPSG:31370, paste the new results url above and bump `verified`.
-    verified: 2026-10-06 (record identified; download link expired by 2026-10-10).
-      The file on disk is a by-hand download of the same record made 2026-10-10
-      (ZONES_INONDEES_202107_IDW450_HEAU_GEOTIFF_31370.zip, 500,736,096 B,
-      ZONES_INONDEES_2021_IDW450_HEAU.tif inside), renamed 2026-10-23 to the
-      name this entry resolves to. Its manifest url is the expired job's, not
-      the job that served it.
+    verified: null
+    # Record identified; its download link expires. The file on disk is a
+    # by-hand download of the same record
+    # (ZONES_INONDEES_202107_IDW450_HEAU_GEOTIFF_31370.zip, 500,736,096 B,
+    # ZONES_INONDEES_2021_IDW450_HEAU.tif inside), renamed 2026-10-23 to the
+    # name this entry resolves to. Its manifest url is the expired job's, not
+    # the job that served it.
 
   - id: gisco_nuts3
     url: https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_01M_2024_3035_LEVL_3.geojson
@@ -726,7 +727,7 @@ geodata:
       NUTS 2021 EU count; on this 2024 vintage the EU count is 1,165, because
       DEG0P (Eisenach) was absorbed into the Wartburgkreis. Say whether a count
       is EU-only or the whole file, or the denominator drifts.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: gisco_lau
     url: https://gisco-services.ec.europa.eu/distribution/v2/lau/shp/LAU_RG_01M_2024_3035.shp.zip
@@ -739,7 +740,7 @@ geodata:
       For Belgium: 581 communes here against 565 in the 2026 Statbel population
       file, because mergers took effect 2025-01-01 and GISCO has no LAU 2025+.
       Pick ONE vintage and build the crosswalk, or communes drop silently.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: natural_earth_countries
     url: https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip
@@ -773,7 +774,7 @@ geodata:
       risk is not significant, which the Directive allows - so the defensible
       sentence names the exposure and leaves the conclusion to a human.
     caveat: >
-      TWO REPORTING CYCLES in one layer. Measured 2026-10-07: `cYear` is 2010 for
+      TWO REPORTING CYCLES in one layer. Measured: `cYear` is 2010 for
       496 polygons across 5 countries (AT, DE, ES, FR, LT) and 2018 for 12,173
       across 25. AT, DE, ES and FR appear in BOTH, so a query that does not pin
       the cycle designates the same ground twice and an area share can exceed 1.
@@ -801,8 +802,8 @@ geodata:
       polygons that the overlay then rejects outright. The structure repair is
       used here instead; see `src/basins.py::repair`.
       IT DOES NOT COVER EVERY MEMBER STATE, and this is the caveat that decides
-      whether the layer can carry an accusation. Measured against the service
-      2026-10-07: 26 country codes across BOTH cycles, and IRELAND is not one of
+      whether the layer can carry an accusation. Measured against the service:
+      26 country codes across BOTH cycles, and IRELAND is not one of
       them - zero polygons, for a State that certainly designates areas under
       Article 5. So "no declared area" has two causes that look identical in the
       data, and only one is about the State. `declared_by_region` returns
@@ -812,7 +813,7 @@ geodata:
       shared: on the real run, regions in AL, CH, ME, MK, RS and TR come back
       with a declared share although none of those States reports here. That is
       geometrically honest and belongs in the caption.
-    verified: 2026-10-07
+    verified: null
 
   - id: eea_natura2000_sites
     url: https://bio.discomap.eea.europa.eu/arcgis/rest/services/ProtectedSites/Natura2000Sites/MapServer
@@ -831,7 +832,7 @@ geodata:
       release downloaded whole as eea_natura2000_gpkg below, which this
       service's own description names as its source. Kept for provenance and
       for a live map layer.
-      Verified 2026-10-07: the service answers anonymously and layer 0 holds
+      Verified: the service answers anonymously and layer 0 holds
       23,799 Habitats Directive sites (pSCI, SCI or SAC); layer 1 is the Birds
       Directive sites (SPA) and layer 2 is both together. Choosing among the
       three is a decision, not a detail - layers 0 and 1 overlap, because a site
@@ -840,7 +841,7 @@ geodata:
       to be computed in EPSG:3035. Expect the same geometry volume problem and
       the same need for `maxAllowableOffset`; see `src/apsfr.py` for the measured
       cost of getting that tolerance wrong.
-    verified: 2026-10-07
+    verified: null
 
   - id: eea_natura2000_gpkg
     url: https://sdi.eea.europa.eu/datashare/public.php/dav/files/sptXqwkQr5g7Bp5/eea_v_3035_100_k_natura2000_p_2024_v01_r00/Natura2000_end2024.gpkg
@@ -856,7 +857,7 @@ geodata:
       every run. src/environment.py reads it for the flooded protected area per
       NUTS3 in context.parquet.
     caveat: >
-      1,360,171,008 B, measured 2026-10-12 from the Content-Length of the EEA
+      1,360,171,008 B, measured from the Content-Length of the EEA
       datashare (a Nextcloud public share; this url is its anonymous WebDAV
       path). EU-27 only: a region in a non-EU country has no Natura figure, not a
       zero. A site designated under both directives appears once, but two
@@ -865,7 +866,7 @@ geodata:
       only the Member States' own data is authentic.
     doi: 10.2909/91357f39-7866-41ce-b447-43905c364ec8
     licence: CC-BY-4.0
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: copernicus_corine_land_cover
     url: https://land.copernicus.eu/en/products/corine-land-cover
@@ -881,7 +882,7 @@ geodata:
       u2018_clc2018_v2020_20u1_raster100m (131 MB zip, CLC codes 111-523, 999 =
       no data) sits under data/raw/download/clms_corine_2018/. Not anonymously
       downloadable - the product page
-      answers 200, verified 2026-10-07, but the download itself goes through the
+      answers 200, but the download itself goes through the
       Copernicus Land Monitoring Service and requires a registered account and an
       accepted licence. That is a pre-event errand with a human in it, not a
       fetch job, so it is declared without a file URL rather than with one that
@@ -907,7 +908,7 @@ geodata:
       `src/basins.py` caches the answer to
       `data/processed/basins_cache/wfd2016_river_basin_districts.geojson`, which
       is **288 MiB** for 196 polygons - the geometry is served unsimplified.
-      Measured 2026-10-06: the whole layer takes about two minutes over 8 pages,
+      Measured: the whole layer takes about two minutes over 8 pages,
       and it must be fetched once BEFORE the event, because nothing in
       `src.fetch` or the offline readiness check knows about it.
       Do NOT ask for `outFields=*`: the layer carries an attribute literally
@@ -921,7 +922,7 @@ geodata:
       to a basin double-counts every region the boundary crosses.
       Reported under the 2016 River Basin Management Plans, so the geometry is a
       reporting vintage like NUTS: say which one beside any number.
-    verified: 2026-10-06
+    verified: null
 
   - id: cds_hydrology_projections
     url: https://cds.climate.copernicus.eu/api/catalogue/v1/collections/sis-hydrology-variables-derived-projections
@@ -948,7 +949,7 @@ geodata:
       future period and the 1971-2000 reference, read as the direction and size of
       change, applied to the present-day exposure this kit computes. A future
       headcount quoted as if it had been measured is not defensible.
-      Different grid and no grid transform at all: measured 2026-10-06, the file
+      Different grid and no grid transform at all: measured, the file
       is NetCDF-4 on a 950x1000 CURVILINEAR grid, with lon and lat carried as
       their own full-size arrays beside the variable. Nothing here aligns
       cell-to-cell with the 1 km Mollweide population grid or the 4326 hazard
@@ -974,14 +975,14 @@ geodata:
       `data/raw/download/cds_hydrology_projections/`, needs no credential.
       `src.fetch` and the offline readiness check know nothing about these
       files. Eight simulations offered for the gridded models under RCP 8.5,
-      read off the constraints file 2026-10-12: EC-EARTH r12i1p1 with CCLM4-8-17,
+      read off the constraints file: EC-EARTH r12i1p1 with CCLM4-8-17,
       RACMO22E and RCA4; HadGEM2-ES r1i1p1 with RACMO22E and RCA4; MPI-ESM-LR
       with REMO2009 (r1i1p1 and r2i1p1) and RCA4 (r1i1p1). The CDS Terms of Use change on 28 October 2026 - the day
       before the event - and continued use after that date is acceptance.
       Requests are COST-CAPPED at 1000, and the cost is the product of the boxes
       ticked, not their sum: the form's own default selection (11 variables x 10
       hydrological models x 4 experiments x 6 periods) costs 5040 and is refused.
-      Measured 2026-10-06. Ask for one variable, one model, one GCM/RCM/member
+      Measured. Ask for one variable, one model, one GCM/RCM/member
       and two periods, and widen afterwards. The variable this kit wants is
       `Flood recurrence 50 years return period` on `E-HYPEgrid`, the 5 km gridded
       model - the E-HYPEcatch members are per catchment and need a catchment join
@@ -989,7 +990,7 @@ geodata:
       CC-BY means attribution is a CONDITION, not a courtesy: name the dataset,
       its DOI and the licence wherever a figure derived from it appears.
       A RELATIVE change has no upper bound where the reference is near zero, and
-      this layer is full of such cells. Measured 2026-10-06 on the 50-year flood
+      this layer is full of such cells. Measured on the 50-year flood
       recurrence, 2041-2070 against 1971-2000, RCP 8.5, E-HYPEgrid: 950 x 1000
       cells, 323,228 of them valid, median +16.9%, minimum -100%, maximum
       +16,452,833%. The median is the signal; the maximum is a division by an
@@ -1006,7 +1007,7 @@ geodata:
       "Neither the European Commission nor ECMWF is responsible for any use that
       may be made of the Copernicus information or data it contains."
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: eurostat_population_by_age
     url: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_r_pjangrp3
@@ -1016,9 +1017,9 @@ geodata:
       This is the equity lens at European scale - who, not how many.
     caveat: >
       Open API, no credentials. Pin the NUTS vintage the codes belong to.
-      Checked live 2026-10-06: BE332 sex=T age=TOTAL returns 637,220, updated
+      Checked live: BE332 sex=T age=TOTAL returns 637,220, updated
       2026-08-28 - so the endpoint and the NUTS3 granularity both hold.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: eurostat_poverty
     url: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ilc_li41
@@ -1028,9 +1029,9 @@ geodata:
       Published at NUTS2, not NUTS3. A vulnerability index mixing both levels must
       SAY that income is NUTS2 applied to its NUTS3 children - a defensible
       assumption, but one that has to be stated, not hidden.
-      Checked live 2026-10-06: BE33 returns 14.6, updated 2026-10-05 - and BE33
+      Checked live: BE33 returns 14.6, updated 2026-10-05 - and BE33
       is a NUTS2 code, which is the caveat above confirmed rather than assumed.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   # Belgium-only. Keep for the week-4 dress rehearsal and for validating the
   # model against observed 2021 extents - not for a European finding.
@@ -1052,7 +1053,7 @@ geodata:
       encoding="utf-8-sig". This entry previously said ISO-8859-1, which was
       wrong in the dangerous direction: forcing latin-1 produces exactly the
       mojibake the warning was trying to prevent ("Region flamande" becomes
-      "RÃ©gion flamande"). Measured on the sibling income file 2026-10-06, whose
+      "RÃ©gion flamande"). Measured on the sibling income file, whose
       first three bytes are EF BB BF and which decodes as UTF-8 end to end.
       Plain encoding="utf-8" is not enough either: the BOM stays glued to the
       first column name, so a lookup on CD_REFNIS fails.
@@ -1062,7 +1063,7 @@ geodata:
       104,151,550 B, 21 columns, 467,615 data rows - 565 distinct CD_REFNIS
       summing to 11,867,634 people, which is the figure above confirmed.
     licence: CC-BY-4.0
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: statbel_income
     url: https://statbel.fgov.be/sites/default/files/files/opendata/arbeid/TF_PSNL_INC_TAX_MUNTY.zip
@@ -1073,9 +1074,9 @@ geodata:
     caveat: >
       Latest fiscal year is 2023, on the PRE-merger 581-commune geography, so it
       cannot be joined to 2025+ population without aggregating first.
-      Encoding is UTF-8 WITH A BOM, not ISO-8859-1 as this entry used to claim -
-      verified byte by byte 2026-10-06. Read it with encoding="utf-8-sig".
-    verified: 2026-10-06
+      Encoding is UTF-8 WITH A BOM, not ISO-8859-1 - verified byte by byte.
+      Read it with encoding="utf-8-sig".
+    verified: 2026-10-28
 
   - id: hanze_flood_impacts
     # The /records/<id>/files/<name> form, NOT the /api/.../<name>/content one.
@@ -1088,7 +1089,7 @@ geodata:
     access: download
     licence: CC-BY-4.0
     doi: 10.5281/zenodo.20478847
-    # Sizes measured 2026-10-06; 14.47 MB for the whole set.
+    # Sizes measured; 14.47 MB for the whole set.
     files:
       - HANZE_events_v3_0_1b.csv                  # the event list, 618,212 B
       - HANZE_events_regions_v3_0_1_b_2024.zip    # events x regions, 10,975,350 B
@@ -1114,7 +1115,7 @@ geodata:
       in the early decades is partly better reporting, not only more flooding.
       Overlaps the Risk Data Hub, which lists HANZE among its own sources - so the
       two are NOT independent, and agreement between them is not corroboration.
-    verified: 2026-10-06
+    verified: null
 
   - id: eurostat_gdp_nuts3
     url: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10r_3gdp
@@ -1126,12 +1127,12 @@ geodata:
       Hainaut and in Oberbayern. Pairs with hanze_flood_impacts for losses and
       ghsl_pop_europe for people.
     caveat: >
-      Open API, no credentials. Checked live 2026-10-06: BE332 unit=MIO_EUR
+      Open API, no credentials. Checked live: BE332 unit=MIO_EUR
       returns 26,435.29, flagged status "p" (provisional) and updated 2026-02-10 -
       so recent years carry provisional values and the flag must be read, not
       dropped. Pin the unit: MIO_EUR, MIO_PPS and EUR_HAB are three different
       numbers and mixing them is silent.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: eurostat_population_density
     url: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_r_d3dens
@@ -1142,7 +1143,7 @@ geodata:
       region's people are, which qualifies an exposure count without making any
       resident more vulnerable. Read by src/demographics.py::population_density.
     caveat: >
-      Open API, no credentials. Checked live 2026-10-12: BE332 returns 808.5 for
+      Open API, no credentials. Checked live: BE332 returns 808.5 for
       2024, updated 2026-02-25. The 2024 values sit on the NUTS 2021 codes, so 66
       of the 1,345 NUTS 2024 regions have no figure - among them the eight new
       Belgian codes (BE224, BE225, BE328-BE32D), five Sardinian ones (ITG2D-H),
@@ -1150,7 +1151,7 @@ geodata:
       blank is a vintage mismatch, not an empty region. Flags "p" and "e" travel
       in pop_density_flag.
     licence: CC-BY-4.0
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: eurostat_household_income
     url: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10r_2hhinc
@@ -1163,12 +1164,12 @@ geodata:
       Open API, no credentials. NUTS2 only, applied to each NUTS3 child, and the
       column household_income_level says so. One dataset code, five units
       (MIO_EUR, EUR_HAB, MIO_NAC, MIO_PPS_EU27_2020, PPS_EU27_2020_HAB) and
-      thirteen national-accounts items: pin all three dimensions. Checked live
-      2026-10-12: BE33 returns 21,300 PPS for 2023 (2024 published for 63 of 296
+      thirteen national-accounts items: pin all three dimensions. Checked live:
+      BE33 returns 21,300 PPS for 2023 (2024 published for 63 of 296
       NUTS2 regions only, so 2023 is the vintage), updated 2026-05-20. EU-27 only:
       no figure for TR, CH, RS, NO, AL, MK, XK, IS, LI, ME.
     licence: CC-BY-4.0
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: cems_emsr517_germany_2021
     url: https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR517/
@@ -1189,7 +1190,7 @@ geodata:
       (Bad Neuenahr-Ahrweiler) - and the rest of the activation are declared
       as `challenge_emsr517_germany_2021` and read by scripts/event_2021.py.
       Keep EMSR517 and EMSR518 labelled apart.
-    verified: 2026-10-06 (AOI01 only)
+    verified: null  # AOI01 only
 
   # The European AI Challenge bucket. Public and read-only: listed anonymously
   # through the JSON API (https://storage.googleapis.com/storage/v1/b/
@@ -1325,7 +1326,7 @@ geodata:
       per-IP and sustained - measured returning HTTP 429 for over a minute of
       silence after being tripped. Run it days ahead and demo from
       data/processed/events_cache.json. Never call it live.
-    verified: 2026-10-05
+    verified: null
 
   - id: newsapi_recency
     url: https://newsapi.org/v2/everything
@@ -1339,10 +1340,10 @@ geodata:
 policy_corpus:  # the "cite or refuse" RAG corpus
   - id: floods_directive
     # Robots derogation, declared not inferred. See src/fetch.py.
-    robots_unreadable: 2026-10-06
+    robots_unreadable: 2026-10-28
     robots_note: >
-      eur-lex.europa.eu answers /robots.txt with HTTP 202 and a 2,035-byte
-      AWS WAF challenge page carrying no robots directive, measured 2026-10-06 with
+      eur-lex.europa.eu answers /robots.txt with HTTP 202 and an
+      AWS WAF challenge page carrying no robots directive, measured with
       both a browser and the project User-Agent. The rules may exist and cannot be
       read, so the gate refuses by design. This is the Official Journal publishing
       an act it is required to publish, fetched once, at one request per second.
@@ -1355,11 +1356,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
   # the claim stops being rhetoric and becomes a sourced finding.
   - id: efas_assessment_rhine_meuse_2021
     # Robots derogation, declared not inferred. See src/fetch.py.
-    robots_unreadable: 2026-10-06
+    robots_unreadable: 2026-10-28
     robots_note: >
       european-flood.emergency.copernicus.eu is a JavaScript single-page app
-      that returns the same 4,034-byte HTML shell for /robots.txt as for every other
-      path, measured 2026-10-06 - there is no robots.txt to read. One PDF, fetched once.
+      that returns the same HTML shell for /robots.txt as for every other
+      path - there is no robots.txt to read. One PDF, fetched once.
     url: https://european-flood.emergency.copernicus.eu/sites/default/files/2023-12/JRC135679_CEMS_EFAS_DetailedAssessmentReport_RhineMeuseFloodsJuly2021_FINAL.pdf
     access: scrape
     purpose: >
@@ -1371,15 +1372,15 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       days before. That asymmetry is the evidence for the last-mile argument:
       the forecast existed, with lead time, and in writing.
     caveat: >
-      7,498,374 B PDF, verified 2026-10-06. It is a self-assessment by the system
+      7,498,374 B PDF. It is a self-assessment by the system
       operator, so read it as the operator's own account - which is what makes it
       quotable about the forecast, and what makes it weak evidence about the
       decisions taken downstream. For those, use the Walloon inquiry below.
-    verified: 2026-10-06
+    verified: null
 
   - id: efas_bulletin_jun_jul_2021
     # Robots derogation, declared not inferred. See src/fetch.py.
-    robots_unreadable: 2026-10-06
+    robots_unreadable: 2026-10-28
     robots_note: >
       Same host and same measurement as efas_assessment_rhine_meuse_2021.
     url: https://european-flood.emergency.copernicus.eu/sites/default/files/efasBulletins/2021/EFAS_Bimonthly_Bulletin_Jun_Jul2021_0.pdf
@@ -1389,8 +1390,8 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       document, as opposed to the retrospective assessment above. Useful when the
       question is what was being published at the time rather than what was
       concluded afterwards.
-    caveat: 4,429,048 B PDF, verified 2026-10-06.
-    verified: 2026-10-06
+    caveat: 4,429,048 B PDF.
+    verified: null
 
   # The instruments a recommendation has to hook into. A brief that proposes
   # something the region has no legal vehicle for is a wish; one that amends an
@@ -1407,13 +1408,13 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       and approved by the Walloon Government on 2023-01-19. This is where a
       recommendation has to land to be actionable.
     caveat: >
-      6,583,274 B PDF in FRENCH, verified 2026-10-06. It is the environmental
+      6,583,274 B PDF in FRENCH. It is the environmental
       ASSESSMENT of the plans, not the plans themselves: the PGRI document is
       behind a redirect on the landing page above and was not resolved. Useful
       for the measures and the reasoning, not as a citation of the plan's text.
       environnement.wallonie.be publishes NO robots.txt (HTTP 404), so nothing is
       declared and nothing is disallowed - see `_RobotsCache._NO_RULES`.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: wallonia_circular_building_in_flood_zones
     url: https://environnement.wallonie.be/files/inondations/documents_a_telecharger/Urbanisme/circulaire-relative-a-la-constructibilite-en-zone-inondable.pdf
@@ -1424,8 +1425,8 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       from this project's output to a decision someone actually makes: the
       hazard map says where the water goes, this says what may be built there.
       Quoting it is how a recommendation stops being advice.
-    caveat: 2,167,024 B PDF in FRENCH, verified 2026-10-06.
-    verified: 2026-10-06
+    caveat: 2,167,024 B PDF in FRENCH.
+    verified: 2026-10-28
 
   - id: wallonia_inquiry_commission_2022
     url: https://nautilus.parlement-wallon.be/Archives/2021_2022/RAPPORT/894_1.pdf
@@ -1438,19 +1439,19 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       population. It is also the source of quotable, attributable sentences,
       which a brief needs and a model cannot invent.
     caveat: >
-      20,105,500 B PDF in FRENCH, verified 2026-10-06. The deliverables are in
+      20,105,500 B PDF in FRENCH. The deliverables are in
       English, so any quotation has to be translated and marked as a translation -
       and note that the RAG's refusal gate scores a French passage poorly against
       an English question, which is a retrieval problem to test before the day,
       not on it.
       This host's robots.txt is "Allow: /*.pdf$" then "Disallow: /", so the PDF is
       permitted and every other path on the host is not - checked against this
-      repo's own parser on 2026-10-06. Do not crawl the host for more documents.
-    verified: 2026-10-06
+      repo's own parser. Do not crawl the host for more documents.
+    verified: 2026-10-28
 
   - id: ai_act
     # Robots derogation, declared not inferred. See src/fetch.py.
-    robots_unreadable: 2026-10-06
+    robots_unreadable: 2026-10-28
     robots_note: >
       Same host and same measurement as floods_directive: HTTP 202, WAF
       challenge page, no directive readable. Fetched once.
@@ -1477,17 +1478,17 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       Do NOT substitute the UN ODS pdf n1516717.pdf - that is the FRENCH text.
       It was tried, and the retrieval gate correctly refused every English
       question against it, which is how the mistake surfaced.
-    verified: 2026-10-05
+    verified: 2026-10-28
 
   # Behind a WAF that answers non-browser clients with a rejection page under
   # HTTP 200. src/fetch.py detects and rejects those, so this entry will show as
   # a failure rather than silently storing 245 bytes of refusal.
   - id: jrc_publications
     # Robots derogation, declared not inferred. See src/fetch.py.
-    robots_unreadable: 2026-10-06
+    robots_unreadable: 2026-10-28
     robots_note: >
-      publications.jrc.ec.europa.eu answers /robots.txt with its own HTML
-      (12,484 B, measured 2026-10-06), so no directive is readable. Note this entry is
+      publications.jrc.ec.europa.eu answers /robots.txt with its own HTML,
+      so no directive is readable. Note this entry is
       a SEARCH page: the derogation covers fetching the one declared URL, never
       crawling the host.
     url: https://publications.jrc.ec.europa.eu/repository/
@@ -1523,13 +1524,13 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       quoting both turns "our guardrail does not catch this" into a statement
       about what guardrails can do at all.
     caveat: >
-      447,655 B PDF, verified 2026-10-06 on arXiv. The NIST-hosted PDF
+      447,655 B PDF, verified on arXiv. The NIST-hosted PDF
       (tsapps.nist.gov/publication/get_pdf.cfm?pub_id=960858) answered 200 with
       433,677 B and then 404 twenty minutes later - intermittent, so arXiv is the
       declared URL and the NIST page is the landing reference.
       It is a US federal author on a US framework. Cite it for the limit it
       proves, not as a compliance authority for an EU deliverable.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: nist_ai_documentation_templates
     url: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.300-1.ipd.pdf
@@ -1543,10 +1544,10 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       responsible-AI deliverable needs, written by a standards body rather than
       invented for the occasion.
     caveat: >
-      1,090,717 B PDF, verified 2026-10-06. It is an INITIAL PUBLIC DRAFT, open
+      1,090,717 B PDF. It is an INITIAL PUBLIC DRAFT, open
       for comment until 2026-09-16 and explicitly pre-consensus: cite it as a
       draft, never as a standard.
-    verified: 2026-10-06
+    verified: 2026-10-28
 
   - id: nist_monitoring_deployed_ai
     url: https://www.nist.gov/publications/challenges-monitoring-deployed-ai-systems-center-ai-standards-and-innovation
@@ -1557,17 +1558,17 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       use. Answers the jury question this brief otherwise leaves open - what
       happens after the hackathon, when nobody is watching the numbers.
     caveat: >
-      HTML landing page, verified 2026-10-06; the PDF link was not resolved, so
+      HTML landing page; the PDF link was not resolved, so
       the fetch stores the page and not the paper.
-    verified: 2026-10-06 (landing page only)
+    verified: 2026-10-28 (landing page only)
 
   # The documents docs/policy_context.md cites for its figures and that the
   # retrieval layer could not cite back, because nothing here declared them.
   #
   # The six EU acts are fetched from the Publications Office's CELLAR
   # (`publications.europa.eu/resource/celex/<CELEX>`), not from eur-lex. Measured
-  # 2026-10-12 with this repo's own headers: every eur-lex URL for these six
-  # answers HTTP 202 with the 2,035-byte AWS WAF challenge `_REJECTION_MARKERS`
+  # with this repo's own headers: every eur-lex URL for these six
+  # answers HTTP 202 with the AWS WAF challenge `_REJECTION_MARKERS`
   # refuses, while CELLAR answers 303 to the English manifestation of the same
   # CELEX and then 200 with its XHTML. publications.europa.eu/robots.txt
   # redirects to op.europa.eu/robots.txt, a readable file whose rules allow
@@ -1587,9 +1588,9 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       benchmark - respond to a flood affecting three Member States at once - are
       the EU's own yardsticks for preparedness.
     caveat: >
-      XHTML in English, HTTP 200 via CELLAR, verified 2026-10-12; no
+      XHTML in English, HTTP 200 via CELLAR; no
       Content-Length is sent, so the size is not recorded. Non-binding.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: ucpm_decision
     url: https://publications.europa.eu/resource/celex/32013D1313
@@ -1601,11 +1602,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       makes national risk assessment and risk-management planning a standing
       legal duty of every Member State.
     caveat: >
-      XHTML in English, HTTP 200 via CELLAR, verified 2026-10-12. This is the
+      XHTML in English, HTTP 200 via CELLAR. This is the
       text as ADOPTED in 2013, not the consolidated version: Regulation (EU)
       2021/836 amended it, so check any article against the consolidated text
       before quoting it as in force.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: eu_adaptation_strategy_2021
     url: https://publications.europa.eu/resource/celex/52021DC0082
@@ -1616,9 +1617,9 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       COM(2021) 82, the EU Strategy on Adaptation to Climate Change, 24 February
       2021: the "only 35% of climate-related losses are insured" figure.
     caveat: >
-      XHTML in English, HTTP 200 via CELLAR, verified 2026-10-12. Its loss
+      XHTML in English, HTTP 200 via CELLAR. Its loss
       figures are a 2021 baseline superseded by eea_economic_losses_indicator.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: water_resilience_strategy_2025
     url: https://publications.europa.eu/resource/celex/52025DC0280
@@ -1629,8 +1630,8 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       COM(2025) 280, the European Water Resilience Strategy, 4 June 2025: the
       Commission's commitment to better early warning and real-time monitoring
       for floods and droughts.
-    caveat: HTML in English, HTTP 200 via CELLAR, verified 2026-10-12.
-    verified: 2026-10-12
+    caveat: HTML in English, HTTP 200 via CELLAR.
+    verified: 2026-10-28
 
   - id: floods_directive_assessment_swd_2025_24
     url: https://publications.europa.eu/resource/celex/52025SC0024
@@ -1642,11 +1643,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       management plans for Spain, 4 February 2025 - the one member of the
       SWD(2025) series docs/policy_context.md cites by number.
     caveat: >
-      XHTML in English, HTTP 200 via CELLAR, verified 2026-10-12. ONE document
+      XHTML in English, HTTP 200 via CELLAR. ONE document
       of a series published one per Member State on the same day; the others,
       Belgium's included, are not declared because their CELEX numbers were
       never recorded. Do not quote this one as the Commission's view of Europe.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: ai_act_digital_omnibus_2026
     url: https://publications.europa.eu/resource/celex/32026R1744
@@ -1658,8 +1659,8 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       AI Act in force since 27 July 2026. The `ai_act` entry is the 2024 text;
       without this one the corpus answers AI Act questions from a superseded
       version.
-    caveat: XHTML in English, HTTP 200 via CELLAR, verified 2026-10-12.
-    verified: 2026-10-12
+    caveat: XHTML in English, HTTP 200 via CELLAR.
+    verified: 2026-10-28
 
   - id: eea_eucra_2024
     url: https://www.eea.europa.eu/en/analysis/publications/european-climate-risk-assessment
@@ -1668,11 +1669,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       EEA Report 01/2024, the European Climate Risk Assessment (EUCRA): 36
       climate risks, river and pluvial flooding among the eight most urgent.
     caveat: >
-      HTML LANDING PAGE, HTTP 200, verified 2026-10-12; the report PDF's address
+      HTML LANDING PAGE, HTTP 200; the report PDF's address
       was not resolved, so the fetch stores the page and not the report. Its
       "EUR 170 bn since 1980" for floods is a different vintage and price basis
       from the EEA 2025 indicator - quote the indicator, never both as one figure.
-    verified: 2026-10-12 (landing page only)
+    verified: 2026-10-28 (landing page only)
 
   - id: eea_economic_losses_indicator
     url: https://www.eea.europa.eu/en/analysis/indicators/economic-losses-from-climate-related
@@ -1683,10 +1684,10 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       of them floods, hydrological losses about 15% insured. The loss figure the
       brief should use.
     caveat: >
-      187,742 B HTML, HTTP 200, verified 2026-10-12. An indicator page is
+      187,742 B HTML, HTTP 200. An indicator page is
       updated in place: record the publication date beside any figure taken
       from it.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: eiopa_protection_gap_nutshell_2025
     url: https://www.eiopa.europa.eu/document/download/bbdc653b-e335-41f0-8293-0d8280a09855_en
@@ -1699,10 +1700,10 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       2025: Belgium's current flood score (1.5) and total score (6), and the
       country comments the brief quotes on the insurance paradox.
     caveat: >
-      PDF (application/pdf), HTTP 200, verified 2026-10-12; no Content-Length is
+      PDF (application/pdf), HTTP 200; no Content-Length is
       sent. EIOPA's own text says "seven countries" and then lists eight for
       flood - quote the list, not the count.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: wallonia_floods_review_2022
     url: https://www.wallonie.be/sites/default/files/2022-07/%5BCP%5D%20-%20Inondations%20de%20juillet%202021%20-%20Bilan%20et%20perspectives.pdf
@@ -1714,10 +1715,10 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       cost to the Region, and the 20% insurance cap the Region stepped in to
       lift.
     caveat: >
-      205,412 B PDF in FRENCH, HTTP 200, verified 2026-10-12. A press release
+      205,412 B PDF in FRENCH, HTTP 200. A press release
       of the government that paid: it is the official count, and it is also an
       interested party's account of its own response.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   - id: assuralia_floods_update_2023
     url: https://press.assuralia.be/actualisation-relative-aux-inondations-de-juillet-2021
@@ -1727,11 +1728,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       EUR 2 bn paid by insurers on EUR 2.4 bn of estimated damage, EUR 1.05 bn
       to be reimbursed by the Walloon Region.
     caveat: >
-      HTML in FRENCH, HTTP 200, verified 2026-10-12. The industry's own figures.
+      HTML in FRENCH, HTTP 200. The industry's own figures.
       Its four-year update page answered 404 when the research was done; the
       later figures (about 74,000 claims) remain press-sourced and are not
       declared.
-    verified: 2026-10-12
+    verified: 2026-10-28
 
   # The paper behind the hazard maps the whole kit counts on. It is the source
   # for the sentence a JRC juror will check first: the maps model no flood
@@ -1780,6 +1781,6 @@ context:  # know your jury
       2022-2025: the table the windstorm and flood insured shares in
       docs/policy_context.md were re-derived from.
     caveat: >
-      XLSX (spreadsheetml), HTTP 200, verified 2026-10-12; no Content-Length is
+      XLSX (spreadsheetml), HTTP 200; no Content-Length is
       sent. Read it with pandas; it never enters the retrieval index.
-    verified: 2026-10-12
+    verified: 2026-10-28

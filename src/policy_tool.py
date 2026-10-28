@@ -90,11 +90,17 @@ TOWNS: tuple[tuple[str, str, float, float], ...] = (
     ("Venlo", "Meuse", 6.172, 51.370),
 )
 
-#: NUTS country codes of the EU-27, for the Europe-wide headcount.
-EU27 = frozenset({
-    "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "EL", "ES", "FI", "FR", "HR",
-    "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK",
-})
+#: NUTS country codes of the EU-27 and their English short names: the codes for
+#: the Europe-wide headcount, the names for any country the page lists.
+EU27_NAMES = {
+    "AT": "Austria", "BE": "Belgium", "BG": "Bulgaria", "CY": "Cyprus", "CZ": "Czechia",
+    "DE": "Germany", "DK": "Denmark", "EE": "Estonia", "EL": "Greece", "ES": "Spain",
+    "FI": "Finland", "FR": "France", "HR": "Croatia", "HU": "Hungary", "IE": "Ireland",
+    "IT": "Italy", "LT": "Lithuania", "LU": "Luxembourg", "LV": "Latvia", "MT": "Malta",
+    "NL": "Netherlands", "PL": "Poland", "PT": "Portugal", "RO": "Romania", "SE": "Sweden",
+    "SI": "Slovenia", "SK": "Slovakia",
+}
+EU27 = frozenset(EU27_NAMES)
 
 #: Directive 2007/60/EC, Article 14(3), as recorded in config/legislation.yaml:
 #: the plans "shall be reviewed, and if necessary updated, ... by 22 December
@@ -107,24 +113,29 @@ PLAN_REVIEW_SOURCE = (
     "December 2021 and every six years thereafter\"; the next review falls on "
     "22 December 2027.")
 
-#: The brief's recommendations 2 and 3, word for word, so the tool and the brief
-#: say the same thing (Annex 4, criterion 3). Recommendation 1 answers the case's
+#: The brief's recommendations 2 and 3, so the tool and the brief say the same
+#: thing (Annex 4, criterion 3): the brief's words, plus the detail its two pages
+#: have no room for (Ireland, Lithuania, Article 15), never a different actor or
+#: date. Recommendation 1 answers the case's
 #: own question and is filled on the day (`render_page(recommendation=, actor=)`).
 #: Each is (what, who and by when, instrument and cost).
 RECOMMENDATIONS: tuple[tuple[str, str, str], ...] = (
     ("Make the declared risk areas comparable, and publish absence as absence: a "
-     "minimum mapping unit, reaches reported as buffered areas, each State's declared "
-     "share published beside its submission; Ireland's areas into the layer, "
-     "Lithuania's current cycle reconciled, \"not reported\" shown instead of nothing.",
-     f"DG ENV through the Working Group on Floods, with the EEA; tabled early in 2027, "
-     f"before the {PLAN_REVIEW_DATE_SHORT} plan review.",
-     "The reporting guidance the Working Group already issues each cycle, and Article 15 "
-     "reporting. Staff time only."),
-    ("Test Article 8(5) on the Meuse, the river of July 2021. One riparian State reports "
-     "a flood-risk issue it cannot resolve alone and proposes a solution; the Commission "
-     "must answer within six months.",
-     "A party of the International Meuse Commission (secretariat in Liège), by mid-2027, "
-     "so the answer lands inside the 2027 planning window.",
+     "minimum mapping unit, river reaches reported as buffered areas, each State's "
+     "declared share published beside its submission, \"not reported\" shown instead "
+     "of nothing; Ireland's areas, published nationally, brought into the European "
+     "layer, and Lithuania's current cycle reconciled with its 2010 one.",
+     "The Commission's environment department (DG ENV), through the Directive's "
+     "Working Group on Floods, with the European Environment Agency (EEA); tabled early "
+     f"in 2027, before the {PLAN_REVIEW_DATE_SHORT} plan review.",
+     "The reporting guidance the Working Group already issues each cycle, and the "
+     "Article 15 reporting. Staff time only."),
+    ("Use Article 8(5) on the Meuse, the river of July 2021: the Netherlands, downstream, "
+     "reports to the Commission and the other Meuse States the flood issue it cannot "
+     "solve alone, and proposes a solution; the Commission must answer within six months.",
+     "The Netherlands' Ministry of Infrastructure and Water Management, with the "
+     "International Meuse Commission (secretariat in Liège), by mid-2027, so the answer "
+     "lands inside the 2027 planning window.",
      "Article 8(5) as written. No new body, no new money."),
 )
 
@@ -890,6 +901,20 @@ def _facts_html(p: dict[str, Any]) -> str:
             f'{later}</div>')
 
 
+def unreported_countries(context: pd.DataFrame) -> tuple[str, list[str]]:
+    """The cycle of the European risk-area layer, and the EU-27 States absent from it.
+
+    Read from `context.parquet` (`apsfr_country_reported` False), not typed, so the
+    Europe map names exactly the States recommendation 2 is about. Absent means
+    the European layer does not carry that State's current cycle, not that the
+    State declared nothing: Ireland publishes its areas nationally.
+    """
+    cycles = context["apsfr_cycle"].dropna().astype(str).unique()
+    cycle = cycles[0] if len(cycles) == 1 else "current"
+    codes = context.loc[context["apsfr_country_reported"].eq(False), "nuts_id"].str[:2]
+    return cycle, sorted(EU27_NAMES[c] for c in set(codes) if c in EU27_NAMES)
+
+
 def render_page(
     *,
     countries: pd.DataFrame,
@@ -902,6 +927,7 @@ def render_page(
     question: str = "[DECISION QUESTION]",
     recommendation: str = "[RECOMMENDATION]",
     actor: str = "[NAMED ACTOR]",
+    unreported: tuple[str, list[str]] | None = None,
     built: str = "",
 ) -> str:
     """The whole page, top to bottom in the order of the argument.
@@ -913,6 +939,12 @@ def render_page(
     shares = outside_shares(countries)
     eu = europe_shares(exposure)
     named = {k for k, _ in NAMED_PLACES}
+    unreported_note = ""
+    if unreported and unreported[1]:
+        unreported_note = (
+            f'<p class="small"><b>Not in the European risk-area layer ({esc(unreported[0])} '
+            f'cycle): {esc(", ".join(unreported[1]))}.</b> The States designated the areas; '
+            "recommendation 2 asks for them in the layer.</p>")
 
     def slot(text: str) -> str:
         return f'<span class="slot">{esc(text)}</span>' if text.startswith("[") else esc(text)
@@ -967,7 +999,7 @@ the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map
 <div>{europe_text(eu, exposure)}{europe_legend(eu)}
 <p class="small">Share of each region's residents inside the zone a 1-in-100-year river flood would reach
 if there were no dikes (JRC hazard map, GHS-POP 2025, E2025). Protected low-lying areas, such as much of the
-Netherlands, therefore show high. Grey is not measured, not zero.</p></div></div>
+Netherlands, therefore show high. Grey is not measured, not zero.</p>{unreported_note}</div></div>
 
 <h2><span class="kicker">What we recommend</span>Three recommendations, before the {PLAN_REVIEW_DATE_SHORT} plan review</h2>
 <table class="recos"><thead><tr><th>Action</th><th>Who, by when</th><th>Instrument, cost</th></tr></thead><tbody>

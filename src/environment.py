@@ -68,7 +68,7 @@ NATURA_GPKG = DATA / "raw" / "download" / "eea_natura2000_gpkg.gpkg"
 #: The one spatial layer in the GeoPackage; the other ten are the standard data
 #: forms as tables. Named rather than detected, because the file declares its
 #: geometry type as "Unknown" (polygons and multipolygons mixed), measured
-#: 2026-10-12 on the end-2024 release: 27,173 sites, EPSG:3035.
+#: on the end-2024 release: 27,173 sites, EPSG:3035.
 SITE_LAYER = "NaturaSite_polygon"
 
 #: Hazard rows read per window. Memory only: the windows are disjoint and the
