@@ -1337,6 +1337,22 @@ geodata:
       not a backbone. Degrades to unavailable without a key rather than to zero.
     verified: null
 
+
+  # The photographic basemap under the July 2021 maps (tool, Space, brief Figure 1).
+  - id: esri_world_imagery
+    url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer
+    access: api
+    purpose: >
+      Satellite basemap under the flood classes: an image export fetched at build
+      time by src/story_maps.py (baked into the tool, the Space JSON and the brief's
+      Figure 1), and live tiles in the Space's interactive map.
+    caveat: >
+      Credited on every map as "Imagery (c) Esri, Maxar, Earthstar Geographics".
+      Whether baked images may sit in a submitted or published file is an open
+      question to the organisers (coach question 12); the build falls back to the
+      offline PNG with --no-satellite. Service metadata answered HTTP 200 (JSON).
+    verified: 2026-10-29
+
 policy_corpus:  # the "cite or refuse" RAG corpus
   - id: floods_directive
     # Robots derogation, declared not inferred. See src/fetch.py.
@@ -1349,7 +1365,11 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       an act it is required to publish, fetched once, at one request per second.
     url: https://eur-lex.europa.eu/eli/dir/2007/60/oj
     access: scrape
-    purpose: Directive 2007/60/EC, the legal backbone of EU flood risk management
+    purpose: >
+      Directive 2007/60/EC, the legal backbone of EU flood risk management. Brief
+      reference [3]; the articles cited (7(4), 8, 14) are quoted in
+      config/legislation.yaml, whose entry was checked live.
+    verified: 2026-10-28
 
   # The two documents that carry the "the warning existed, the decision did not
   # follow" argument. Both are official and both are citable, which is the point:
@@ -1753,6 +1773,134 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       2026-03-05), so the paper documents the method rather than these exact
       files. 20,457,008 B PDF, robots.txt allows all, verified 2026-10-24.
     verified: 2026-10-24
+
+
+  # The border-area brief's references [5]-[12] and the tool's Eschweiler card,
+  # 29 October 2026. Each page was opened after its robots.txt was read.
+  - id: thieken_warning_survey_2023
+    url: https://doi.org/10.5194/nhess-23-973-2023
+    landing: https://nhess.copernicus.org/articles/23/973/2023/
+    access: scrape
+    licence: CC BY 4.0
+    purpose: >
+      Thieken et al., Performance of the flood warning system in Germany in July
+      2021, NHESS 23, 973-990: 35 % (North Rhine-Westphalia) and 29 %
+      (Rhineland-Palatinate) of affected residents received no warning; up to half
+      of those warned did not know what to do. Brief reference [11].
+    caveat: >
+      A survey of affected residents in Germany only; nothing on Belgium or the
+      Netherlands. The DOI resolves to the open-access article (HTTP 200).
+    verified: 2026-10-29
+
+  - id: thieken_flood_fatalities_2026
+    url: https://doi.org/10.1029/2026EF008695
+    access: scrape
+    purpose: >
+      Thieken et al., Understanding flood fatalities: reevaluating flood risk
+      management, Earth's Future 14(9), September 2026, CC BY 4.0: 224 deaths in
+      Germany and Belgium in July 2021; 58 % occurred outside officially mapped
+      flood hazard zones. Brief reference [12].
+    caveat: >
+      The publisher answers HTTP 403 to automated requests. Title, authors, issue
+      and the 58 % were checked on 30 Oct 2026 against the abstract in the public
+      Crossref record of the DOI. The regional split (half in North
+      Rhine-Westphalia, three in four in Rhineland-Palatinate outside the
+      extreme-flood zone) was read from the article before the event and is not
+      in the abstract: quote it only after opening the article.
+    verified: 2026-10-30
+
+  - id: wallonia_vesdre_strategic_scheme_2023
+    url: https://territoire.wallonie.be/fr/page/inondations
+    access: scrape
+    purpose: >
+      SPW Territoire, Schema strategique multidisciplinaire du bassin versant de la
+      Vesdre (10 May 2023): a vision to 2050 for the 25 Vesdre communes. Brief
+      reference [10].
+    caveat: >
+      HTML in FRENCH, HTTP 200. The scheme has no legal force and binds no
+      commune; the final report PDF is about 187 MB and is not mirrored.
+    verified: 2026-10-29
+
+  - id: rtbf_eupen_dam_2022
+    url: https://www.rtbf.be/article/barrage-d-eupen-des-pratiques-nouvelles-pour-eviter-les-catastrophes-11021028
+    access: scrape
+    purpose: >
+      RTBF, 1 July 2022: the Eupen dam's flood reserve raised from 2.8 to 7 million
+      m3, on-call engineers doubled. Brief reference [9].
+    caveat: >
+      Press, in FRENCH, HTTP 200 for our user agent. The official operating rule
+      behind these figures was not found.
+    verified: 2026-10-29
+
+  - id: dh_walloon_dam_emergency_plans_2025
+    url: https://www.dhnet.be/regions/liege/2025/12/09/un-seul-barrage-reservoir-wallon-dote-de-son-plan-durgence-et-dintervention-la-deputee-valerie-dejardin-a-interpelle-le-ministre-desquesnes-CN34L6GWWRE5LA2C6YVPJP3224/
+    access: scrape
+    purpose: >
+      La DH, 9 December 2025: only one Walloon reservoir dam (Eupen, May 2023) has
+      an emergency plan, though the inquiry asked for one per dam. Brief
+      reference [6].
+    caveat: >
+      Press, in FRENCH, HTTP 200. The parliamentary record of the question was not
+      found.
+    verified: 2026-10-29
+
+  - id: bundestag_aufbauhilfe_2021_answer_2026
+    url: https://dserver.bundestag.de/btd/21/044/2104443.pdf
+    access: scrape
+    purpose: >
+      Bundestag Drucksache 21/4443, 27 February 2026: EUR 5.84 bn paid out of the
+      EUR 30 bn Aufbauhilfe 2021 fund by 31 December 2025. Brief reference [2].
+    caveat: >
+      PDF in GERMAN, HTTP 200 (205,427 B); robots.txt answers 404, which RFC 9309
+      reads as no restriction. Covers all affected Laender, not the Aachen region.
+    verified: 2026-10-29
+
+  - id: nl_beleidstafel_progress_2026
+    url: https://klimaatadaptatienederland.nl/publish/pages/236290/voortgangsrapportage-beleidstafel-wateroverlast-en-hoogwater-april-2026.pdf
+    access: scrape
+    purpose: >
+      Fifth and last progress report of the Beleidstafel wateroverlast en
+      hoogwater (reference date 9 April 2026): 50 of 80 actions done. Brief
+      reference [7].
+    caveat: >
+      PDF in DUTCH, HTTP 200 (274,894 B). National actions, not Limburg's alone.
+    verified: 2026-10-29
+
+  - id: copernicus_ems_efas_july_2021_news
+    url: https://mapping.emergency.copernicus.eu/news/the-copernicus-emergency-management-service-forecasts-notifies-and-monitors-devastating-floods-in-germany-netherlands-belgium-and-switzerland/
+    access: scrape
+    purpose: >
+      Copernicus EMS, 16 July 2021: EFAS sent its first flood notifications to
+      the national authorities on 10 July, more than 25 for the Rhine and Meuse
+      by 14 July; Rapid Mapping EMSR517 (DE), EMSR518 (BE), EMSR520 (NL). Brief
+      reference [1].
+    verified: 2026-10-29
+
+  - id: munichre_natural_disaster_losses_2021
+    url: https://www.munichre.com/en/company/media-relations/media-information-and-corporate-news/media-information/2022/natural-disaster-losses-2021.html
+    access: scrape
+    purpose: >
+      Munich Re, January 2022: the July 2021 floods cost EUR 46 bn in Europe, of
+      which EUR 11 bn was insured (EUR 33 bn of the losses in Germany). Brief
+      reference [8].
+    caveat: >
+      HTML, HTTP 200. Munich Re puts Germany's insured share at EUR 8.2 bn; the
+      German insurers' association (GDV) later gives EUR 8.75 bn - quote the
+      European total only, or both German figures together.
+    verified: 2026-10-29
+
+  - id: bezreg_koeln_vicht_retention_basins_2023
+    url: https://uvp-verbund.de/documents-ige-ng/igc_nw/265c40c2-3af1-4f40-9d8f-b45abf9b587d/2023-04-13_BekanntmUVPV_HRBsVicht.pdf
+    access: scrape
+    purpose: >
+      Bezirksregierung Koeln notice of 13 April 2023: plan approval procedure for
+      two flood retention basins on the Vichtbach (Roetgen-Rott and
+      Roetgen-Mulartshuette), upstream of Stolberg. The tool's Eschweiler card.
+    caveat: >
+      PDF in GERMAN, HTTP 200 (673,544 B). An application, not an approval: a
+      search snippet says one basin was approved in June 2025, unconfirmed. No
+      cost figure in the notice.
+    verified: 2026-10-29
 
 context:  # know your jury
   - id: fari_manifesto

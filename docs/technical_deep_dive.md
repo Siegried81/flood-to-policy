@@ -453,7 +453,7 @@ Netherlands), each against the JRC hazard maps, GHS-POP E2020 and GHS-OBAT.
 |---|---|---|
 | `scripts/event_2021.py` with `src/event2021.py` | `data/processed/event_2021_{products,hazard,buildings,damage,countries}.parquet` | Per EMS product, inside its AOI only: observed flooded area, hit rate / false alarm ratio / CSI per return period (`validate.agreement` on the 20 m EPSG:3035 grid), residents in the water and outside each hazard map, buildings by use, epoch and height, damage grades; then per country on the union of products, deduplicated cell by cell and building by building |
 | `scripts/event_2021_infrastructure.py` | `data/processed/event_2021_infrastructure.parquet` | Roads and railways (km by class), power lines and dams (km), schools, hospitals, fire stations and power plants (counts), each in the whole AOI, inside the observed water and within 25 m of it; country rows merge lines and features so an overlap counts once |
-| `scripts/build_policy_tool.py` with `src/policy_tool.py` | `docs/perso/policy_tool/policy_tool.html` and PNG snapshots (gitignored: the page carries GISCO geometry) | The challenge policy tool: one self-contained HTML file that opens offline and calls no AI service; story maps rasterised on the same 20 m grid the figures were counted on |
+| `scripts/build_policy_tool.py` with `src/policy_tool.py` | `docs/perso/policy_tool_anna/policy_tool.html` and PNG snapshots (gitignored: the page carries GISCO geometry) | The challenge policy tool: one self-contained HTML file that opens offline and calls no AI service; story maps rasterised on the same 20 m grid the figures were counted on |
 | `scripts/export_event_web.py` | `data/processed/event_2021_web.json` and `web/public/event_2021_web.json` | The React "July 2021" view's data, built with `src/policy_tool.py`'s figures and the policy tool's maps; public borders from Natural Earth; `--full` draws GISCO borders and NUTS3 lines into the gitignored `event_2021_web.full.json` only |
 | `scripts/export_europe_web.py` | `web/public/europe/` (gitignored) | The static Europe view: the API's own answers to `/api/meta`, `/api/exposure`, `/api/context` and `/api/vulnerability`, frozen in-process; no geometry |
 
@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,119<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,127<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -573,7 +573,7 @@ re-measure the rows after any test change.
 | `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
 | `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
 | `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
-| `test_policy_tool.py` | 24 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team N", the EU-27 States absent from the risk-area layer read from the context table |
+| `test_policy_tool.py` | 24 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team 9", the EU-27 States absent from the risk-area layer read from the context table |
 
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
@@ -600,10 +600,10 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,119<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,127<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
-| <!-- numbers:sources_declared -->82<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->61<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->42<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
+| <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->73<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
 | the 0.25% stripe discrepancy | two continental RP100 builds that cut the hazard raster |
 | 4.85% of cells carry a value | a 1,468,800-cell window of Belgian land, RP100 |
