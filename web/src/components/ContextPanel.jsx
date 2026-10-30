@@ -142,7 +142,7 @@ export default function ContextPanel({ names = new Map() }) {
 
       <h3>River discharge, against the 1971-2000 reference</h3>
       <p className="caveat">
-        The only forward-looking layer in the kit, and it is{" "}
+        The only forward-looking layer here, and it is{" "}
         <strong>discharge, not depth</strong>: a future flow in cubic metres per
         second cannot be layered onto the inundation maps the exposure figures
         come from. What is defensible is the direction and the size of the

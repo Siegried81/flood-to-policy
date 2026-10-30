@@ -58,7 +58,7 @@ Anti-patterns, all of which I expect to hear in this room: "raise awareness", "f
 
 ### 1.4 Annotated skeleton, mapped onto the Annex 6 headings
 
-Word budget in brackets, written for about two pages; cut a section rather than shrink the font. The submitted brief uses the Annex 6 headings: TITLE → Title; KEY MESSAGES → **Takeaways** (3-5 bullets); 1 → **Introduction**; 2 and 3 → **What science tells us** (the limits can go in its optional box); 4 and 5 → **Policy implications**, recommendations first; 6 → numbered **References** and "Authors: Team N". The AI paragraph moves to the Annex 7 AI sheet.
+Word budget in brackets, written for about two pages; cut a section rather than shrink the font. The submitted brief uses the Annex 6 headings: TITLE → Title; KEY MESSAGES → **Takeaways** (3-5 bullets); 1 → **Introduction**; 2 and 3 → **What science tells us** (the limits can go in its optional box); 4 and 5 → **Policy implications**, recommendations first; 6 → numbered **References** and "Authors: Team 9". The AI paragraph moves to the Annex 7 AI sheet.
 
 ```
 ┌─ PAGE 1 ─────────────────────────────────────────────────────────────────┐
@@ -82,7 +82,7 @@ Word budget in brackets, written for about two pages; cut a section rather than 
 │   The figure carries the pattern; the text carries the interpretation.   │
 │   Never describe the figure in prose — say what it means.                │
 │   One line on method, in plain words: "we combined X with Y to           │
-│   estimate Z." Method detail stays out; no repo link (Team N only).    │
+│   estimate Z." Method detail stays out; no repo link (Team 9 only).    │
 └──────────────────────────────────────────────────────────────────────────┘
 ┌─ PAGE 2 ─────────────────────────────────────────────────────────────────┐
 │ 3. WHAT THIS DOES NOT TELL US [70–90 words]                              │
@@ -103,7 +103,7 @@ Word budget in brackets, written for about two pages; cut a section rather than 
 │   (who pays, who is protected first) rather than technical.             │
 │                                                                          │
 │ 6. SOURCES, DATA & AI USE [50–70 words]                                  │
-│   Datasets with versions/dates, numbered [n]. "Authors: Team N" only:   │
+│   Datasets with versions/dates, numbered [n]. "Authors: Team 9" only:   │
 │   no names and no repo link in any submitted file (Annexes 3, 6, 7).    │
 │   AI use is NOT here: it goes in the Annex 7 AI sheet. (§6)             │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -292,7 +292,7 @@ One row per requirement, flood-specific and written so that only *your* team cou
 | 1 | Human agency & oversight | Output ranks areas for official attention; no automated trigger, no individual-level action. A team member (by role, never by name: Annex 7) reviews each output before it enters the brief. |
 | 2 | Technical robustness & safety | What happens with missing/outdated layers; sensitivity of the ranking to the classification choice; what we did *not* stress-test. |
 | 3 | Privacy & data governance | Only aggregate open data (EFAS/GHSL/Eurostat/Statbel) — no personal data, no addresses. Licences and versions listed, and a licence that forbids redistribution (the Walloon return-period records, CPU Type A) keeps its data out of the public repo while its map stays publishable. No non-public data sent to any external AI tool. |
-| 4 | Transparency | Method in plain language in the brief; Team N only, no names or repo link in the submitted files; the AI sheet compiled from the running log; the classification method printed in the map legend. |
+| 4 | Transparency | Method in plain language in the brief; Team 9 only, no names or repo link in the submitted files; the AI sheet compiled from the running log; the classification method printed in the map legend. |
 | 5 | Diversity, non-discrimination & fairness | Population layers under-count renters, undocumented residents, informal housing → a vulnerability map built only on these layers **under-protects** exactly the groups most harmed. State the direction of the bias. |
 | 6 | Societal & environmental well-being | Compute footprint was negligible (hosted models, no training). Societal risk of mis-targeting: resources pulled from an area that floods anyway. |
 | 7 | Accountability | An owning role per deliverable; the log is the audit trail; what a real deployment would need (ownership, update cycle, complaint route, review date). |

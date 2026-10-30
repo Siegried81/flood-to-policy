@@ -3,7 +3,7 @@
 Annex 4 of the European AI Challenge asks for a file that is e-mailed, then shown
 in a five-minute demo, and Annex 3 forbids the tool from calling any AI service.
 So this module renders ONE self-contained HTML string - inline CSS, inline SVG,
-inline PNG maps as data URIs and a few lines of inline JS for the place selector
+inline PNG and satellite JPEG maps as data URIs and a few lines of inline JS for the place selector
 - that opens by double-click with the network off. `scripts/build_policy_tool.py`
 reads the files, rasterises the maps and calls `render_page`; everything here is
 pure, so the tests run on synthetic tables.
@@ -16,17 +16,18 @@ recommendation and the limits.
 
 Rules the page follows, and why:
 
-- **Every figure is read from a table, never typed.** The formatters take the
-  table value and nothing else, and each hero number carries its raw value in a
-  `data-value` attribute so a test (or a juror with dev tools) can check the
-  rounding against the source. The one exception is a legal date, quoted with
-  its article in the footer.
+- **Every computed figure is read from a table, never typed.** The formatters
+  take the table value and nothing else, and each hero number carries its raw
+  value in a `data-value` attribute so a test (or a juror with dev tools) can
+  check the rounding against the source. The exceptions are typed text, named
+  in the footer: legal dates, the recommendations and the per-place cards, whose
+  figures are copied from the team's Q3 table and the cited sources.
 - **A missing figure prints "n/a", never 0.** Belgium and the Netherlands have
   no graded (GRA) products, so no damage grades: 0 destroyed would state that
   nothing was destroyed there, which nobody measured.
 - **Rounding is honest.** Residents are a model (GHS-POP weighted by flooded
-  cell share), shown to three significant figures; building points are counted
-  and shown exactly. A share put into words ("about half") always prints its
+  cell share), shown to the whole person like the brief (the precision is the
+  model's, not a headcount); building points are counted and shown exactly. A share put into words ("about half") always prints its
   percentage beside the words.
 - **No link anywhere.** Sources are cited as text: Annexes 3 and 7 forbid a
   repo link, and a page that fetches nothing cannot break on a venue network.
@@ -47,7 +48,7 @@ import pandas as pd
 from src import story_maps, svgmap
 
 NA = "n/a"
-TEAM = "Team N"
+TEAM = "Team 9"
 HEADLINE_BASIS = "product"
 COUNTRIES = ("BE", "DE", "NL")
 COUNTRY_NAMES = {"BE": "Belgium", "DE": "Germany", "NL": "Netherlands"}
@@ -113,43 +114,53 @@ PLAN_REVIEW_SOURCE = (
     "December 2021 and every six years thereafter\"; the next review falls on "
     "22 December 2027.")
 
-#: The brief's recommendations 2 and 3, so the tool and the brief say the same
-#: thing (Annex 4, criterion 3): the brief's words, plus the detail its two pages
-#: have no room for (Ireland, Lithuania, Article 15), never a different actor or
-#: date. Recommendation 1 answers the case's
-#: own question and is filled on the day (`render_page(recommendation=, actor=)`).
-#: Each is (what, who and by when, instrument and cost).
+#: The brief's three recommendations, in its words, so the tool, the Space and the
+#: brief say the same thing (Annex 4, criterion 3). They answer the case's Q4: the
+#: places still exposed and the first actions Anna, the cross-border crisis
+#: coordinator, can take, using Q1 (who the water reached outside the map), Q2
+#: (what is still missing) and Q3 (the shelter gaps), and they act before the
+#: water: warn with escalation, name who, break the dam / river-flow silo, the
+#: right lever per place. Each is (what, who and by when, instrument).
+RECOMMENDATION_1: tuple[str, str, str] = (
+    "Alert at the first EFAS notice, with the worst case and one action. Say how bad it could get "
+    "and what to do; the 10 July 2021 notice never said it would be far worse "
+    "by the 14th. Warn first where warning time is shortest (the Vesdre valley, Eschweiler), then the "
+    "zones de secours, the Eupen and Gileppe dam operators and the Meuse authorities across "
+    "the border.",
+    "Anna, before the forecast rain arrives.",
+    "Cell Broadcast (BE-Alert, NL-Alert, DE-Alert); staff time.")
 RECOMMENDATIONS: tuple[tuple[str, str, str], ...] = (
-    ("Make the declared risk areas comparable, and publish absence as absence: a "
-     "minimum mapping unit, river reaches reported as buffered areas, each State's "
-     "declared share published beside its submission, \"not reported\" shown instead "
-     "of nothing; Ireland's areas, published nationally, brought into the European "
-     "layer, and Lithuania's current cycle reconciled with its 2010 one.",
-     "The Commission's environment department (DG ENV), through the Directive's "
-     "Working Group on Floods, with the European Environment Agency (EEA); tabled early "
-     f"in 2027, before the {PLAN_REVIEW_DATE_SHORT} plan review.",
-     "The reporting guidance the Working Group already issues each cycle, and the "
-     "Article 15 reporting. Staff time only."),
-    ("Use Article 8(5) on the Meuse, the river of July 2021: the Netherlands, downstream, "
-     "reports to the Commission and the other Meuse States the flood issue it cannot "
-     "solve alone, and proposes a solution; the Commission must answer within six months.",
-     "The Netherlands' Ministry of Infrastructure and Water Management, with the "
-     "International Meuse Commission (secretariat in Liège), by mid-2027, so the answer "
-     "lands inside the 2027 planning window.",
-     "Article 8(5) as written. No new body, no new money."),
+    ("Give every street a meeting point. In Liège 855 of the 1,356 people the 2021 water reached had "
+     "no dry public building within 500 m: ask the mayors to name, street by street, the nearest "
+     "dry building as the meeting point and put it in the alert (\"leave the valley floor, go to "
+     "...\"); help first those who cannot act alone (the elderly were overrepresented among the "
+     "dead, Thieken et al., 2026); where none is within walking reach, plan transport.",
+     "Anna, with the mayors, this week.",
+     "The alert message and this tool's map of dry buildings; staff time."),
+    ("One border, one picture, before 2027. The decision-makers differ in each country (the "
+     "provincial governor in Liège, the safety regions in Dutch Limburg, the Städteregion "
+     "Aachen), and their reports cannot be compared: Belgium has no damage grading, Belgian "
+     "Limburg no 2021 satellite map. Agree one shared picture (rain, river flow, dam releases), "
+     "one alert trigger, common data standards so reports compare, and map the small rivers the European map leaves "
+     "out (below about 150 km²). Then the right lever: warning and meeting points, not a bigger "
+     "dyke, on big rivers; flash warning, local protection and managed retreat on small ones. "
+     "Of the €46 bn of 2021 flood losses in Europe only €11 bn were insured (Munich Re, 2022).",
+     "Anna, with her counterparts in Dutch Limburg and the Aachen region, through EMRIC (the "
+     "Euregio Meuse-Rhine crisis cooperation) and the International Meuse Commission, for the "
+     "2027 plan review.",
+     "Floods Directive Article 8(2), one coordinated plan for the Meuse district, and the "
+     "Article 14 review (Article 8(5) if a State cannot resolve an issue): no new body."),
 )
 
 #: The page's bottom line, the brief's closing paragraph without its figures (the
 #: page types none by hand).
 CONCLUSION = (
-    "July 2021 showed that Europe's flood map can miss many of the people a flood reaches, "
-    "and that a defence built for the 1-in-100-year flood is not a guarantee. "
-    "Recommendation 1 answers the event itself. Recommendations 2 and 3 carry it to Europe: "
-    "until the Member States' declared risk areas can be compared, nobody can see whether "
-    "the people left behind the defences are inside what any State plans for; and a river "
-    "shared by several States, as the Meuse is, needs the one cross-border route the "
-    f"Directive already provides. The next window to act is the plan review of "
-    f"{PLAN_REVIEW_DATE}.")
+    "July 2021 showed that the flood map can miss many of the people a flood reaches, and "
+    "that a forecast which reaches the authorities days ahead can still fail the people who "
+    "must act. The border area is better prepared on paper than it is on the ground. "
+    "Recommendation 1 is the action for this week's bulletin. Recommendations 2 and 3 close "
+    "the shelter gaps and put each place's money on the lever its risk needs. The next window "
+    f"to act is the plan review of {PLAN_REVIEW_DATE}.")
 
 #: Story-map raster classes, shared with the web export so both draw the same map.
 RASTER_CLASSES = story_maps.RASTER_CLASSES
@@ -180,21 +191,16 @@ def _num(value: Any) -> float | None:
 
 
 def fmt_people(value: Any) -> str:
-    """Residents, rounded to what a population model can support.
+    """Residents, to the whole person, as the notebook and the brief print them.
 
-    Three significant figures from 1,000 up, the nearest 10 from 100 up, whole
-    people below that. A GHS-POP figure weighted by flooded cell share is not
-    known to the person, and printing "32,561" would claim it is.
+    The count is a GHS-POP model weighted by flooded cell share, so its last digits
+    are not known to the person; it is printed exactly anyway so that the tool, the
+    brief and the notebook quote the same figure (1,107 of 1,213), and the limits
+    say it is a model.
     """
     if _missing(value):
         return NA
-    v = float(value)
-    if abs(v) < 100:
-        return f"{round(v):,}"
-    if abs(v) < 1000:
-        return f"{int(round(v, -1)):,}"
-    digits = 3 - int(math.floor(math.log10(abs(v)))) - 1
-    return f"{int(round(v, digits)):,}"
+    return f"{round(float(value)):,}"
 
 
 def fmt_millions(value: Any) -> str:
@@ -297,14 +303,16 @@ def europe_headcount(exposure: pd.DataFrame, return_period: int = 100) -> float 
 
 
 def hero(products: pd.DataFrame, countries: pd.DataFrame,
-         exposure: pd.DataFrame) -> list[dict[str, Any]]:
+         exposure: pd.DataFrame, *, hero_aoi: str = HERO_AOI,
+         place_name: str = "the Ahr valley",
+         place_small: str = "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 (E2020) model.") -> list[dict[str, Any]]:
     """The four numbers of the argument: missed, harm, not a one-off, when.
 
     Each is (id, big text, raw value, plain line, small print). The raw value
     is what the test compares with the table; the date has none, since it is
     law, not data.
     """
-    ahr = first_pass(products).get(HERO_AOI)
+    ahr = first_pass(products).get(hero_aoi)
     ahr_share = _num(ahr["share_residents_outside_rp100"]) if ahr is not None else None
     ahr_out = _num(ahr.get("residents_outside_rp100")) if ahr is not None else None
     ahr_res = _num(ahr["residents_observed"]) if ahr is not None else None
@@ -317,12 +325,12 @@ def hero(products: pd.DataFrame, countries: pd.DataFrame,
     eu = europe_headcount(exposure)
     return [
         {"id": "missed", "big": fmt_share(ahr_share), "raw": ahr_share,
-         "line": (f"{share_words(ahr_share).capitalize()} of the people the July 2021 water reached in the Ahr valley lived OUTSIDE "
+         "line": (f"{share_words(ahr_share).capitalize()} of the people the July 2021 water reached in {place_name} lived OUTSIDE "
                   f"the European 1-in-100-year flood zone: {fmt_people(ahr_out)} of "
                   f"{fmt_people(ahr_res)} residents."),
-         "small": "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 (E2020) model."},
+         "small": place_small},
         {"id": "harm", "big": fmt_count(destroyed), "raw": destroyed,
-         "line": (f"buildings graded destroyed in Germany. The water reached about "
+         "line": (f"buildings graded destroyed in Germany. The water reached "
                   f"{fmt_people(de_res)} residents there; {fmt_people(de_out)} of them lived "
                   f"outside the 1-in-100-year zone."),
          "small": (f"Copernicus damage grading, first maps only; later maps of the same areas "
@@ -331,7 +339,7 @@ def hero(products: pd.DataFrame, countries: pd.DataFrame,
          "line": "people in the EU live inside the 1-in-100-year river flood zone. July 2021 was not a one-off risk.",
          "small": "JRC hazard map without dikes, GHS-POP 2025 (E2025, 1 km) population, all EU-27 regions."},
         {"id": "when", "big": PLAN_REVIEW_DATE_SHORT, "raw": None,
-         "line": "is when every Member State must review its flood risk management plans: the next window to act.",
+         "line": "is when every Member State must review its flood risk management plans: the deadline for recommendation 3.",
          "small": "Floods Directive 2007/60/EC, Article 14(3)."},
     ]
 
@@ -349,7 +357,39 @@ def country_strip(countries: pd.DataFrame) -> list[dict[str, Any]]:
     return out
 
 
-def place_records(products: pd.DataFrame) -> list[dict[str, Any]]:
+#: Per-place decision card so the tool answers all four questions and helps a
+#: mayor act: a transparent priority ("evacuate first"), Q3 shelter, Q4 lever and
+#: Q2 "since 2021". Shelter figures are the team's (OBAT public buildings outside
+#: the flood zone, straight-line reach; `outputs/shelter_access.csv`). Keyed by
+#: AOI; absent keys get no card.
+PLACE_ACTIONS = {
+    "EMSR518_AOI01": {
+        "priority": "Evacuate first (1 of 3): the farthest from a shelter (855 of 1,356 have none within 500 m), and the Vesdre rises fast.",
+        "shelter": "Only 37 % of the people the water reached are within 500 m of a public building on safe ground (median ~1.1 km) — shelter is far for many; and 45 schools and 2 hospitals or care homes sit inside the 1-in-100 zone themselves.",
+        "lever": "On the Meuse the defences hold — warn and open shelters, not a bigger dyke. On the Vesdre the water is outside the map (a small river): flash warning, local protection, managed retreat.",
+        "since": "Vesdre strategic scheme (2023), resilient bank works, Eupen dam flood reserve raised 2.8→7 M m³ — but only one Walloon reservoir dam has an emergency plan (2025).",
+    },
+    "EMSR517_AOI09": {
+        "priority": "Least warning time (2 of 3): nine in ten were outside the map and the Inde is a small, flashy river — fewer people than Liège, but the shortest lead time.",
+        "shelter": "91 % of the people the water reached are within 500 m of a public building on safe ground (median 416 m) — shelter is close here.",
+        "lever": "The map misses this valley (the Inde, a small river), so a river dyke will not help: the levers are flash-flood warning, local protection, and managed retreat of the most exposed homes.",
+        "since": "The Eifel-Rur water board applied in 2023 for two retention basins on the Vicht upstream of Stolberg (Roetgen-Rott and Mulartshütte); their approval status is not confirmed. German reconstruction aid is documented for North Rhine-Westphalia as a whole, not for the Aachen region.",
+    },
+    "EMSR520_AOI01": {
+        "priority": "Lower (3 of 3): most people are inside the map, the defences hold, and the Maas gives more warning time.",
+        "shelter": "60 % of the people the water reached are within 500 m of a public building on safe ground (median 722 m).",
+        "lever": "Mostly inside the map and the defences largely hold — the levers are warning, shelter, and the cross-border Meuse signal.",
+        "since": "Dutch Limburg programme (Waterveiligheid en Ruimte Limburg) and the Beleidstafel actions — 50 of 80 done by 2026.",
+    },
+}
+
+#: Shown on every card: the priority weighting is the team's call, never the AI's.
+PRIORITY_NOTE = ("Priority weighs people reached, how far outside the map, how far from a shelter and "
+                 "how fast the river rises — the weights are the team's choice, not the AI's; weight "
+                 "surprise and flashiness higher and Eschweiler/the Vesdre come first.")
+
+
+def place_records(products: pd.DataFrame, *, first_key: str | None = None) -> list[dict[str, Any]]:
     """The selectable places: named ones first, then any other sizeable AOI.
 
     Figures are the first pass, like the hero; the later pass is kept for one
@@ -396,7 +436,12 @@ def place_records(products: pd.DataFrame) -> list[dict[str, Any]]:
                 "share": fmt_share(m["share_residents_outside_rp100"]),
                 "km2": fmt_km2(m.get("observed_km2")),
             },
+            "action": PLACE_ACTIONS.get(k),
         })
+    if first_key:  # bring these to the front (the first one opens the story), keeping the rest in order
+        front = [first_key] if isinstance(first_key, str) else list(first_key)
+        rank = {k: i for i, k in enumerate(front)}
+        records.sort(key=lambda r: rank.get(r["key"], len(front)))
     return records
 
 
@@ -408,6 +453,48 @@ def outside_shares(countries: pd.DataFrame) -> dict[str, dict[int, float | None]
         row = first.get(iso)
         out[iso] = {rp: (None if row is None else _num(row.get(f"share_residents_outside_rp{rp}")))
                     for rp in CHART_RPS}
+    return out
+
+
+def combined_reached(countries: pd.DataFrame) -> dict[str, Any]:
+    """Cross-border total the first maps reached: residents, buildings and the
+    share outside the 1-in-100 zone, summed over the three countries.
+
+    Same `product` basis as the hero (first maps only), so the dates of the
+    monitoring passes are not mixed into one headline. One number for Anna: the
+    whole border area at once, not three separate ones.
+    """
+    rows = country_rows(countries)
+    res = sum((_num(r["residents_observed"]) or 0) for r in rows.values())
+    bld = sum((_num(r["buildings_observed"]) or 0) for r in rows.values())
+    out = sum((_num(r.get("residents_outside_rp100")) or 0) for r in rows.values())
+    share = out / res if res else None
+    return {"residents": res, "buildings": bld, "share_outside": share,
+            "residents_shown": fmt_people(res), "buildings_shown": fmt_count(bld),
+            "share_shown": fmt_share(share)}
+
+
+def map_agreement(countries: pd.DataFrame) -> list[dict[str, Any]]:
+    """Per country, the share of the observed flood AREA the maps covered: inside
+    the 1-in-100 zone, in the 1-in-500 zone only, or outside both.
+
+    From the cell-weighted hit rate (`product` basis): `in100` = hit rate at
+    RP100, `only500` = the extra the RP500 map adds, `outside` = what even the
+    RP500 map misses. This answers "was the map right?" by area, next to the
+    by-people chart, which answers it by residents.
+    """
+    rows = country_rows(countries)
+    out = []
+    for iso in COUNTRIES:
+        r = rows.get(iso)
+        h100 = _num(r.get("hit_rate_rp100")) if r is not None else None
+        h500 = _num(r.get("hit_rate_rp500")) if r is not None else None
+        only500 = None if (h100 is None or h500 is None) else max(0.0, h500 - h100)
+        outside = None if h500 is None else max(0.0, 1.0 - h500)
+        out.append({"country": iso, "name": COUNTRY_NAMES[iso],
+                    "in100": h100, "only500": only500, "outside": outside,
+                    "in100_shown": fmt_share(h100), "only500_shown": fmt_share(only500),
+                    "outside_shown": fmt_share(outside)})
     return out
 
 
@@ -548,6 +635,11 @@ def story_map_html(place: dict[str, Any], layer: dict[str, Any] | None) -> str:
              f'<g class="scale"><rect x="{w * 0.03:.0f}" y="{h - fs * 2.2:.0f}" width="{px:.0f}" '
              f'height="{fs / 3:.1f}"/><text x="{w * 0.03:.0f}" y="{h - fs * 2.6:.0f}" '
              f'font-size="{fs:.0f}">{km:g} km</text></g>')
+    credit = layer.get("credit", "")
+    credit_svg = ("" if not credit else
+                  f'<text x="{w * 0.985:.0f}" y="{h - fs * 0.5:.0f}" text-anchor="end" '
+                  f'font-size="{fs * 0.85:.0f}" fill="#fff" '
+                  f'style="paint-order:stroke;stroke:#00000088;stroke-width:3">{esc(credit)}</text>')
     return (
         f'<div class="stage" style="aspect-ratio:{w}/{h};width:min(100%,calc(75vh * {w / h:.3f}))">'
         f'<img alt="Water seen in {esc(place["label"])}, inside and outside the 1-in-100-year zone" '
@@ -555,7 +647,7 @@ def story_map_html(place: dict[str, Any], layer: dict[str, Any] | None) -> str:
         f'<svg viewBox="0 0 {w} {h}" preserveAspectRatio="none" aria-hidden="true">'
         f'<path class="nutsl" d="{layer.get("nuts", "")}"/>'
         f'<path class="outline" d="{layer.get("outline", "")}"/>'
-        f'{towns}{scale}</svg></div>')
+        f'{towns}{scale}{credit_svg}</svg></div>')
 
 
 def locator_svg(locator: dict[str, Any] | None, places: Sequence[dict[str, Any]]) -> str:
@@ -692,10 +784,25 @@ def europe_legend(shares: dict[str, float | None]) -> str:
 # --- page ------------------------------------------------------------------------
 
 LIMITS: tuple[str, ...] = (
+    "<b>Built with AI, checked by people.</b> AI wrote most of the code and drafted text. "
+    "The team set every definition and weight, recomputed every figure from the organisers' "
+    "data and checked it against the sources. No AI runs in this page. How AI was used, and "
+    "where it was wrong, is in the team's AI sheet.",
+    "<b>Scenarios, not a forecast.</b> The maps are fixed flood scenarios (1-in-10, "
+    "1-in-100 and 1-in-500 years). They cannot say what happens in the next 5 to 10 hours "
+    "if the rain keeps falling: that comes from the European flood forecast (EFAS) and the "
+    "national flash-flood services, and linking their bulletins to this screening is the "
+    "next step.",
     "<b>Satellite snapshots, not the peak.</b> Copernicus maps show the water visible "
     "on one image, often a day or more after the crest. The true extent was larger.",
     "<b>Outside a mapped area means not mapped, not dry.</b> Only the outlined areas "
-    "were mapped; whole flooded valleys lie outside them.",
+    "were mapped; whole flooded valleys lie outside them. Liège's figures are a floor: "
+    "neither satellite map shows water in Verviers or Pepinster, on the Vesdre.",
+    "<b>Two readings, both stated.</b> Liège is 13 % outside the map on the first "
+    "satellite map and 34 % on the later, wider one. Shelter reach counts the buildings "
+    "of all three countries (37 % within 500 m); the Belgian file alone gives 23 %. "
+    "The case notebook recomputes the figures independently on the organisers' data, "
+    "and an automatic test checks that they match.",
     "<b>Two kinds of maps.</b> Delineation maps, drawn semi-automatically from radar, "
     "stop at building walls and miss water between houses; grading maps, drawn by "
     "analysts, carry the water through the towns. Belgium has only delineation maps, "
@@ -740,6 +847,154 @@ HOW_WE_COUNTED: tuple[str, ...] = (
     "the Copernicus analysts' damage grade, available only for German grading maps.",
     "<b>Country totals</b> are counted on the union of the areas, cell by cell and "
     "building by building, so two maps over the same valley are not counted twice.",
+    "<b>Reproduced independently in the case notebook</b>, computed from the data bucket, "
+    "not copied from this page.",
+)
+
+#: Q2 desk research in one compact block: what each country/region and the EU did
+#: after July 2021, so the recommendations rest on the record and not on memory.
+#: Sources are cited IN TEXT (institution + date), never a link and never a
+#: personal name, under the same rules as SOURCES (the tool loads nothing and
+#: names no one but the team). Figures stated as plans are flagged as plans.
+#: Full fiches with URLs: docs/perso/q2_sources.md. Each item is (region, bullets).
+SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Belgium — Wallonia and the Vesdre", (
+        "Parliamentary inquiry: 161 recommendations (187 with sub-recommendations), adopted "
+        "March 2022; the three-year follow-up splits them 126 for the Region, 20 partly, 37 "
+        "federal, with 19 more completed since October 2024 and 58 of 88 still in progress "
+        "(Walloon Parliament, 2022; Walloon Government, 17 April 2025).",
+        "Reconstruction: repair cost about EUR 5.2 billion; emergency river-safety works on "
+        "more than 1,000 bank sites, about 46 % done by mid-2022; resilient bank reconstruction "
+        "funded (EUR 430 million recovery-plan axis 6, plus EUR 300 million of a EUR 1.1 billion "
+        "EIB loan), with about 880 km along the Vesdre planned — a plan, not yet built "
+        "(Commissariat à la Reconstruction, 1 July 2022; Walloon Government, 4 July 2022).",
+        "Prevention and planning: a circular on building in flood zones in force since 1 April "
+        "2022; the 2022–2027 flood-risk management plan (PGRI) approved 19 January 2023 with 671 "
+        "local projects; EUR 71.2 million in resilience subsidies to communes (SPW, 2021–2023).",
+        "Dams and modelling: an independent review found the Vesdre valley floods from a "
+        "1-in-25-year event even with the Eupen dam, and asked for a legal dam-safety framework "
+        "and forecast-driven operation (Stucky review, 6 December 2021); a whole-basin Vesdre "
+        "model was delivered 19 March 2024 (ULiège ModRec).",
+        "Compensation and clean-up: the Region put in about EUR 1 billion so insurers cover 41 % "
+        "and the Region 59 % of insured damage, and about 152,000 tonnes of flood waste were "
+        "treated (Walloon Government, 4 July 2022).",
+    )),
+    ("Germany — the Ahr (Rhineland-Palatinate)", (
+        "Reconstruction fund of up to EUR 30 billion; about EUR 5.84 billion paid out by 31 "
+        "December 2025. The federal government will not fund new flood-protection works from it "
+        "(a task of the Länder) and points to EUR 127 million a year in the federal-Länder joint "
+        "fund (German Bundestag, 27 February 2026).",
+        "Public warning: technical rules for Cell Broadcast / DE-Alert over mobile networks were "
+        "published 23 February 2022, the legal basis in force since December 2021 "
+        "(Bundesnetzagentur, 23 February 2022).",
+        "Prevention: the national flood-protection programme (NHWSP) for 2026–2035 is costed at "
+        "about EUR 4 billion for the Länder, and the federal government is pursuing expanded "
+        "mandatory natural-hazard insurance (German Bundestag, 27 February 2026).",
+    )),
+    ("Netherlands — Limburg", (
+        "Policy table on flooding: 21 recommendations, all accepted (19 December 2022); the "
+        "safety model was widened from three to five layers, adding water-awareness and recovery.",
+        "Progress (final report, April 2026): of 80 actions, 50 done, 19 embedded in other "
+        "programmes and 11 moved to a future national programme; the Limburg programme has a "
+        "governing committee since November 2025 and plans built on 2100 climate projections "
+        "(Dutch Ministry of Infrastructure and Water Management, 2022 and 2026).",
+        "Limburg is developing risk-based protection standards on one coherent methodology, and a "
+        "public web tool lets residents look up flood risk by address (Dutch Ministry of "
+        "Infrastructure and Water Management, 2026).",
+    )),
+    ("EU level", (
+        "EU Solidarity Fund (December 2022): EUR 612.6 million to Germany, EUR 87.7 million to "
+        "Belgium and EUR 4.7 million to the Netherlands (Decision (EU) 2023/68).",
+        "Implementation review (February 2025): only 8 of 21 assessed Member States link spatial "
+        "planning and flood-risk management in law or policy, and nature-based solutions are in "
+        "every plan but not yet taken up at scale; Belgium is asked for harmonised flood maps, "
+        "water depths on every map and explicit climate change (European Commission, COM(2025) 2).",
+        "Reporting gaps: about 14,000 areas of potential significant flood risk are declared "
+        "EU-wide, but five Member States had not submitted their plans by the September 2023 "
+        "cut-off, and the Commission opened proceedings over late adoption (European Commission, "
+        "COM(2025) 2).",
+    )),
+)
+
+#: What to do before the water, from the forecast to the first drop: the mayor's
+#: question is the time before, since once the water is there the emergency
+#: services know their job. Each step reuses a figure or a source already on the
+#: page (EFAS's 10 July 2021 lead time, Q3's shelter reach, the schools and care
+#: homes in the zone). Each is (when, who, what).
+BEFORE_THE_WATER: tuple[tuple[str, str, str], ...] = (
+    ("When EFAS notifies (about four days ahead, as on 10 July 2021)", "Anna",
+     "Put the dam operators, the river-flow services and the mayors on one shared picture. "
+     "Name each street's meeting point: the nearest dry building."),
+    ("Two days ahead", "Anna, with the province and the mayors",
+     "Send an alert that carries the worst case and how it could escalate, not a single level. "
+     "Put the meeting point in the alert, Liège first, where residents have no dry building close by."),
+    ("5 to 10 hours ahead", "Anna triggers; civil protection sends (BE-Alert, NL-Alert, DE-Alert)",
+     "A Cell Broadcast that says what to do: \"leave the valley floor\". On the small rivers the "
+     "map does not model, do not wait for the map."),
+    ("When the water is there", "The emergency services",
+     "They know what to do. This plan ends where theirs begins."),
+)
+
+#: Next steps on the ground, grounded in the gaps the desk research found (SINCE_2021)
+#: and in the official recommendations. Same rules as RECOMMENDATIONS: typed text,
+#: cited in place, no link, no personal name. Each is (action, who and by when, basis).
+NEXT_STEPS: tuple[tuple[str, str, str], ...] = (
+    ("Close the last mile of the warning chain: push a public cell-broadcast alert carrying a "
+     "magnitude and an action (\"leave the valley floor\"), wired to the European flood forecast, "
+     "not just a generic warning.",
+     "Anna triggers it; national and regional civil-protection authorities send it, before the "
+     "forecast rain arrives.",
+     "The European flood forecast warned national authorities from 10 July 2021, yet 29–35 % of "
+     "residents got no warning and up to half of those warned did not know what to do "
+     "(peer-reviewed survey of the July 2021 flood, 2023); the cell-broadcast basis exists since "
+     "February 2022."),
+    ("Do not triage on the 1-in-100-year map alone: trigger on the observed 2021 footprint joined "
+     "with that map, and treat small rivers and runoff as unmapped risk.",
+     "The crisis coordinator, for this event.",
+     "The hazard map models only large rivers; in the Aachen region about nine in ten of the "
+     "people the water reached were outside it (this tool's own result)."),
+    ("Pre-activate the nearest safe public buildings as shelters for the places where residents "
+     "are far from one.",
+     "Municipal civil protection, this week.",
+     "The shelter reach per place shown in this tool."),
+    ("Finish an emergency plan for every reservoir dam, not only the one that has it, and publish "
+     "the forecast-driven operating rule for the Vesdre dams.",
+     "Provincial governors and the Walloon waterways administration.",
+     "The inquiry asked for a plan for every reservoir dam; only one exists; the independent "
+     "review (6 December 2021) asked for a legal dam-safety framework and forecast-driven "
+     "operation."),
+    ("Publish the updated Vesdre strategic scheme, give the hazard map real weight in building "
+     "permits, and report the kilometres of resilient bank actually rebuilt, not only the plan.",
+     "The Walloon territory and environment administration.",
+     "The scheme (2023) binds no commune and its promised update is still unpublished; \"about "
+     "880 km\" is a 2022 plan."),
+    ("Harmonise the regional flood-map viewers, put water depths on every hazard map, state "
+     "climate change, and set quantified, time-bound objectives before the next plan.",
+     "The three Belgian regions, before the 22 December 2027 plan review.",
+     "The Commission's assessment of Belgium under the Floods Directive (COM(2025) 2)."),
+    ("Make cross-border coordination operational on the Meuse and the Vesdre–Rur, not only "
+     "planned: shared data, joint forecasting, a common area vision.",
+     "The Belgian, German and Dutch basin authorities.",
+     "The Dutch policy table asked for cooperation on all cross-border waters (2022); the "
+     "Commission asks all three states for clearer international coordination (COM(2025) 2)."),
+)
+
+#: Decision-facing warnings: the few cautions a user must hold BEFORE acting on the
+#: numbers, as plain do/don't. The fuller methodology is in LIMITS.
+WARNINGS: tuple[str, ...] = (
+    "Do not triage on the 1-in-100-year map alone. It models only large rivers without dikes; "
+    "much of the 2021 water came from small rivers and runoff, and whole valleys flooded outside "
+    "it.",
+    "Outside a mapped area means not mapped, not dry. Absence of colour on a map is missing data, "
+    "not safety.",
+    "Works funded are not works finished. \"About 880 km\" of resilient Vesdre banks is a 2022 "
+    "plan; no official source confirms how many kilometres are built.",
+    "A 1-in-100-year design is not a guarantee. The Ahrweiler district counts as protected to the "
+    "1-in-100-year flood, and the Ahr flooded in 2021.",
+    "Shelter distances here are straight-line floors. Real walking is longer and bridges may be "
+    "cut, so treat the reach figures as optimistic.",
+    "In 2021 the forecast existed days ahead; the last mile failed. Warn people with an action, "
+    "not just a signal.",
 )
 
 CSS = """
@@ -824,6 +1079,15 @@ details ul{margin:.4em 0;padding-left:1.2em}
 .recos th,.recos td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
 .recos tr.reco td{border:3px solid var(--ink);font-size:1.05rem}
 .conclusion{font-size:1.1rem;border-left:4px solid var(--ink);padding:4px 0 4px 14px}
+.warnbox{background:#fff4f0;border:1px solid #d98a6a;border-left:5px solid var(--accent);padding:12px 18px;margin:14px 0}
+.warnbox .warnhead{font-weight:700;color:var(--accent);margin:0 0 .4em}
+.warnbox ul{margin:.2em 0;padding-left:1.2em}
+.warnbox li{margin:.35em 0;font-size:.92rem}
+.combined{background:#eef3fb;border-left:5px solid var(--ink);padding:10px 16px;margin:12px 0;font-size:1.05rem}
+h3.sub{font-size:1.02rem;margin:1.3em 0 .4em}
+.agreetbl{width:100%;border-collapse:collapse;font-size:.92rem;margin:.3em 0}
+.agreetbl th,.agreetbl td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:right}
+.agreetbl th:first-child,.agreetbl td:first-child{text-align:left}
 .limits{columns:2 340px;column-gap:32px;padding:16px 20px;margin:0;list-style:none;background:#fffaf0;border:1px solid #d8c48a}
 .limits li{break-inside:avoid;margin:0 0 .7em;font-size:.9rem}
 footer{margin-top:3em;border-top:1px solid var(--line);padding-top:10px;font-size:.78rem;color:var(--muted)}
@@ -833,7 +1097,7 @@ body{font-size:11pt}main{max-width:none;padding:0}
 .places,.toggle,details summary{display:none}
 details{display:block}details>*{display:block}
 h2{break-after:avoid;margin-top:1.4em}
-.hero,.story,.europe,.recos,.conclusion,.limits,.chart{break-inside:avoid}
+.hero,.story,.europe,.recos,.conclusion,.limits,.chart,.warnbox,.combined,.agreetbl{break-inside:avoid}
 .limits{background:none}
 }
 """
@@ -857,7 +1121,7 @@ var first=document.querySelector('.places button');if(first)pick(first.getAttrib
 
 def _hero_html(args: Sequence[dict[str, Any]]) -> str:
     steps = {"missed": "The map missed people", "harm": "The harm",
-             "europe": "Not a one-off", "when": "The window to act"}
+             "europe": "Not a one-off", "when": "The plan deadline"}
     return '<section class="hero" aria-label="Why act">' + "".join(
         f'<div class="arg arg-{esc(a["id"])}"><div class="step">{i}. {steps.get(a["id"], "")}</div>'
         f'<div class="big" data-hero="{esc(a["id"])}" data-value="{"" if a["raw"] is None else repr(a["raw"])}">'
@@ -889,6 +1153,16 @@ def _facts_html(p: dict[str, Any]) -> str:
                  f'{esc(p["later"]["share"])} of them outside the zone.</p>')
     kind = ("grading map: analysts drew the water through the streets" if p["graded"]
             else "delineation map from radar: stops at walls, a floor")
+    a = p.get("action")
+    action = "" if not a else (
+        '<div style="margin-top:.6rem;padding:.6rem .85rem;border-left:3px solid #0b4f9c;'
+        'background:rgba(11,79,156,.07);border-radius:3px">'
+        f'<p style="margin:0 0 .4rem"><b>Evacuate first? (priority)</b> {esc(a["priority"])}</p>'
+        f'<p style="margin:0 0 .4rem"><b>Can we shelter them? (Q3)</b> {esc(a["shelter"])}</p>'
+        f'<p style="margin:0 0 .4rem"><b>Which lever? (Q4)</b> {esc(a["lever"])}</p>'
+        f'<p class="small" style="margin:0 0 .4rem"><b>Done since 2021 (Q2):</b> {esc(a["since"])}</p>'
+        f'<p class="small" style="margin:0">{esc(PRIORITY_NOTE)}</p>'
+        '</div>')
     return (f'<div class="facts" data-key="{esc(p["key"])}">'
             f'<h3>{esc(p["label"])}</h3>'
             f'<div class="fig"><div class="n">{esc(f["residents"])}</div>residents reached by the water '
@@ -898,7 +1172,71 @@ def _facts_html(p: dict[str, Any]) -> str:
             f'<div class="fig"><div class="n">{esc(f["residential"])}</div>homes in the water '
             f'({esc(f["buildings"])} buildings in all)</div>{destroyed}'
             f'<p class="small">{esc(p["country"])} · {esc(p["key"])} · first satellite map; {kind}.</p>'
-            f'{later}</div>')
+            f'{action}{later}</div>')
+
+
+def _since_html() -> str:
+    """The "what has been done since 2021" section, from SINCE_2021.
+
+    Shown in full (not collapsed) so the record is part of the argument; text
+    only, every figure cited in place, consistent with the page's no-link,
+    no-name rules.
+    """
+    blocks = "".join(
+        f'<p class="sincereg"><b>{esc(region)}</b></p><ul>'
+        + "".join(f"<li>{esc(b)}</li>" for b in bullets) + "</ul>"
+        for region, bullets in SINCE_2021)
+    return ('<div class="since">' + blocks
+            + '<p class="small">Official sources, cited in text with their date; figures stated '
+            'as plans are not completed works; full fiches in the team Q2 desk-research file.</p></div>')
+
+
+def _before_the_water_html() -> str:
+    """The time before the water as a timeline table, read top to bottom."""
+    rows = "".join(f"<tr><td><b>{esc(when)}</b></td><td>{esc(who)}</td><td>{esc(what)}</td></tr>"
+                   for when, who, what in BEFORE_THE_WATER)
+    return ('<table class="recos"><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>'
+            f"<tbody>{rows}</tbody></table>")
+
+
+def _next_steps_html() -> str:
+    """Grounded next steps, as a table in the same shape as the recommendations."""
+    rows = "".join(
+        f'<tr><td><b>{i}.</b> {esc(what)}</td><td>{esc(who)}</td><td>{esc(basis)}</td></tr>'
+        for i, (what, who, basis) in enumerate(NEXT_STEPS, 1))
+    return ('<table class="recos"><thead><tr><th>Next step</th><th>Who, by when</th>'
+            f'<th>The evidence it rests on</th></tr></thead><tbody>{rows}</tbody></table>')
+
+
+def _warnings_html() -> str:
+    """The decision-facing warnings callout: plain do/don't, held before acting."""
+    items = "".join(f"<li>{esc(w)}</li>" for w in WARNINGS)
+    return ('<div class="warnbox"><p class="warnhead">Before you act on these numbers</p>'
+            f'<ul>{items}</ul></div>')
+
+
+def _combined_html(c: dict[str, Any]) -> str:
+    """One line: the cross-border total the first maps reached, for the three countries at once."""
+    return ('<p class="combined">Across the three countries the first maps reached '
+            f'<b>{esc(c["buildings_shown"])}</b> buildings and <b>{esc(c["residents_shown"])}</b> '
+            f'residents — and <b>{esc(c["share_shown"])}</b> of those people lived outside the '
+            '1-in-100-year flood zone.</p>')
+
+
+def _agreement_html(rows: Sequence[dict[str, Any]]) -> str:
+    """Table: share of the observed flood AREA inside / outside the maps, per country.
+
+    The companion to the by-people chart: it reads the map's blind spot off the
+    flooded area itself, so a country with few people but much water (the German
+    valleys) still shows how much the map missed.
+    """
+    body = "".join(
+        f'<tr><td>{esc(r["name"])}</td><td>{esc(r["in100_shown"])}</td>'
+        f'<td>{esc(r["only500_shown"])}</td><td>{esc(r["outside_shown"])}</td></tr>'
+        for r in rows)
+    return ('<table class="agreetbl"><thead><tr><th>Country</th><th>Inside the 1-in-100 zone</th>'
+            '<th>1-in-500 only</th><th>Outside both maps</th></tr></thead>'
+            f'<tbody>{body}</tbody></table>')
 
 
 def unreported_countries(context: pd.DataFrame) -> tuple[str, list[str]]:
@@ -927,14 +1265,19 @@ def render_page(
     question: str = "[DECISION QUESTION]",
     recommendation: str = "[RECOMMENDATION]",
     actor: str = "[NAMED ACTOR]",
+    instrument: str = "[INSTRUMENT, COST]",
     unreported: tuple[str, list[str]] | None = None,
     built: str = "",
+    hero_aoi: str = HERO_AOI,
+    hero_place: str = "the Ahr valley",
+    hero_small: str = "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 (E2020) model.",
+    front: Sequence[str] | None = None,
 ) -> str:
     """The whole page, top to bottom in the order of the argument.
 
     Placeholders in square brackets are left for the team to fill on the day.
     """
-    places = place_records(products)
+    places = place_records(products, first_key=front or hero_aoi)
     layers = place_layers or {}
     shares = outside_shares(countries)
     eu = europe_shares(exposure)
@@ -943,8 +1286,8 @@ def render_page(
     if unreported and unreported[1]:
         unreported_note = (
             f'<p class="small"><b>Not in the European risk-area layer ({esc(unreported[0])} '
-            f'cycle): {esc(", ".join(unreported[1]))}.</b> The States designated the areas; '
-            "recommendation 2 asks for them in the layer.</p>")
+            f'cycle): {esc(", ".join(unreported[1]))}.</b> The States designated the areas '
+            "but did not report them to the EU layer.</p>")
 
     def slot(text: str) -> str:
         return f'<span class="slot">{esc(text)}</span>' if text.startswith("[") else esc(text)
@@ -974,8 +1317,12 @@ def render_page(
 <header><h1>{slot(title)}</h1>
 <p class="question">{slot(question)}</p></header>
 
-{_hero_html(hero(products, countries, exposure))}
+{_hero_html(hero(products, countries, exposure, hero_aoi=hero_aoi, place_name=hero_place, place_small=hero_small))}
 {_strip_html(country_strip(countries))}
+{_combined_html(combined_reached(countries))}
+<h2><span class="kicker">Before the water</span>From the forecast to the first drop</h2>
+{_before_the_water_html()}
+
 <details><summary>How we counted</summary><ul>{"".join(f"<li>{x}</li>" for x in HOW_WE_COUNTED)}</ul></details>
 
 <h2><span class="kicker">The story map</span>Where the water went, and where the map expected it</h2>
@@ -993,6 +1340,13 @@ The dashed line is the area Copernicus mapped; beyond it nothing is known.</p></
 <p class="small">Share of the residents the water reached (first satellite maps) who lived outside the JRC
 flood map. The bigger the flood a map assumes, the more it covers, so the share falls from the 1-in-10 to
 the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map does not model.</p>
+<h3 class="sub">Was the map right, by area?</h3>
+{_agreement_html(map_agreement(countries))}
+<p class="small">The share of the observed flood <b>area</b> (first maps) that fell inside the 1-in-100-year zone,
+in the 1-in-500 zone only, or outside both — the cell-weighted agreement with the JRC map. The chart above
+counts people; this counts flooded ground, so a place with much water but few residents still shows how much
+the map missed. "Outside both" mixes flooding beyond the modelled hazard with rivers too small to be modelled
+(catchment below the ~150 km² floor).</p>
 
 <h2><span class="kicker">Europe</span>Is July 2021 a one-off?</h2>
 <div class="europe"><div>{europe_svg(europe_features, eu)}</div>
@@ -1001,11 +1355,20 @@ the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map
 if there were no dikes (JRC hazard map, GHS-POP 2025, E2025). Protected low-lying areas, such as much of the
 Netherlands, therefore show high. Grey is not measured, not zero.</p>{unreported_note}</div></div>
 
-<h2><span class="kicker">What we recommend</span>Three recommendations, before the {PLAN_REVIEW_DATE_SHORT} plan review</h2>
+<h2><span class="kicker">Read before acting</span>Warnings</h2>
+{_warnings_html()}
+
+<h2><span class="kicker">What we recommend</span>Three recommendations: two before the rain, one by the {PLAN_REVIEW_DATE_SHORT} plan review</h2>
 <table class="recos"><thead><tr><th>Action</th><th>Who, by when</th><th>Instrument, cost</th></tr></thead><tbody>
-<tr class="reco"><td><b>1.</b> {slot(recommendation)}</td><td>{slot(actor)}</td><td>{slot("[INSTRUMENT, COST]")}</td></tr>
+<tr class="reco"><td><b>1.</b> {slot(recommendation)}</td><td>{slot(actor)}</td><td>{slot(instrument)}</td></tr>
 {"".join(f'<tr><td><b>{i}.</b> {esc(what)}</td><td>{esc(who)}</td><td>{esc(how)}</td></tr>' for i, (what, who, how) in enumerate(RECOMMENDATIONS, 2))}
 </tbody></table>
+
+<h2><span class="kicker">Next steps on the ground</span>What to do next, grounded in the gaps above</h2>
+{_next_steps_html()}
+
+<h2><span class="kicker">Context</span>What has been done since July 2021</h2>
+{_since_html()}
 <h2><span class="kicker">In one paragraph</span>Conclusion</h2>
 <p class="conclusion">{esc(CONCLUSION)}</p>
 
@@ -1014,8 +1377,9 @@ Netherlands, therefore show high. Grey is not measured, not zero.</p>{unreported
 
 <footer>
 <p><b>Sources.</b></p><ul>{"".join(f"<li>{esc(s)}</li>" for s in SOURCES)}</ul>
-<p>Every number on this page is read from the team's computed tables by a script; none is typed by hand,
-except dates and the Directive's own terms. This file is static: it calls no AI service and loads nothing from the
+<p>Every number on this page is read from the team's computed tables by a script, except dates, the
+Directive's own terms, the recommendations and the per-place cards: their shelter figures are copied from the team's Q3 table
+(shelter_access.csv) and their "since 2021" lines from the cited public sources. This file is static: it calls no AI service and loads nothing from the
 internet. {esc(built)}</p>
 <p><b>{TEAM}</b></p>
 </footer>

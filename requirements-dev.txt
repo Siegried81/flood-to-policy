@@ -5,3 +5,7 @@ debugpy>=1.8.22,<2
 # playwright: headless screenshots of both UIs (scripts/screenshots/). After
 #   installing, fetch its browser once: python -m playwright install chromium
 playwright>=1.64.1,<2
+# ipykernel: lets the project .venv be selected as the kernel for the notebooks
+#   in docs/perso/. Register it once: python -m ipykernel install --user
+#   --name flood-to-policy --display-name "Python (.venv flood-to-policy)"
+ipykernel>=7.4,<8

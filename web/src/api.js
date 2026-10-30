@@ -141,6 +141,35 @@ export const approve = (text, token) =>
 export const getConfig = () => request("/api/config");
 
 
+// The set of place keys that have an interactive map built; empty on failure.
+export async function getInteractiveIndex() {
+  try {
+    const resp = await fetch(`${import.meta.env.BASE_URL}interactive/index.json`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return (data.places || []).map((p) => p.key);
+  } catch {
+    return [];
+  }
+}
+
+// Per-place data for the interactive (Leaflet) map, loaded on demand. Returns
+// null when the files are not there or the network is down — the caller then
+// keeps the baked satellite image, so the app still works offline.
+export async function getInteractive(key) {
+  const base = `${import.meta.env.BASE_URL}interactive/${key}/`;
+  try {
+    const metaResp = await fetch(`${base}meta.json`);
+    if (!metaResp.ok) return null;
+    const meta = await metaResp.json();
+    const floodResp = await fetch(`${base}flood.geojson`);
+    const flood = floodResp.ok ? await floodResp.json() : null;
+    return { ...meta, flood, depthUrl: meta.depth ? `${base}${meta.depth.image}` : null };
+  } catch {
+    return null;
+  }
+}
+
 // The July 2021 story. With a server, the API comes first: locally it serves
 // the `--full` build (GISCO borders, NUTS3 lines) when present, which the
 // public file Vite copied into dist/ never carries. The public file, resolved

@@ -29,9 +29,9 @@ export default function App() {
     <main className="shell">
       <header className="app-head">
         <div>
-          <h1>Flood to policy</h1>
+          <h1>Warn before the water, shelter where people have none</h1>
           <p className="caption">
-            July 2021 floods in Belgium, Germany and the Netherlands, in European context · Team N
+            July 2021 floods in the Liege, Limburg and Aachen border area, in European context · Team 9
             {hosted && (
               <span className="chip demo-chip" title="Language-model and write features are off">
                 {STATIC_BUILD ? "static demo" : "hosted demo"}

@@ -23,8 +23,9 @@ from src import story_maps
 from tests.test_policy_tool import _countries, _exposure, _layer, _products
 
 ROOT = Path(__file__).resolve().parents[1]
-TOP_KEYS = {"schema", "built", "team", "hero", "strip", "chart", "raster_classes", "places",
-            "locator", "how_we_counted", "limits", "sources", "attribution"}
+TOP_KEYS = {"schema", "built", "team", "hero", "strip", "combined", "agreement", "chart",
+            "raster_classes", "places", "locator", "how_we_counted", "warnings", "recommendations",
+            "next_steps", "since", "conclusion", "limits", "sources", "attribution"}
 
 
 def _web_layer() -> dict:
@@ -45,7 +46,7 @@ def payload() -> dict:
 def test_payload_has_the_contract_keys(payload):
     assert set(payload) == TOP_KEYS
     assert payload["schema"] == X.SCHEMA_VERSION
-    assert payload["team"] == "Team N"
+    assert payload["team"] == "Team 9"
     assert [h["id"] for h in payload["hero"]] == ["missed", "harm", "europe", "when"]
     assert [s["country"] for s in payload["strip"]] == ["BE", "DE", "NL"]
     assert payload["chart"]["return_periods"] == [10, 100, 500]
@@ -136,10 +137,15 @@ def test_the_built_artefact_is_compact_and_well_formed(path):
     assert path.stat().st_size <= X.MAX_BYTES
     data = json.loads(path.read_text(encoding="utf-8"))
     assert TOP_KEYS <= set(data)
-    assert data["places"][0]["key"] == P.HERO_AOI
+    # The committed artefact is the deployed build (Anna: the border place opens the
+    # story), so the first place is whichever product leads, not necessarily the Ahr.
+    # It must be a real place that carries a map.
+    keys = {p["key"] for p in data["places"]}
+    assert data["places"][0]["key"] in keys and data["places"][0]["map"]
+    # Maps are either the offline classified PNG or the satellite JPEG basemap.
     for place in data["places"]:
         if place["map"]:
-            assert place["map"]["png"].startswith("data:image/png;base64,")
+            assert place["map"]["png"].startswith(("data:image/png;base64,", "data:image/jpeg;base64,"))
 
 
 def test_sources_name_gisco_only_when_its_lines_are_drawn(payload):
@@ -181,3 +187,10 @@ def test_border_lines_label_large_countries_and_skip_the_frame_edge():
     assert "M50.0 " in d and " 98.0" in d  # the BE-DE border and the FR edge are drawn
     coords = [float(v) for v in d.replace("M", " ").replace("L", " ").split()]
     assert all(0 < v < 100 for v in coords)  # nothing runs along the frame itself
+
+
+def test_border_decision_carries_the_recommendations_and_the_steps_before_the_water():
+    """The Space's decision block says what the tool says: same points, same timeline."""
+    d = X.BORDER_DECISION
+    assert len(d["points"]) == 1 + len(P.RECOMMENDATIONS)
+    assert [b["when"] for b in d["before"]] == [w for w, _, _ in P.BEFORE_THE_WATER]

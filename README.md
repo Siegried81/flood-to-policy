@@ -1,13 +1,23 @@
 # Flood to policy
 
+> **About this repository.** I prepared this repository for the European AI
+> Challenge 2026 hackathon, where I worked in a team of six. It holds only my
+> own analyses, my policy tool and its Hugging Face Space: the team's group
+> work (its own tool and code) is not included. The exceptions are the policy
+> brief and the AI sheet, written by the six of us. Both are in
+> [`docs/hackathon/`](docs/hackathon/), as submitted, with my case notebook
+> (run on the organisers' data), its outputs and the Q2 sources it cites.
+
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
 Germany and the Netherlands, read against the European flood hazard map, and
 what the next round of the Floods Directive should change. Built for the
 **European AI Challenge 2026 — From Data to Policy** (JRC × FARI, Brussels,
-29–30 October 2026).
+29–30 October 2026). At the event the case became **Anna's**: a cross-border
+crisis coordinator for Liège, Limburg and the Aachen region, with a flood
+warning on the table; my tool and the team's brief answer her four questions.
 
 **Live demo (July 2021 and Europe views, no install):**
-https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
+https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
 
 | The July 2021 view | The Vesdre, house by house | Power BI, EU-27 |
 |---|---|---|
@@ -23,8 +33,8 @@ and buildings © European Union, JRC, CC BY 4.0; country borders Natural Earth
 
 | | What the data says |
 |---|---|
-| **51 %** | of the 3,740 residents the July 2021 water reached in the Ahr valley lived *outside* the European 1-in-100-year flood zone (Copernicus EMS first map, GHS-POP 2020). |
-| **375** | buildings graded destroyed in Germany on the first maps (792 with the later maps of the same areas); the water reached about 32,600 residents there, 12,200 of them outside the 1-in-100-year zone. |
+| **91 %** | of the 1,213 residents the July 2021 water reached in Eschweiler (Aachen region) lived *outside* the European 1-in-100-year flood zone: 1,107 people (Copernicus EMS first map, GHS-POP 2020). In the Ahr valley: 1,889 of 3,739 (51 %). |
+| **375** | buildings graded destroyed in Germany on the first maps (792 with the later maps of the same areas); the water reached 32,562 residents there, 12,238 of them outside the 1-in-100-year zone. |
 | **25.7 million** | EU-27 residents live inside the undefended 1-in-100-year river flood zone: July 2021 was not a one-off risk. |
 | **22 Dec 2027** | the deadline for every Member State to review its flood risk management plans (Directive 2007/60/EC, Art. 14(3)): the next window to act. |
 
@@ -33,7 +43,7 @@ file: html, pptx, png), the **policy brief** in the Annex 6 template and the
 **AI sheet** in the Annex 7 template, e-mailed by 13:30 on Day 2 and followed by
 a **five-minute live demo**. The jury weighs four criteria equally: evidence and
 soundness, policy usefulness (a named actor), clarity (tool and brief tell one
-story) and responsible AI use. This repository is the evidence behind all three.
+story) and responsible AI use. This repository is my evidence behind them.
 
 > **Scope is a funnel: July 2021 at the core, Europe as the context.** The
 > challenge data and its data questions (Q1, Q3) are about the July 2021 floods
@@ -154,7 +164,7 @@ flood-to-policy/
 │   ├── groundsource_2021.py         # news-reported July 2021 floods (Groundsource) against the JRC 1-in-100 map, corroboration only
 │   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
 │   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
-│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool/
+│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool_anna/
 │   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
 │   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
 │   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
@@ -189,7 +199,7 @@ no pin fixed, on some days and not others with nothing reinstalled (the details
 are in `requirements.txt`). **The policy moves both ways, so measure rather than believe
 either state.** Measured 2026-10-23, the Windows venv collects the whole suite, as
 the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,119<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
+**<!-- numbers:tests_collected -->1,127<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
 only route that does not depend on the policy, and it is where a continental
 raster build belongs.
 
@@ -243,7 +253,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,119<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,127<!-- /numbers --> tests, offline: no network, no model
                                         # Windows: re-measure, Smart App Control may block
                                         # rasterio (see above). WSL2: wsl -d Ubuntu, then
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q
@@ -260,7 +270,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 # July 2021: event_2021.py first; every step below it reads its tables.
 .venv/bin/python scripts/event_2021.py                # reads the organisers' public bucket (cached in data/raw/challenge_2021/) -> data/processed/event_2021_*.parquet
 .venv/bin/python scripts/event_2021_infrastructure.py # -> data/processed/event_2021_infrastructure.parquet (July 2021 roads, networks, services)
-.venv/bin/python scripts/build_policy_tool.py         # -> docs/perso/policy_tool/policy_tool.html + PNGs (gitignored: GISCO geometry)
+.venv/bin/python scripts/build_policy_tool.py         # -> docs/perso/policy_tool_anna/policy_tool.html + PNGs (gitignored: GISCO geometry)
 .venv/bin/python scripts/export_event_web.py          # -> data/processed/event_2021_web.json + web/public/ copy (July 2021 view, public: Natural Earth borders)
 .venv/bin/python scripts/export_event_web.py --full   # -> event_2021_web.full.json, local only (GISCO borders + NUTS3), served by GET /api/event2021 when present
 
@@ -347,7 +357,7 @@ view (Exposure with the return-period selector, Context and Vulnerability) from
 the API's own answers, frozen into `web/public/europe/` by
 `scripts/export_europe_web.py`. The public demo is that build, served as a
 static Hugging Face Space:
-https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy
+https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
 
 ```bash
 .venv/bin/python scripts/export_event_web.py           # only after a new event_2021.py run: the committed JSON is already the public build
