@@ -439,7 +439,7 @@ Only what the repository shows.
   `technical_deep_dive.md` §7 is filled by `scripts/docs_numbers.py`; the
   per-file rows are not, and they drift between edits. Re-measured on
   27 October: 50 files, summing to the
-  <!-- numbers:tests_collected -->1,119<!-- /numbers --> collected; re-measure the
+  <!-- numbers:tests_collected -->1,127<!-- /numbers --> collected; re-measure the
   file count after any test change (the total is filled by the script). [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
 - **Whether the suite runs on Windows depends on a policy outside the repo.**
   Smart App Control has both blocked and allowed `rasterio`'s DLL with nothing

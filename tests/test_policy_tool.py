@@ -4,7 +4,7 @@ The page is e-mailed to a jury and opened offline, so the tests check what
 would break that or mislead a reader: no network reference in any src/href,
 no external script or stylesheet, hero and per-place numbers equal to the table
 values, NaN printed as "n/a" and never 0, and no personal names (Annexes 3 and
-7 allow "Team N" only). Nothing here reads the real data or touches the network.
+7 allow "Team 9" only). Nothing here reads the real data or touches the network.
 """
 
 from __future__ import annotations
@@ -138,9 +138,9 @@ def test_no_ai_service_or_fetch_in_the_page(page):
 
 
 def test_no_names_beyond_team_n(page):
-    """Annexes 3 and 7: "Team N" only. The authors are read from CITATION.cff at
+    """Annexes 3 and 7: "Team 9" only. The authors are read from CITATION.cff at
     test time rather than typed here, so this file carries no name either."""
-    assert "Team N" in page
+    assert "Team 9" in page
     assert not re.search(r'<meta[^>]+name="author"', page, re.I)
     cff = Path(__file__).resolve().parents[1] / "CITATION.cff"
     names = []
@@ -176,14 +176,14 @@ def test_hero_numbers_equal_the_table_values(page):
 
 def test_hero_lines_carry_headcounts_from_the_tables(page):
     assert "About half of the people" in page
-    assert "1,890 of 3,740 residents" in page                     # Ahr, read not multiplied
-    assert "about 32,600 residents there; 12,200 of them" in page  # DE residents_outside_rp100
+    assert "1,889 of 3,739 residents" in page                     # Ahr, read not multiplied
+    assert "reached 32,562 residents there; 12,238 of them" in page  # DE residents_outside_rp100
     assert "bring it to 750" in page                               # DE with later passes
 
 
 def test_country_strip_equals_the_table(page):
-    for iso, shown, share in (("BE", "1,990", "12 %"), ("DE", "32,600", "38 %"),
-                              ("NL", "2,450", "12 %")):
+    for iso, shown, share in (("BE", "1,994", "12 %"), ("DE", "32,562", "38 %"),
+                              ("NL", "2,449", "12 %")):
         cell = re.search(rf'data-strip="{iso}">(.*?)</span>', page).group(1)
         assert shown in cell and share in cell
 
@@ -191,7 +191,7 @@ def test_country_strip_equals_the_table(page):
 def test_place_figures_equal_the_table():
     places = {p["key"]: p for p in P.place_records(_products())}
     ahr = places["EMSR517_AOI15"]
-    assert ahr["figures"]["residents"] == "3,740"
+    assert ahr["figures"]["residents"] == "3,739"
     assert ahr["figures"]["share"] == "50 %" and ahr["figures"]["share_words"] == "about half"
     assert ahr["figures"]["residential"] == "3,257"
     assert ahr["figures"]["destroyed"] == "336"
@@ -238,10 +238,10 @@ def test_nan_renders_as_na_never_zero(page):
     assert "No map image" in page
 
 
-def test_rounding_is_honest():
-    assert P.fmt_people(32561.889) == "32,600"
-    assert P.fmt_people(1355.7) == "1,360"
-    assert P.fmt_people(638.3) == "640"
+def test_people_are_printed_whole_as_in_the_brief():
+    assert P.fmt_people(32561.889) == "32,562"
+    assert P.fmt_people(1355.7) == "1,356"
+    assert P.fmt_people(638.3) == "638"
     assert P.fmt_people(4.1) == "4"
     assert P.fmt_share(0.003) == "<1 %"
     assert P.fmt_share(0.0) == "0 %"
@@ -309,6 +309,42 @@ def test_page_carries_the_briefs_recommendations_and_a_conclusion(page):
     assert not any(ch.isdigit() for ch in rest)
 
 
+def test_since_2021_block_is_present_text_only_and_dated(page):
+    """The Q2 "what has been done" block renders, cited in text, no link, every item dated."""
+    import html
+    text = html.unescape(page)
+    assert "What has been done since July 2021" in page
+    for region, bullets in P.SINCE_2021:
+        assert region in text
+        for b in bullets:
+            assert b in text                                  # rendered verbatim
+            assert "http" not in b and "www." not in b        # cited as text, never a link
+            assert any(y in b for y in ("2021", "2022", "2023", "2024", "2025", "2026"))
+    # A few distinctive figures actually reach the page.
+    for frag in ("about EUR 5.84 billion", "671 local projects", "50 done, 19 embedded",
+                 "EUR 612.6 million to Germany", "8 of 21 assessed Member States"):
+        assert frag in text
+
+
+def test_next_steps_and_warnings_render_text_only(page):
+    """Next steps and warnings render, cited in text, with no link and no personal name."""
+    import html
+    text = html.unescape(page)
+    assert "Next steps on the ground" in page
+    assert "Before you act on these numbers" in page
+    for what, who, basis in P.NEXT_STEPS:
+        assert what in text and who in text and basis in text
+        for part in (what, who, basis):
+            assert "http" not in part and "www." not in part
+    for w in P.WARNINGS:
+        assert w in text and "http" not in w
+    for frag in ("Close the last mile of the warning chain",
+                 "Do not triage on the 1-in-100-year map alone",
+                 "Works funded are not works finished",
+                 "Reproduced independently in the case notebook"):
+        assert frag in text
+
+
 def test_user_text_is_escaped():
     out = P.render_page(countries=_countries(), products=_products(), exposure=_exposure(),
                         title="<script>x</script>")
@@ -341,3 +377,18 @@ def test_europe_map_names_the_unreported_states_only_when_given(page):
 
 def test_eu27_names_cover_every_eu27_code():
     assert P.EU27 == frozenset(P.EU27_NAMES) and len(P.EU27) == 27
+
+
+def test_the_first_recommendation_carries_its_instrument_when_given():
+    """The instrument slot is filled like the others, so no placeholder reaches the jury."""
+    text = P.render_page(countries=_countries(), products=_products(), exposure=_exposure(),
+                         recommendation="Act", actor="Anna", instrument="The existing plan; staff time.")
+    assert "[INSTRUMENT, COST]" not in text and "The existing plan; staff time." in text
+
+
+def test_the_page_says_what_to_do_before_the_water(page):
+    """Every step from the forecast to the first drop is on the page, in order, before the maps."""
+    before = page.index("From the forecast to the first drop")
+    assert before < page.index("Where the water went")
+    positions = [page.index(P.esc(when)) for when, _, _ in P.BEFORE_THE_WATER]
+    assert positions == sorted(positions) and positions[0] > before

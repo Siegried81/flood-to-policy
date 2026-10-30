@@ -89,6 +89,51 @@ def png_data_uri(classes: np.ndarray) -> str:
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
 
+def satellite_png_data_uri(classes: np.ndarray, bbox_3035: Sequence[float], *, fetch=None) -> str:
+    """A photographic basemap (Esri World Imagery) with the flood classes on top.
+
+    Copernicus-style: the real satellite scene, water inside the map in blue and
+    water outside it in bright orange, both semi-transparent so the ground shows
+    through; the mapped hazard zone a faint blue. Falls back to the flat paletted
+    PNG (`png_data_uri`) when the basemap cannot be fetched, so an offline build
+    still produces a map. The basemap is baked in, so the result still opens
+    offline at runtime.
+    """
+    from PIL import Image
+
+    h, w = classes.shape
+    try:
+        base = (fetch or _fetch_world_imagery)(tuple(bbox_3035), (w, h)).convert("RGBA").resize((w, h))
+    except Exception as exc:  # no network, blocked host, bad tile: keep the flat map
+        print(f"    basemap unavailable ({type(exc).__name__}); flat map used", flush=True)
+        return png_data_uri(classes)
+    overlay = np.zeros((h, w, 4), dtype=np.uint8)
+    overlay[classes == 2] = (11, 79, 156, 55)     # hazard zone, dry: faint blue
+    overlay[classes == 3] = (11, 79, 156, 165)    # water inside the zone: blue
+    overlay[classes == 4] = (240, 100, 20, 195)   # water outside it: punchy orange
+    out = Image.alpha_composite(base, Image.fromarray(overlay, "RGBA")).convert("RGB")
+    buf = io.BytesIO()
+    out.save(buf, format="JPEG", quality=82, optimize=True)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+def _fetch_world_imagery(bbox_3035: Sequence[float], size: tuple[int, int]):
+    """Esri World Imagery for an EPSG:3035 box at (w, h) pixels, as a PIL image."""
+    import urllib.parse
+    import urllib.request
+
+    from PIL import Image
+
+    minx, miny, maxx, maxy = bbox_3035
+    w, h = size
+    query = urllib.parse.urlencode({
+        "bbox": f"{minx},{miny},{maxx},{maxy}", "bboxSR": 3035, "imageSR": 3035,
+        "size": f"{w},{h}", "format": "jpg", "f": "image"})
+    url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?" + query
+    with urllib.request.urlopen(url, timeout=30) as resp:
+        return Image.open(io.BytesIO(resp.read()))
+
+
 def geojson_pixels(geom, to_px: Callable[[float, float], tuple[float, float]],
                    tolerance_m: float = 0.0, digits: int = 1) -> dict[str, Any] | None:
     """A polygonal geometry as GeoJSON in image pixel units (x right, y down).

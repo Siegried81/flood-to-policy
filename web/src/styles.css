@@ -277,6 +277,38 @@ th.sortable-header:hover {
 .ev-loc-aoi.on { fill: var(--ev-orange); stroke: #000; stroke-width: 3; }
 .ev-loc-label { font-size: 22px; fill: #555; font-weight: 700; letter-spacing: 0.1em; paint-order: stroke;
   stroke: #fff; stroke-width: 5px; pointer-events: none; }
+.ev-combined { background: var(--surface); border-left: 5px solid var(--text); padding: 10px 16px;
+  margin: 18px 0 0; font-size: 1.05rem; }
+.ev-combined b { font-variant-numeric: tabular-nums; }
+.ev-sub { font-size: 1.05rem; margin: 1.4rem 0 0.4rem; }
+.ev-agree { width: 100%; max-width: 820px; border-collapse: collapse; font-size: 0.92rem;
+  font-variant-numeric: tabular-nums; }
+.ev-agree th, .ev-agree td { border-bottom: 1px solid var(--muted); padding: 6px 10px; text-align: right; }
+.ev-agree th:first-child, .ev-agree td:first-child { text-align: left; }
+.ev-warnbox { background: rgba(240, 100, 20, 0.06); border: 1px solid var(--ev-orange);
+  border-left: 5px solid var(--ev-orange); padding: 12px 18px; margin: 18px 0; border-radius: 4px; }
+.ev-warnhead { font-weight: 700; color: var(--ev-orange); margin: 0 0 0.4em; }
+.ev-warnbox ul { margin: 0.2em 0; padding-left: 1.2em; }
+.ev-warnbox li { margin: 0.35em 0; font-size: 0.92rem; }
+.ev-recos { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin: 0.3em 0; }
+.ev-recos th, .ev-recos td { border-bottom: 1px solid var(--muted); padding: 8px 10px;
+  text-align: left; vertical-align: top; }
+.ev-since { margin: 0.3em 0; }
+.ev-sincereg { margin: 0 0 1em; }
+.ev-sincereg ul { margin: 0.2em 0 0; padding-left: 1.2em; }
+.ev-sincereg li { margin: 0.35em 0; font-size: 0.92rem; }
+.ev-conclusion { font-size: 1.1rem; border-left: 4px solid var(--text); padding: 4px 0 4px 14px; }
+.ev-maptoggle { display: flex; gap: 6px; margin: 0 0 8px; }
+.ev-maptoggle button { font: inherit; font-size: 0.85rem; padding: 4px 12px; border: 1.5px solid var(--muted);
+  border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
+.ev-maptoggle button.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.ev-leaflet-wrap { margin: 0; }
+.ev-leaflet { height: 460px; width: 100%; border-radius: 6px; background: #223; }
+.ev-depth-legend { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap;
+  gap: 4px 14px; font-size: 0.82rem; align-items: center; }
+.ev-depth-legend .ev-depth-title { font-weight: 700; width: 100%; margin-bottom: 2px; }
+.ev-depth-legend .ev-sw { display: inline-block; width: 14px; height: 14px; margin-right: 5px;
+  vertical-align: -2px; border: 1px solid rgba(0,0,0,0.25); }
 .ev-chart { max-width: 820px; }
 .ev-toggle { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
 .ev-toggle button { font: inherit; font-size: 0.9rem; padding: 5px 12px; border: 1.5px solid var(--muted);

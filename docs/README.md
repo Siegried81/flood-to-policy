@@ -7,15 +7,16 @@ sheet in the Annex 7 template, sent by 13:30 on Day 2, then a five-minute live
 demo, judged equally on evidence, policy usefulness, clarity and responsible
 AI use. The brief is a funnel ([`scope.md`](scope.md)): the July 2021 flood in
 Belgium, Germany and the Netherlands at the core, the kit's EU-wide findings
-as the context. Twenty Markdown files in this folder, 587.5 KB measured on
-2026-10-28, sixteen of them indexed below. Most of that is background written
+as the context. Twenty-one Markdown files in this folder, 597.9 KB measured on
+2026-10-29, sixteen of them indexed below. Most of that is background written
 before the data was frozen; the argument
 itself is short, and this page exists so a reader opens it first rather than a
 reference of 50 KB or more.
 
-**Twenty minutes:** [`policy_answer.md`](policy_answer.md) (the spine: the
-question as asked, four measured findings, three recommendations with an
-article, an addressee and a date), [`responsible_ai.md`](responsible_ai.md)
+**Twenty minutes:** [`policy_answer.md`](policy_answer.md) (the EU-level
+spine: four measured findings, three recommendations with an article, an
+addressee and a date; the hackathon case's own three recommendations for Anna
+are in the brief, `docs/perso/brief_draft_anna.md`), [`responsible_ai.md`](responsible_ai.md)
 (the HLEG grid and what the AI was not allowed to decide) and
 [`limitations.md`](limitations.md) (what none of it claims).
 [`decisions.md`](decisions.md) is the appendix: the dated record behind every

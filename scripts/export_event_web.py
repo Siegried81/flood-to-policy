@@ -57,6 +57,17 @@ SCHEMA_VERSION = 1
 #: The artefact is committed and shipped to every browser: keep it small.
 MAX_BYTES = 3_000_000
 
+#: The decision block shown under the maps: the three recommendations in one line each.
+#: Included only for a border build (a hero place other than `P.HERO_AOI`); the
+#: CLI default hero is a border place, so the committed artefact carries it, while
+#: `build_payload` called with the Ahr hero leaves it out.
+BORDER_DECISION = {
+    "actor": "Anna — crisis coordinator of the Liège–Limburg–Aachen border area",
+    "lead": "Warn before the water, tell every street where to go, one picture across the border.",
+    # The first sentence of each recommendation: the block and the table never diverge.
+    "points": [r[0].split(". ")[0] + "." for r in (P.RECOMMENDATION_1, *P.RECOMMENDATIONS)],
+    "before": [{"when": when, "who": who, "what": what} for when, who, what in P.BEFORE_THE_WATER],
+}
 
 def _clean(value: Any) -> Any:
     """JSON-safe copy: NaN becomes None, tuples become lists, numpy scalars plain."""
@@ -80,13 +91,17 @@ def _layer_view(layer: dict[str, Any]) -> dict[str, Any]:
         "outline_d": layer.get("outline", ""), "nuts_d": layer.get("nuts", ""),
         "outline": layer.get("outline_geojson"), "observed": layer.get("observed_geojson"),
         "towns": [{"label": t, "x": round(x, 1), "y": round(y, 1)} for t, x, y in layer.get("towns", [])],
+        "credit": layer.get("credit", ""),
         "scale": {"km": km, "px": None if px is None else round(px, 1)},
     }
 
 
 def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.DataFrame,
                   layers: dict[str, dict[str, Any]], locator: dict[str, Any] | None,
-                  built: str = "") -> dict[str, Any]:
+                  built: str = "", *, hero_aoi: str = P.HERO_AOI,
+                  hero_place: str = "the Ahr valley",
+                  hero_small: str = "Bad Neuenahr-Ahrweiler, first satellite map; residents from the GHS-POP 2020 (E2020) model.",
+                  decision: dict[str, Any] | None = None, front=None) -> dict[str, Any]:
     """The whole web artefact from the tables and the precomputed map layers.
 
     Pure: the tests call it with synthetic tables and hand-made layers. Every
@@ -94,7 +109,7 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
     """
     shares = P.outside_shares(countries)
     places = []
-    for place in P.place_records(products):
+    for place in P.place_records(products, first_key=front or hero_aoi):
         layer = layers.get(place["key"])
         places.append({**place, "named": place["key"] in dict(P.NAMED_PLACES),
                        "map": _layer_view(layer) if layer else None})
@@ -104,11 +119,11 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
                "borders_d": locator.get("borders", ""), "nuts_d": locator.get("nuts", ""),
                "labels": [{"text": t, "x": x, "y": y} for t, x, y in locator.get("labels", [])],
                "aoi": locator.get("aoi", {})}
-    return _clean({
+    out = {
         "schema": SCHEMA_VERSION,
         "built": built,
         "team": P.TEAM,
-        "hero": P.hero(products, countries, exposure),
+        "hero": P.hero(products, countries, exposure, hero_aoi=hero_aoi, place_name=hero_place, place_small=hero_small),
         "strip": [{**s, "name": P.COUNTRY_NAMES[s["country"]]} for s in P.country_strip(countries)],
         "chart": {
             "return_periods": list(P.CHART_RPS),
@@ -119,14 +134,28 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
                       "shown": {str(rp): P.fmt_share(shares[iso][rp]) for rp in P.CHART_RPS}}
                      for iso in P.COUNTRIES],
         },
+        "combined": P.combined_reached(countries),
+        "agreement": P.map_agreement(countries),
         "raster_classes": [{"colour": c, "label": t} for c, t in story_maps.RASTER_CLASSES],
         "places": places,
         "locator": loc,
         "how_we_counted": list(P.HOW_WE_COUNTED),
+        "warnings": list(P.WARNINGS),
+        "recommendations": {
+            "review_date": P.PLAN_REVIEW_DATE_SHORT,
+            "rows": [{"what": what, "who": who, "how": how}
+                     for what, who, how in (P.RECOMMENDATION_1, *P.RECOMMENDATIONS)],
+        },
+        "next_steps": [{"what": what, "who": who, "basis": basis} for what, who, basis in P.NEXT_STEPS],
+        "since": [{"region": region, "points": list(points)} for region, points in P.SINCE_2021],
+        "conclusion": P.CONCLUSION,
         "limits": list(P.LIMITS),
         "sources": sources(loc),
         "attribution": attribution(loc),
-    })
+    }
+    if decision:
+        out["decision"] = decision
+    return _clean(out)
 
 
 #: The policy tool's boundary credit, and what replaces it when no GISCO line is drawn.
@@ -169,6 +198,21 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--full", action="store_true",
                         help=f"GISCO borders and NUTS3 lines, written to {FULL_OUT.name} only (never committed)")
+    parser.add_argument("--only-aois", default="",
+                        help="comma-separated aoi_keys to restrict the places (e.g. EMSR518_AOI01,EMSR520_AOI01,EMSR517_AOI09)")
+    # Defaults build Anna's deliverable (the border area, Eschweiler first), so a
+    # plain run matches the deployed Space; pass the Ahr values back for the
+    # generic Europe-context view. HERO_AOI stays the Ahr at the function level
+    # (what the unit tests pin); only the CLI default differs.
+    parser.add_argument("--hero-aoi", default="EMSR517_AOI09")
+    parser.add_argument("--hero-place", default="Eschweiler, in the Aachen region")
+    parser.add_argument("--hero-small",
+                        default="Eschweiler (Aachen region), first satellite map; residents from the GHS-POP 2020 (E2020) model.")
+    parser.add_argument("--satellite", action=argparse.BooleanOptionalAction, default=True,
+                        help="Copernicus-style: Esri World Imagery basemap with the flood on top (fetched at "
+                             "build time; falls back to the offline PNG when no network). --no-satellite forces PNG.")
+    parser.add_argument("--front-aois", default="EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01",
+                        help="comma-separated aoi_keys to list first; the first one opens the story")
     args = parser.parse_args(argv)
     with_nuts = args.full
     paths = (FULL_OUT,) if args.full else (OUT, WEB_OUT)
@@ -176,16 +220,23 @@ def main(argv: list[str] | None = None) -> int:
     products = pd.read_parquet(PROCESSED / "event_2021_products.parquet")
     countries = pd.read_parquet(PROCESSED / "event_2021_countries.parquet")
     exposure = pd.read_parquet(PROCESSED / "exposure.parquet")
+    if args.only_aois:
+        keep = {s.strip() for s in args.only_aois.split(",") if s.strip()}
+        products = products[products.apply(
+            lambda r: P.aoi_key(r["emsr"], r["aoi"]) in keep, axis=1)].reset_index(drop=True)
     first = P.first_pass(products)
     layers = {}
     for place in P.place_records(products):
         print(f"  map {place['key']} ({place['label']})", flush=True)
-        layer = place_layer(str(first[place["key"]]["product_id"]), with_nuts=with_nuts)
+        layer = place_layer(str(first[place["key"]]["product_id"]), with_nuts=with_nuts, satellite=args.satellite)
         if layer:
             layers[place["key"]] = layer
     payload = build_payload(products, countries, exposure, layers,
                             locator(products, with_nuts=with_nuts),
-                            built=dt.date.today().isoformat())
+                            built=dt.date.today().isoformat(),
+                            hero_aoi=args.hero_aoi, hero_place=args.hero_place, hero_small=args.hero_small,
+                            decision=BORDER_DECISION if args.hero_aoi != P.HERO_AOI else None,
+                            front=[s.strip() for s in args.front_aois.split(",") if s.strip()] or None)
     size = write(payload, paths)
     print(f"{paths[0]}  {size / 1e6:.2f} MB")
     for path in paths[1:]:
