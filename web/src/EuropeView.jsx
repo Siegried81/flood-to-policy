@@ -182,8 +182,7 @@ export default function EuropeView({ config }) {
         <h2 className="view-title">Flood exposure across European regions</h2>
         <p className="caption">
           Frozen table · {meta.rows.toLocaleString()} rows · {meta.regions.toLocaleString()}{" "}
-          regions · {meta.corpus_passages.toLocaleString()} corpus passages · computed{" "}
-          {new Date(meta.frozen_at).toLocaleString()}. Every figure on this page and in
+          regions · {meta.corpus_passages.toLocaleString()} corpus passages. Every figure on this page and in
           every draft comes from this one run.
         </p>
       </header>
@@ -355,7 +354,7 @@ export default function EuropeView({ config }) {
           <div className="refusal">
             <strong>{tab} is disabled in the hosted demo.</strong> It calls a language
             model (and approving writes to the brief), which a public demo does not
-            offer. Run the kit locally to use it; every other tab works here.
+            offer. Run the code locally to use it; every other tab works here.
           </div>
         </section>
       )}

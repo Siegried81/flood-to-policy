@@ -293,8 +293,10 @@ Three more articles do real work:
 ## 6. The measures: what, where, by whom, how, by when
 
 Three recommendations, each tied to an instrument and an addressee. None of them
-requires new legislation. In the policy brief (`docs/perso/brief_draft.md`),
-action 1 is the case's own (Q4); R1 and R2 here are its action 2, R3 its action 3.
+requires new legislation. They are the EU-level context: the hackathon brief
+(`docs/perso/brief_draft_anna.md`) carries the case's three recommendations for
+Anna (warn before the water; open dry shelters where people have none; the lever
+each place needs, on one shared cross-border picture), and keeps these in its annex.
 
 ### R1 — Make the Article 5 declaration comparable before the 2027 review
 
@@ -398,6 +400,6 @@ this page adds is the current legislative context a JRC jury will know:
   percentage beside `share_over_65`, a fraction. A table or export from an older
   build says `poverty_rate` (the committed `exposure.parquet` still does), and
   the API and both UIs read it under the new name for one release.
-- The full suite collects **<!-- numbers:tests_collected -->1,119<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control has blocked
+- The full suite collects **<!-- numbers:tests_collected -->1,127<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control has blocked
   `rasterio` on Windows on some days and allowed it on others
   with nothing reinstalled, so re-measure rather than quote this line; the WSL2 venv is the route that does not depend on it.

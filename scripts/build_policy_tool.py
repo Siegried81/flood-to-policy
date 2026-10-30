@@ -47,7 +47,7 @@ import numpy as np
 import pandas as pd
 
 from src import policy_tool as P
-from src.story_maps import geojson_pixels, lines as _lines, png_data_uri, reduce_classes
+from src.story_maps import geojson_pixels, lines as _lines, png_data_uri, reduce_classes, satellite_png_data_uri  # noqa: F401
 
 PROCESSED = ROOT / "data" / "processed"
 EMS_CACHE = ROOT / "data" / "raw" / "challenge_2021" / "ems"
@@ -119,7 +119,7 @@ def border_lines(countries: dict, frame, to_xy) -> tuple[str, list]:
     return P.line_d(lines, to_xy), labels
 
 
-def place_layer(product_id: str, *, with_nuts: bool = True) -> dict | None:
+def place_layer(product_id: str, *, with_nuts: bool = True, satellite: bool = False) -> dict | None:
     """The story-map layer of one first-pass product: PNG, outline, NUTS, towns, scale.
 
     Also returns the AOI outline and the observed water as GeoJSON in the PNG's
@@ -185,8 +185,10 @@ def place_layer(product_id: str, *, with_nuts: bool = True) -> dict | None:
     span_km = width * pixel / 1000
     km = next((s for s in (1, 2, 5, 10, 20, 50) if s >= span_km / 6), 50)
     observed_m = _to_grid_crs(observed).iloc[0] if observed is not None else None
-    return {"png": png_data_uri(classes), "width": width, "height": height,
+    return {"png": satellite_png_data_uri(classes, box) if satellite else png_data_uri(classes),
+            "width": width, "height": height,
             "outline": outline, "nuts": nuts_d, "towns": towns,
+            "credit": "Imagery © Esri, Maxar, Earthstar Geographics" if satellite else "",
             "scale": (km, km * 1000 / pixel), "pixel_m": pixel, "bounds_3035": box,
             "outline_geojson": geojson_pixels(_to_grid_crs(aoi).iloc[0], to_px, pixel / 2),
             "observed_geojson": geojson_pixels(observed_m, to_px, pixel / 2)}
@@ -290,33 +292,56 @@ def screenshot(page: Path, png: Path, width: int, height: int = 9000, crop: bool
 def main(argv: list[str] | None = None) -> int:
     """Read the tables and geometry, write the HTML and the PNG snapshots, print sizes."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--title", default="[TITLE]")
-    parser.add_argument("--question", default="[DECISION QUESTION]")
-    parser.add_argument("--recommendation", default="[RECOMMENDATION]")
-    parser.add_argument("--actor", default="[NAMED ACTOR]")
+    # Defaults build Anna's deliverable (the Liege-Limburg-Aachen border area,
+    # Eschweiler first), so a plain run matches the deployed tool; pass the Ahr /
+    # generic values back for the Europe-context view.
+    parser.add_argument("--title",
+                        default="Warn before the water, shelter where people have none")
+    parser.add_argument("--question",
+                        default="After 2021, which measure fixes which problem here, and who acts when the bulletin lands?")
+    parser.add_argument("--recommendation", default=P.RECOMMENDATION_1[0])
+    parser.add_argument("--actor", default=P.RECOMMENDATION_1[1])
+    parser.add_argument("--instrument", default=P.RECOMMENDATION_1[2])
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     parser.add_argument("--no-png", action="store_true")
+    parser.add_argument("--hero-aoi", default="EMSR517_AOI09")
+    parser.add_argument("--hero-place", default="Eschweiler, in the Aachen region")
+    parser.add_argument("--hero-small",
+                        default="Eschweiler (Aachen region), first satellite map; residents from the GHS-POP 2020 (E2020) model.")
+    parser.add_argument("--only-aois", default="",
+                        help="comma-separated aoi_keys (e.g. EMSR518_AOI01,EMSR520_AOI01,EMSR517_AOI09) to restrict the places")
+    parser.add_argument("--satellite", action=argparse.BooleanOptionalAction, default=True,
+                        help="Copernicus-style: Esri World Imagery basemap with the flood on top (fetched at build "
+                             "time; falls back to the offline PNG when no network). --no-satellite forces PNG.")
+    parser.add_argument("--front-aois", default="EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01",
+                        help="comma-separated aoi_keys to list first; the first one opens the story")
     args = parser.parse_args(argv)
 
     products = pd.read_parquet(PROCESSED / "event_2021_products.parquet")
     countries = pd.read_parquet(PROCESSED / "event_2021_countries.parquet")
     exposure = pd.read_parquet(PROCESSED / "exposure.parquet")
     context = pd.read_parquet(PROCESSED / "context.parquet")
+    if args.only_aois:
+        keep = {s.strip() for s in args.only_aois.split(",") if s.strip()}
+        products = products[products.apply(
+            lambda r: P.aoi_key(r["emsr"], r["aoi"]) in keep, axis=1)].reset_index(drop=True)
 
     first = P.first_pass(products)
     layers = {}
     for place in P.place_records(products):
         print(f"  map {place['key']} ({place['label']})", flush=True)
-        layer = place_layer(str(first[place["key"]]["product_id"]))
+        layer = place_layer(str(first[place["key"]]["product_id"]), satellite=args.satellite)
         if layer:
             layers[place["key"]] = layer
     page = P.render_page(
         countries=countries, products=products, exposure=exposure,
         place_layers=layers, locator=locator(products), europe_features=europe_features(),
         title=args.title, question=args.question,
-        recommendation=args.recommendation, actor=args.actor,
+        recommendation=args.recommendation, actor=args.actor, instrument=args.instrument,
         unreported=P.unreported_countries(context),
         built=f"Built {dt.date.today().isoformat()}.",
+        hero_aoi=args.hero_aoi, hero_place=args.hero_place, hero_small=args.hero_small,
+        front=[s.strip() for s in args.front_aois.split(",") if s.strip()] or None,
     )
     args.out.mkdir(parents=True, exist_ok=True)
     html_path = args.out / "policy_tool.html"
