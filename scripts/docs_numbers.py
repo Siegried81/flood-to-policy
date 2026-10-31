@@ -11,7 +11,7 @@ artefact at write time cannot. So each fact below is a function that reads the
 artefact itself - never another doc - and the docs carry the value inside a
 marked block that only this script edits:
 
-    <!-- numbers:tests_collected -->513<!-- /numbers -->
+    <!-- numbers:tests_collected -->N<!-- /numbers -->
 
 `--write` replaces the text between the markers and leaves every other byte
 alone, so a doc owner keeps the prose and gives up only the digit. `--check`

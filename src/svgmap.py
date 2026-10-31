@@ -1,7 +1,6 @@
 """An offline choropleth, as inline SVG.
 
-**Why SVG and not folium.** `folium` and `streamlit-folium` are declared in
-`requirements.txt` and nothing imports them, because a Leaflet map fetches its
+**Why SVG and not folium.** A Leaflet map (folium, streamlit-folium) fetches its
 basemap tiles from a tile server - and the kit has to run with the Wi-Fi off, in
 front of a jury, on a venue network that blocks things. An inline SVG has no
 network dependency, no build step and no API key, which is the same reason the

@@ -203,6 +203,19 @@ def test_an_absent_table_names_the_script_and_why_it_is_missing():
     assert "exposure_by_return_period" not in texts
 
 
+def test_the_july_2021_tab_mirrors_the_space_story():
+    """The Streamlit app carries the same July 2021 story as the React Space, read
+    from the one built `event_2021_web.json`, so the two cannot disagree on it."""
+    at = _run(_nested_table())
+    assert at.exception == []
+    assert "July 2021" in [tab.label for tab in at.tabs]
+    assert any("Warn before the water, shelter where people have none" in str(h.value)
+               for h in at.header)
+    texts = _texts(at)
+    assert "July 2021 floods in the Liège, Limburg and Aachen border area" in texts
+    assert "What to recommend" in texts
+
+
 def test_either_identifier_spelling_is_accepted():
     """NUTS3 for Europe, LAU for a zoom: the column name differs by run.
 
