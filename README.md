@@ -7,7 +7,10 @@
 > the AI sheet — the work of the six of us. Both sit in
 > [`docs/hackathon/`](docs/hackathon/) as submitted, next to my case notebook
 > (run on the organisers' data), its outputs and the Q2 sources it cites. The
-> team's own tool and code are not included here.
+> team's own tool and code are not included here, with one exception on this
+> branch. The interactive maps under [`web/public/team9/`](web/public/team9/)
+> are Team 9's work, kept here on this unmerged branch beside mine. The rest of
+> the repository is my own.
 
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
 Germany and the Netherlands, read against the European flood hazard map, and
