@@ -14,13 +14,13 @@ The shorter `/jrc-events/european-ai-challenge-2026-data-policy` form returns
 
 ## Before the doors open
 
-**The download.** `python -m src.fetch` is 85 files — 57 geodata downloads, 25
-policy-corpus scrapes and 3 context scrapes (counted 2026-10-27); what it skips
-(19 runtime API calls, 35 files under six `folder` entries fetched or read by
+**The download.** `python -m src.fetch` is 99 files — 61 geodata downloads, 35
+policy-corpus scrapes and 3 context scrapes (counted 2026-10-31); what it skips
+(20 runtime API calls, 35 files under six `folder` entries fetched or read by
 `scripts/fetch_hera.py` and `scripts/event_2021.py`), the sizes and why
 `/vsicurl/` cannot replace the download at EU scale are in
-[`scope.md`](scope.md#hazard-unchanged). The 84 files declared on 25 October
-measured ≈6.96 GiB on disk that day. Start it once and leave it; it is
+[`scope.md`](scope.md#hazard-unchanged). The download measured ≈6.96 GiB on disk
+on 25 October 2026. Start it once and leave it; it is
 idempotent, so a dropped connection costs only the files that are actually
 missing. Re-derive the counts rather than quoting this line: every entry added
 to `sources.yaml` moves them.

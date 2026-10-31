@@ -63,3 +63,11 @@ bi/data/
 docs/perso/
 # Working rules and the running AI log: local only.
 docs/ai_usage_log.md
+# Long research/review notes: kept locally, not part of the shipped kit.
+docs/cems_flood_wiki_review.md
+docs/copernicus_review.md
+docs/tab_review.md
+# The policy brief ships as the 552 KB PDF; the 35 MB .docx stays local.
+docs/hackathon/policy_brief_team9.docx
+# The screenshot script also emits Streamlit shots; only the React/Power BI ones ship.
+docs/screenshots/streamlit_*.png

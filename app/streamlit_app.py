@@ -1,6 +1,6 @@
 """The map/dashboard deliverable, and the place the brief gets drafted.
 
-Seven tabs, in the order the two days actually run: look at the exposure, read
+Eight tabs: the July 2021 story first, then look at the exposure, read
 what qualifies it, find who is most vulnerable, ask the table a question in plain
 words, draft a section against the evidence, translate it, and keep the AI log as
 you go.
@@ -26,6 +26,7 @@ Run: `streamlit run app/streamlit_app.py`
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -55,6 +56,7 @@ st.set_page_config(page_title="Flood exposure, Europe", layout="wide")
 EXPOSURE_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "exposure.parquet"
 CONTEXT_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "context.parquet"
 GEOMETRY_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "regions.geojson"
+WEB_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "event_2021_web.json"
 
 
 def _build_state(path: Path) -> float | None:
@@ -155,6 +157,18 @@ def _load_geometry(mtime: float) -> list[dict]:
     return svgmap.load_features(GEOMETRY_CACHE)
 
 
+def load_web_story() -> dict | None:
+    """The built July 2021 story, the same `event_2021_web.json` the React Space
+    reads, so this tab and the Space tell one story from one file and cannot drift."""
+    state = _build_state(WEB_CACHE)
+    return None if state is None else _load_web_story(state)
+
+
+@st.cache_data
+def _load_web_story(mtime: float) -> dict:
+    return json.loads(WEB_CACHE.read_text(encoding="utf-8"))
+
+
 def _freeze_banner(df: pd.DataFrame, key: str | None = None) -> None:
     """Say out loud which run is on screen. Half the failure mode is not knowing.
 
@@ -170,6 +184,76 @@ def _freeze_banner(df: pd.DataFrame, key: str | None = None) -> None:
         f"Frozen table · {len(df):,} rows · computed {stamp:%d %b %H:%M}{keyed} · "
         "every figure below and in the draft comes from this one run."
     )
+
+
+HERO_LABELS = {
+    "missed": "The map missed people",
+    "harm": "The harm",
+    "europe": "Not a one-off",
+    "when": "The window to act",
+}
+
+
+def render_july2021(web: dict) -> None:
+    """The July 2021 story, rendered from `event_2021_web.json` so this tab shows
+    what the React Space shows - the hero figures, who the water reached, the
+    recommendations and the limits - from the one built artefact, not a second copy.
+    """
+    st.header("Warn before the water, shelter where people have none")
+    st.caption(
+        "July 2021 floods in the Liège, Limburg and Aachen border area, in "
+        f"European context · {web.get('team', 'Team 9')} · built {web.get('built', '')}"
+    )
+
+    for col, item in zip(st.columns(len(web["hero"])), web["hero"]):
+        with col:
+            st.metric(HERO_LABELS.get(item["id"], item["id"]), item["big"])
+            st.markdown(item["line"])
+            st.caption(item["small"])
+
+    st.subheader("Who the water reached")
+    for col, row in zip(st.columns(len(web["strip"])), web["strip"]):
+        col.metric(row["name"], f"{row['residents_shown']} reached")
+        col.caption(f"{row['share_shown']} outside the 1-in-100-year zone")
+
+    # A Markdown table, not st.bar_chart/st.dataframe: this tab renders before the
+    # Exposure tab, and those element lists are flattened across tabs in tests - a
+    # chart or frame here would shift the Exposure tab's by one. Same figures.
+    chart = web["chart"]
+    st.markdown(f"**{chart['heading']}**")
+    periods = chart["return_periods"]
+    table = ["| Country | " + " | ".join(f"1-in-{rp}" for rp in periods) + " |",
+             "|" + "---|" * (len(periods) + 1)]
+    for row in chart["rows"]:
+        cells = " | ".join(row["shown"].get(str(rp), "—") for rp in periods)
+        table.append(f"| {row['name']} | {cells} |")
+    st.markdown("\n".join(table))
+
+    st.subheader(f"What to recommend — by {web['recommendations']['review_date']}")
+    for i, row in enumerate(web["recommendations"]["rows"], 1):
+        st.markdown(f"**{i}. {row['what']}**")
+        st.caption(f"Who, by when: {row['who']} · Instrument: {row['how']}")
+
+    st.subheader("Before the water")
+    for step in web["decision"].get("before", []):
+        st.markdown(f"**{step['when']}** — {step['who']}: {step['what']}")
+
+    st.subheader("What to do next")
+    for step in web["next_steps"]:
+        st.markdown(f"- {step['what']}")
+
+    st.subheader("In one line")
+    st.markdown(web["conclusion"])
+
+    with st.expander("What this cannot tell you"):
+        for limit in web["limits"]:
+            st.markdown(f"- {limit}", unsafe_allow_html=True)
+
+    with st.expander("Sources"):
+        for source in web["sources"]:
+            st.markdown(f"- {source}")
+        if web.get("attribution"):
+            st.caption(web["attribution"])
 
 
 def _directive_class(return_period: float) -> tuple[str, str]:
@@ -326,10 +410,21 @@ has_exposure = "exposed_pop" in view.columns
 # depend on which period is selected.
 indicators = vulnerability_indicators(exposure)
 
-map_tab, context_tab, vuln_tab, ask_tab, draft_tab, translate_tab, log_tab = st.tabs(
-    ["Exposure", "What qualifies it", "Who is most vulnerable", "Ask the table",
-     "Draft a brief section", "Translation", "AI usage log"]
+july_tab, map_tab, context_tab, vuln_tab, ask_tab, draft_tab, translate_tab, log_tab = st.tabs(
+    ["July 2021", "Exposure", "What qualifies it", "Who is most vulnerable",
+     "Ask the table", "Draft a brief section", "Translation", "AI usage log"]
 )
+
+# --- July 2021 ------------------------------------------------------------------
+with july_tab:
+    web_story = load_web_story()
+    if web_story is None:
+        st.info(
+            "Build the July 2021 story first: `python scripts/export_event_web.py` "
+            "writes `data/processed/event_2021_web.json`."
+        )
+    else:
+        render_july2021(web_story)
 
 # --- Exposure -------------------------------------------------------------------
 with map_tab:

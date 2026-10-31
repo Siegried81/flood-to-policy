@@ -25,26 +25,26 @@ YAML, the YAML is right.
 
 ## What the whole download costs
 
-The `geodata` section declares **51 entries**, which expand to **111 jobs**; **57**
-of those are files to download (**≈6.89 GiB** for the 56 on disk on 2026-10-25, of
+The `geodata` section declares **55 entries**, which expand to **116 jobs**; **61**
+of those are files to download (**≈6.89 GiB** measured on 2026-10-25, of
 which the Natura 2000 GeoPackage is 1.27, plus the 4.9 MB `natural_earth_countries`
-archive added on 2026-10-26) and the other **54** are not mirrored: **19**
+archive added on 2026-10-26) and the other **55** are not mirrored: **20**
 `access: api` endpoints queried at runtime and **35** files under six
 `access: folder` entries (the 30 `hera_river_discharge` files, which
 `scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the
 organisers' bucket, which `scripts/event_2021.py` reads), so `src.fetch` lands
 nothing on disk for them.
-With the `policy_corpus` (**25** entries) and `context` (**3**) sections, every one
-of them a `scrape`, the whole fetch is **85 files**; the 84 that were on disk on
-2026-10-25 measured **≈6.96 GiB**. **Six** entries
+With the `policy_corpus` (**35** entries) and `context` (**3**) sections, every one
+of them a `scrape`, the whole fetch is **99 files**, measured **≈6.96 GiB** on
+2026-10-25. **Seven** entries
 resolve to several downloaded files each — `jrc_flood_hazard` 13 (nine return periods,
 two companion masks, the README and the CHANGELOG), `efas_flood_thresholds` 9,
-`hanze_flood_impacts` 7, `cems_emsr518_belgium_2021` 4, `hera_sealed_fraction` 2 and
-`ghsl_pop_100m_tiles` 2 — so `src.fetch.expand()` turns one declared entry into one
+`hanze_flood_impacts` 7, `cems_emsr518_belgium_2021` 4, `hera_sealed_fraction` 2,
+`ghsl_pop_100m_tiles` 2 and `ghsl_pop_100m_tiles_2020` 2 — so `src.fetch.expand()` turns one declared entry into one
 job per file, and the count `fetch_all` prints is the number of *files*, not of
 declared sources.
 
-**Eleven** entries declare a `files:` key, not six: one more is the
+**Twelve** entries declare a `files:` key, not seven: one more is the
 `hera_river_discharge` folder, and the other four name exactly one
 file, which is how a single named archive inside a download portal gets pinned. So
 `files:` present and "expands to more than one job" are different questions, and
@@ -57,8 +57,7 @@ source as permanently done - a silent success with nothing in it. The
 human-readable portal page is kept beside the resolved URL as `landing:` for
 provenance.
 
-Nine return periods alone are **2.61 GiB**. All 85 declared files are on disk
-(the 85th, `natural_earth_countries`, since 2026-10-26); re-run
+Nine return periods alone are **2.61 GiB**. All **99** of them are fetched; re-run
 `python -m src.fetch` only after changing `sources.yaml`.
 
 Those counts are `src.fetch.expand()` over `sources.yaml` as it stood on

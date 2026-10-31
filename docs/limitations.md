@@ -438,18 +438,16 @@ Only what the repository shows.
 - **Per-file test counts are typed by hand.** The total in
   `technical_deep_dive.md` §7 is filled by `scripts/docs_numbers.py`; the
   per-file rows are not, and they drift between edits. Re-measured on
-  27 October: 50 files, summing to the
-  <!-- numbers:tests_collected -->1,127<!-- /numbers --> collected; re-measure the
+  31 October: 52 files, summing to the
+  <!-- numbers:tests_collected -->1,128<!-- /numbers --> collected; re-measure the
   file count after any test change (the total is filled by the script). [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
 - **Whether the suite runs on Windows depends on a policy outside the repo.**
   Smart App Control has both blocked and allowed `rasterio`'s DLL with nothing
   reinstalled; it allowed it on 2026-10-23. The WSL2 venv is the route that
   does not depend on it. Root [`README.md`](../README.md),
   [`technical_deep_dive.md` §7](technical_deep_dive.md#7-the-test-suite).
-- **Six downloaded data inputs carry no `licence:`** (nor do 22 of the 28 scraped policy and context documents, or 13 of the 19 `access: api` sources). `gisco_nuts3`, `gisco_lau`,
-  `statbel_income`, `cems_emsr517_germany_2021`, `cems_emsr518_belgium_2021`,
-  and `natural_earth_countries` (added 2026-10-26; Natural Earth is public
-  domain, but the entry does not say so);
+- **Five downloaded data inputs carry no `licence:`** (nor do 31 of the 38 scraped policy and context documents, or 14 of the 20 `access: api` sources). `gisco_nuts3`, `gisco_lau`,
+  `statbel_income`, `cems_emsr517_germany_2021` and `cems_emsr518_belgium_2021`;
   the honest claim is "every input is traceable to a URL and a purpose", not
   "a licence on every input". [`responsible_ai.md`](responsible_ai.md#what-to-write-under-each-concretely).
 - **The prompt budget is in characters, not tokens.** Groq refuses above 8,000

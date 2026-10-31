@@ -121,14 +121,13 @@ which is open and needs no credentials.
 The JRC maps already cover Europe — that is what they are. Nine return periods,
 272–350 MB each. Downloading all nine is **2.61 GiB**, and
 the whole `geodata` section — 51 entries, 111 jobs once the multi-file ones are
-expanded: 57 files to download, 19 runtime API calls, and 35 files under six
+expanded: 61 files to download, 20 runtime API calls, and 35 files under six
 `folder` entries that `src.fetch` skips (30 HERA files that
 `scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the
 organisers' bucket that `scripts/event_2021.py` reads) — and the full fetch
-including the policy corpus (25) and context (3) is **85 files**. The 84 then
-declared measured ≈6.96 GiB on disk on 25 October, all fetched that day; the
-85th, `natural_earth_countries` (4.9 MB), came on 26 October. The counts come
-from `src.fetch.expand()` over `sources.yaml` as it stood on 27 October 2026,
+including the policy corpus (35) and context (3) is **99 files**. The download
+measured ≈6.96 GiB on disk on 25 October 2026. The counts come
+from `src.fetch.expand()` over `sources.yaml` as it stood on 31 October 2026,
 so re-derive them rather than quoting this paragraph.
 
 **At European scale the whole-file download is not a convenience, it is the only

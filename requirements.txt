@@ -25,7 +25,7 @@ shapely>=2.2.0
 # logged as CodeIntegrity 3077/3089/3118, with no pin that fixed it - and by
 # 2026-10-08 around 11:00 it allowed the same wheel again with nothing
 # reinstalled. Measured 2026-10-12: it blocks `import rasterio` again, and the
-# WHOLE suite runs in WSL2, <!-- numbers:tests_collected -->1,127<!-- /numbers --> passed
+# WHOLE suite runs in WSL2, <!-- numbers:tests_collected -->1,128<!-- /numbers --> passed
 # and nothing deselected (the count is written by scripts/docs_numbers.py).
 #
 # Keep the WSL2 venv (`~/venvs/flood-policy-kit` on Ubuntu) anyway: it is the only
@@ -44,7 +44,6 @@ shapely>=2.2.0
 # scripts/build_exposure.py asserts the CRS before opening a raster.
 pyogrio>=0.9,<0.13    # fast vector IO backend for geopandas
 pyproj>=3.7,<3.8      # CRS engine; see the note above before changing this
-osmnx>=2.1.1          # critical infrastructure via Overpass
 cdsapi>=0.7.7         # ONLY scripts/fetch_cds_member.py, a pre-event errand;
                       # the demo and the test suite never import it
 
@@ -56,9 +55,7 @@ netCDF4>=1.7.5.1.post1        # the NetCDF-4/HDF5 engine xarray reads EFAS and H
 
 # App + maps
 streamlit>=1.66.1
-folium>=0.20.0
-streamlit-folium>=0.27.4
-matplotlib>=3.11.2
+Pillow>=11.0.0        # src/story_maps.py composites the satellite basemap PNGs
 
 # LLM layer
 tiktoken>=0.14.0

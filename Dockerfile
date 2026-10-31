@@ -39,17 +39,13 @@
 ARG BASE_IMAGE=python:3.12-slim
 FROM ${BASE_IMAGE} AS app
 
-# MPLCONFIGDIR is set because matplotlib builds a font cache on first import and
-# warns loudly when its config directory is not writable, which it is not for a
-# non-root user whose home directory the image never visits.
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
-    STREAMLIT_SERVER_HEADLESS=true \
-    MPLCONFIGDIR=/tmp/matplotlib
+    STREAMLIT_SERVER_HEADLESS=true
 
 WORKDIR /app
 
