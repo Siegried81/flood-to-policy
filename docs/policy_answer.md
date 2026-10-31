@@ -1,6 +1,6 @@
 # The answer: what we are asked, what we found, who has to act
 
-**Figures re-derived up to 2026-10-25** (the July 2021
+**Figures re-derived up to 2026-10-30** (the July 2021
 figures and the R3 evidence on 2026-10-27). Every figure here comes from
 `data/processed/event_2021_*.parquet`,
 `data/processed/exposure.parquet`, `data/processed/context.parquet`, the cached
@@ -22,13 +22,14 @@ and they give the recommendation its scale and its named actor.
 **The core, in four figures** (the policy tool's hero numbers, read by
 `src.policy_tool.hero()` and `country_strip()` from
 `data/processed/event_2021_*.parquet`; first Copernicus EMS maps, residents from
-GHS-POP E2020). In the Ahr valley (Bad Neuenahr-Ahrweiler, EMSR517 AOI15),
-**51 %** of the 3,740 residents the water reached (1,890) lived *outside* the
-JRC 1-in-100-year flood zone. In Germany **375** buildings were graded
+GHS-POP E2020). In Eschweiler (Aachen region, EMSR517 AOI09), **91 %** of the
+1,213 residents the water reached (1,107) lived *outside* the JRC 1-in-100-year
+flood zone; in the Ahr valley (Bad Neuenahr-Ahrweiler, EMSR517 AOI15), **51 %**
+of the 3,739 it reached (1,889). In Germany **375** buildings were graded
 destroyed on the first maps, **792** with the later maps of the same areas; the
-water reached about **32,600** residents there, **12,200** of them outside the
-1-in-100-year zone. In Belgium it reached about **1,990** residents (**12 %**
-outside the zone), in the Netherlands about **2,450** (**12 %**). Belgium and
+water reached **32,562** residents there, **12,238** of them outside the
+1-in-100-year zone. In Belgium it reached **1,994** residents (**12.4 %**
+outside the zone), in the Netherlands **2,449** (**11.7 %**). Belgium and
 the Netherlands have no damage-grading products, so no destroyed count exists
 for them.
 
@@ -400,6 +401,6 @@ this page adds is the current legislative context a JRC jury will know:
   percentage beside `share_over_65`, a fraction. A table or export from an older
   build says `poverty_rate` (the committed `exposure.parquet` still does), and
   the API and both UIs read it under the new name for one release.
-- The full suite collects **<!-- numbers:tests_collected -->1,127<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control has blocked
+- The full suite collects **<!-- numbers:tests_collected -->1,128<!-- /numbers --> tests**, all passing on Windows and in WSL2 on 2026-10-26. Smart App Control has blocked
   `rasterio` on Windows on some days and allowed it on others
   with nothing reinstalled, so re-measure rather than quote this line; the WSL2 venv is the route that does not depend on it.

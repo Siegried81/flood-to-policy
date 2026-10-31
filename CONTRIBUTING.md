@@ -46,7 +46,7 @@ cd web && VITE_STATIC=1 npm install && npm run build   # output in web/dist
 | The offline HTML tool (figures, text, decision cards, priority scores) | `src/policy_tool.py` |
 | The React app / the Space | `web/src/components/Event2021.jsx`, `web/src/App.jsx` |
 | The builders (`--satellite`, `--front-aois`, `--hero-*`) | `scripts/build_policy_tool.py`, `scripts/export_event_web.py` |
-| The numbers | `data/processed/event_2021_*.csv` (output of `src/event2021.py`) |
+| The numbers | `data/processed/event_2021_*.parquet` (output of `src/event2021.py`) |
 
 The tool and the web app share `src/policy_tool.py` for every figure and
 formatted string, so a fix there lands in both.

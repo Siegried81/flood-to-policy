@@ -18,7 +18,7 @@ change to what a number means; this file describes the current state only.
 config/sources.yaml          one file owns every URL
         │
         ▼
-python -m src.fetch          85 files, idempotent, robots-aware
+python -m src.fetch          99 files, idempotent, robots-aware
         │
         ├───────────────────────┬───────────────────────┐
         ▼                       ▼                       ▼
@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,127<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,128<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -517,9 +517,9 @@ block that `scripts/docs_numbers.py --write` fills from `pytest --collect-only`,
 and `tests/test_docs_numbers.py` fails the suite when any marked block in the
 docs disagrees with the repository. Edit the prose, never the digit.
 
-Per-file counts measured 27 October 2026 with
+Per-file counts measured 31 October 2026 with
 `pytest --collect-only -q -p no:cacheprovider | grep '::' | cut -d: -f1 | sort | uniq -c`;
-they sum to the marked total above. Fifty files. Typed counts go stale, so
+they sum to the marked total above. Fifty-two files. Typed counts go stale, so
 re-measure the rows after any test change.
 
 | File | Tests | Guards |
@@ -574,6 +574,8 @@ re-measure the rows after any test change.
 | `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
 | `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
 | `test_policy_tool.py` | 24 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team 9", the EU-27 States absent from the risk-area layer read from the context table |
+| `test_export_interactive.py` | 2 | the interactive flood-layer export for the web view |
+| `test_frozen_numbers.py` | 1 | the frozen hackathon numbers still match the pipeline |
 
 **Screenshots are a script, not a chore.**
 `scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
@@ -600,9 +602,9 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,127<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
-| 85 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (57 geodata, 25 policy_corpus, 3 context), 27 October 2026 |
-| ≈6.96 GiB on disk | measured 25 October 2026 with the 84 files then declared all present; not re-measurable on a machine without the full download |
+| <!-- numbers:tests_collected -->1,128<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
+| ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->73<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
 | 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
 | the 0.25% stripe discrepancy | two continental RP100 builds that cut the hazard raster |
