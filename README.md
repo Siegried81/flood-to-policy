@@ -1,12 +1,13 @@
 # Flood to policy
 
 > **About this repository.** I prepared this repository for the European AI
-> Challenge 2026 hackathon, where I worked in a team of six. It holds only my
-> own analyses, my policy tool and its Hugging Face Space: the team's group
-> work (its own tool and code) is not included. The exceptions are the policy
-> brief and the AI sheet, written by the six of us. Both are in
-> [`docs/hackathon/`](docs/hackathon/), as submitted, with my case notebook
-> (run on the organisers' data), its outputs and the Q2 sources it cites.
+> Challenge 2026 hackathon, where I worked in a team of six. Everything here is
+> my own work; I built it on my own through to the last day. Two files are the
+> team's rather than mine: the policy brief, which I helped write and edit, and
+> the AI sheet — the work of the six of us. Both sit in
+> [`docs/hackathon/`](docs/hackathon/) as submitted, next to my case notebook
+> (run on the organisers' data), its outputs and the Q2 sources it cites. The
+> team's own tool and code are not included here.
 
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
 Germany and the Netherlands, read against the European flood hazard map, and
@@ -199,7 +200,7 @@ no pin fixed, on some days and not others with nothing reinstalled (the details
 are in `requirements.txt`). **The policy moves both ways, so measure rather than believe
 either state.** Measured 2026-10-23, the Windows venv collects the whole suite, as
 the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,127<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
+**<!-- numbers:tests_collected -->1,128<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
 only route that does not depend on the policy, and it is where a continental
 raster build belongs.
 
@@ -253,12 +254,12 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,127<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,128<!-- /numbers --> tests, offline: no network, no model
                                         # Windows: re-measure, Smart App Control may block
                                         # rasterio (see above). WSL2: wsl -d Ubuntu, then
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q
-.venv/bin/python -m src.fetch           # 57 geodata downloads + 25 policy_corpus + 3 context
-                                        # = 85 files (done 25 Oct; re-run only to fill gaps)
+.venv/bin/python -m src.fetch           # 61 geodata downloads + 35 policy_corpus + 3 context
+                                        # = 99 files (re-measured 31 Oct; re-run only to fill gaps)
 .venv/bin/python scripts/build_exposure.py --stripes 72 # -> data/processed/exposure.parquet
 .venv/bin/python scripts/build_context.py  --stripes 72 # -> data/processed/context.parquet
 .venv/bin/python scripts/build_geometry.py             # -> data/processed/regions.geojson
@@ -313,8 +314,8 @@ table, and `--rebuild` recomputes a parked period.
 The raw downloads are **not** committed (`data/` is ignored), except four files in
 `data/processed/`: `exposure.parquet`, `context.parquet`, `event_2021_web.json`
 and `DATA_NOTICE.md`. `.venv/bin/python -m src.fetch` downloads what
-`config/sources.yaml` declares, **85 files** (counted 27 Oct; ≈6.96 GiB measured on
-25 Oct, when it was 84); the breakdown by section and why the printed count is
+`config/sources.yaml` declares, **99 files** (counted 31 Oct; ≈6.96 GiB measured on
+25 Oct); the breakdown by section and why the printed count is
 files, not sources, is in
 [`docs/datasets.md`](docs/datasets.md#what-the-whole-download-costs). It ran on
 25 October; never start it at the venue: the Wi-Fi of a 60-person hackathon will
