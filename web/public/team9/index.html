@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team 9 – July 2021 flood maps</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --card: #ffffff;
+      --ink: #1b1b1b;
+      --muted: #5c5c5c;
+      --line: #e3e3df;
+      --accent: #1f6feb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14161a;
+        --card: #1c1f25;
+        --ink: #e8e8e6;
+        --muted: #9a9a95;
+        --line: #2a2e35;
+        --accent: #6aa3ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      padding: 48px 16px;
+    }
+    main { max-width: 680px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin: 0 0 .4rem; }
+    .lede { color: var(--muted); margin: 0 0 2rem; }
+    .card {
+      display: block;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h2 { font-size: 1.1rem; margin: 0 0 .25rem; color: var(--accent); }
+    .card p { margin: 0; color: var(--muted); }
+    footer { color: var(--muted); font-size: .9rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>July 2021 flood maps</h1>
+    <p class="lede">Two interactive Leaflet maps of the July 2021 floods in the
+      Belgium–Germany–Netherlands border region.</p>
+
+    <a class="card" href="flood_map.html">
+      <h2>Exposure map</h2>
+      <p>Where the water reached and who lived inside the mapped extent.</p>
+    </a>
+
+    <a class="card" href="priority_map.html">
+      <h2>Priority map</h2>
+      <p>The regions ranked for where to act first.</p>
+    </a>
+
+    <footer>Team 9's work. The rest of this repository is my own.</footer>
+  </main>
+</body>
+</html>
