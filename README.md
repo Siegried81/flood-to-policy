@@ -1,13 +1,15 @@
 # Flood to policy
 
 > **About this repository.** I prepared this repository for the European AI
-> Challenge 2026 hackathon, where I worked in a team of six. Everything here is
-> my own work; I built it on my own through to the last day. Two files are the
-> team's rather than mine: the policy brief, which I helped write and edit, and
-> the AI sheet — the work of the six of us. Both sit in
-> [`docs/hackathon/`](docs/hackathon/) as submitted, next to my case notebook
-> (run on the organisers' data), its outputs and the Q2 sources it cites. The
-> team's own tool and code are not included here.
+> Challenge 2026 hackathon, where I worked in a team of six. Nearly all of it is
+> my own work, built on my own through to the last day. What is the team's, not
+> mine: the policy brief, which I edited, and the AI sheet — the work of the six
+> of us — both in [`docs/hackathon/`](docs/hackathon/) as submitted; and the
+> interactive maps under [`web/public/team9/`](web/public/team9/), which are
+> Team 9's work (live at https://flood-to-policy-team9-map.surge.sh/team9/).
+> Next to the two deliverables sit my case notebook (run on the organisers'
+> data), its outputs and the Q2 sources it cites. The rest of the repository is
+> my own.
 
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
 Germany and the Netherlands, read against the European flood hazard map, and
@@ -371,7 +373,9 @@ In Git Bash prefix the build with `MSYS_NO_PATHCONV=1` so the base is not
 rewritten into a Windows path; use `VITE_BASE=/flood-to-policy/` for a site
 served under a sub-path. To update the Space, upload the contents of
 `web/dist/` (`index.html`, `event_2021_web.json` and the `assets/` and `europe/`
-folders) under *Files → Add file → Upload files*. In the static build the region
+folders) under *Files → Add file → Upload files*. Leave out `web/dist/team9/` —
+Team 9's interactive maps, copied into the build from `web/public/team9/`:
+~41 MB this personal Space does not use, served separately on Surge. In the static build the region
 map is drawn from GISCO's 1:20 million NUTS file, which the viewer's browser
 fetches from GISCO itself, so no GISCO geometry is published here; the
 vulnerability ranking is precomputed at ±30 % and top 10 for every indicator
