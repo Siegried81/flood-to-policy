@@ -5,8 +5,9 @@
 > my own work, built on my own through to the last day. What is the team's, not
 > mine: the policy brief, which I edited, and the AI sheet — the work of the six
 > of us — both in [`docs/hackathon/`](docs/hackathon/) as submitted; and the
-> interactive maps under [`web/public/team9/`](web/public/team9/), which are
-> Team 9's work (live at https://flood-to-policy-team9-map.surge.sh/team9/).
+> interactive map under [`web/public/team9/`](web/public/team9/), with its source
+> under [`team9/`](team9/), which are Team 9's work (live at
+> https://flood-to-policy-team9-map.surge.sh/team9/).
 > Next to the two deliverables sit my case notebook (run on the organisers'
 > data), its outputs and the Q2 sources it cites. The rest of the repository is
 > my own.
@@ -374,8 +375,8 @@ rewritten into a Windows path; use `VITE_BASE=/flood-to-policy/` for a site
 served under a sub-path. To update the Space, upload the contents of
 `web/dist/` (`index.html`, `event_2021_web.json` and the `assets/` and `europe/`
 folders) under *Files → Add file → Upload files*. Leave out `web/dist/team9/` —
-Team 9's interactive maps, copied into the build from `web/public/team9/`:
-~41 MB this personal Space does not use, served separately on Surge. In the static build the region
+Team 9's interactive map (one page, four scenes), copied into the build from
+`web/public/team9/`: ~36 MB this personal Space does not use, served separately on Surge. In the static build the region
 map is drawn from GISCO's 1:20 million NUTS file, which the viewer's browser
 fetches from GISCO itself, so no GISCO geometry is published here; the
 vulnerability ranking is precomputed at ±30 % and top 10 for every indicator

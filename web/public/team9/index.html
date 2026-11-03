@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Team 9 – July 2021 flood maps</title>
+  <title>Team 9 – July 2021 flood map</title>
   <style>
     :root {
       --bg: #f7f7f5;
@@ -46,27 +46,35 @@
     }
     .card:hover { border-color: var(--accent); }
     .card h2 { font-size: 1.1rem; margin: 0 0 .25rem; color: var(--accent); }
-    .card p { margin: 0; color: var(--muted); }
+    .card p { margin: 0 0 .6rem; color: var(--muted); }
+    ol.scenes { margin: 0; padding-left: 1.2rem; color: var(--muted); }
+    ol.scenes li { margin-bottom: .2rem; }
+    ol.scenes b { color: var(--ink); }
     footer { color: var(--muted); font-size: .9rem; margin-top: 2rem; }
   </style>
 </head>
 <body>
   <main>
-    <h1>July 2021 flood maps</h1>
-    <p class="lede">Two interactive Leaflet maps of the July 2021 floods in the
-      Belgium–Germany–Netherlands border region.</p>
+    <h1>July 2021 flood map</h1>
+    <p class="lede">One interactive Leaflet map of the July 2021 floods in the
+      Belgium–Germany–Netherlands border region, from exposure to planning.</p>
 
     <a class="card" href="flood_map.html">
-      <h2>Exposure map</h2>
-      <p>Where the water reached and who lived inside the mapped extent.</p>
+      <h2>Open the map (four scenes)</h2>
+      <p>A single page that walks from what the satellites saw to where to act first.
+        The scene buttons switch layers, the result panel and the legend; the map view
+        and the planning scenario stay put.</p>
+      <ol class="scenes">
+        <li><b>What happened?</b> — observed Copernicus EMS flooded areas and traces.</li>
+        <li><b>Who was exposed?</b> — estimated residents per 400 m hexagon.</li>
+        <li><b>Where could they go?</b> — candidate shelters and an exploratory capacity scenario.</li>
+        <li><b>Where to start?</b> — a scenario-based planning priority per hexagon.</li>
+      </ol>
     </a>
 
-    <a class="card" href="priority_map.html">
-      <h2>Priority map</h2>
-      <p>The regions ranked for where to act first.</p>
-    </a>
-
-    <footer>Team 9's work. The rest of this repository is my own.</footer>
+    <footer>Team 9's work. The priority map is now scene 4 of this single map;
+      the former separate priority page has been retired. The rest of this
+      repository is my own.</footer>
   </main>
 </body>
 </html>

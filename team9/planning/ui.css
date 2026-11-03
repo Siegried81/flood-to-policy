@@ -1,0 +1,48 @@
+  /* planning scenario tab (planning/ui.js) */
+  .shel-tabs { display:flex; border:1px solid var(--line); border-radius: 7px; overflow:hidden; margin: 2px 0 8px; }
+  .shel-tabs button { flex:1; font: 600 11.5px Inter, system-ui, sans-serif; border:none; background:#fff; color:var(--muted); padding: 4px 6px; cursor:pointer; }
+  .shel-tabs button.on { background:#eef4fb; color: var(--accent); }
+  .scn-head { font-weight: 700; font-size: 12.5px; }
+  .scn-head span { font-weight: 600; font-size: 10.5px; color:#92400e; background:#fef3c7; border-radius: 999px; padding: 1px 7px; margin-left: 4px; white-space: nowrap; }
+  .scn-base { margin: 5px 0; padding: 4px 8px; border-radius: 6px; background:#f1f5f9; font-weight: 600; font-size: 12px; }
+  .scn-sub { margin: 9px 0 3px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .scn-in { display:block; font-size: 12px; margin: 2px 0; }
+  .scn-in b { float: right; font-variant-numeric: tabular-nums; }
+  .scn-in input[type=range] { width: 100%; margin: 2px 0 0; }
+  .scn-chk { display:flex; gap: 6px; align-items:flex-start; font-size: 12px; margin: 3px 0; cursor: pointer; }
+  .scn-chk input { margin-top: 2px; }
+  .scn-flag { font-size: 11.5px; color:#92400e; background:#fef3c7; border-radius: 6px; padding: 3px 7px; margin: 3px 0; }
+  table.scn-t { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
+  table.scn-t td, table.scn-t th { padding: 1.5px 0; vertical-align: middle; }
+  table.scn-t td:nth-child(n+2), table.scn-t th:nth-child(n+2) { text-align: right; white-space: nowrap; padding-left: 6px; }
+  table.scn-t th { color: var(--muted); font-weight: 600; font-size: 11px; text-align: left; }
+  table.scn-t tr.hl td { font-weight: 700; border-top: 1px solid var(--line); }
+  table.scn-t td.g { padding-left: 4px; color: var(--muted); font-size: 11.5px; display:flex; align-items:center; gap: 4px; }
+  table.scn-t td.g svg { flex: none; }
+  table.scn-t .pc { color: var(--muted); font-weight: 500; }
+  .scn-list { max-height: 130px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; }
+  .scn-list button.x { border: none; background: none; cursor: pointer; color: var(--muted); padding: 0 2px; font-size: 12px; }
+  .scn-list button.x:hover { color: var(--accent); }
+  .scn-empty { font-size: 12px; background:#f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 5px 8px; margin: 6px 0; }
+  .scn-btns button { font-size: 11px; padding: 3px 7px; }
+  .scn-pop { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .scn-pop .scn-row { display:flex; align-items:center; gap: 5px; margin: 4px 0; flex-wrap: wrap; }
+  .scn-pop input.scn-cap { width: 72px; font: 12px Inter, system-ui, sans-serif; padding: 1px 4px; border: 1px solid #cbd5e1; border-radius: 4px; }
+  .scn-pop button { font: 600 11px Inter, system-ui, sans-serif; border:1px solid var(--line); background:#fff; border-radius: 6px; padding: 1px 7px; cursor: pointer; }
+  .shel .capb { position:absolute; left: 12px; top: 11px; background:#fff; color:#111827; border:1px solid #111827; border-radius: 3px;
+    font: 700 8.5px/11px Inter, sans-serif; padding: 0 2px; white-space: nowrap; }
+  .shel.t-community_centre .capb { transform: rotate(-45deg); left: 12px; top: 2px; }
+  /* stage 3: warnings, scope, statement-type keys, A/B comparison, collapsible details */
+  .scn-warn { font-size: 11.5px; background:#fff7ed; border-left: 3px solid #c2410c; border-radius: 4px; padding: 3px 7px; margin: 4px 0; }
+  .scn-scope { font-size: 11px; color: var(--muted); margin: 3px 0 2px; }
+  .scn-cnt { font-size: 11.5px; color: var(--muted); margin: 2px 0; }
+  .k { font-size: 9.5px; font-weight: 700; letter-spacing: .02em; text-transform: none; border-radius: 4px; padding: 0 4px; white-space: nowrap; vertical-align: 1px; }
+  .k-hist { background:#dbeafe; color:#1e3a8a; } .k-cand { background:#f1f5f9; color:#334155; }
+  .k-asm { background:#fef3c7; color:#92400e; } .k-res { background:#dcfce7; color:#166534; }
+  .scn-cmp table.scn-t th { text-align: right; } .scn-cmp table.scn-t th:first-child { text-align: left; }
+  .scn-diff { font-size: 12px; margin: 3px 0; padding: 3px 7px; border-radius: 6px; background:#f1f5f9; }
+  ul.scn-ch { margin: 2px 0; padding-left: 16px; font-size: 11.5px; max-height: 110px; overflow-y: auto; }
+  #scn-tab details { margin: 4px 0; font-size: 12px; }
+  #scn-tab details > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 11.5px; }
+  .scn-msg { white-space: pre-line; max-width: none; }
+  .scn-chh { font-size: 11.5px; font-weight: 600; margin-top: 4px; }
