@@ -1,0 +1,47 @@
+  /* four presentation scenes (planning/scenes.js) */
+  .title-panel h1 { font-size: 15px; margin: 0 0 3px; }
+  .title-panel .of { color: var(--muted); font-size: 11px; }
+  .scenes { display:grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 8px 0 6px; }
+  .scenes button { font: 600 12px Inter, system-ui, sans-serif; text-align: left; border:1px solid var(--line); background:#fff; color:var(--ink);
+    border-radius: 7px; padding: 5px 7px; cursor: pointer; }
+  .scenes button b { display:inline-block; width: 16px; height: 16px; line-height: 16px; text-align:center; border-radius: 50%; background:#e5e7eb; font-size: 10.5px; margin-right: 3px; }
+  .scenes button:hover { border-color: var(--accent); }
+  .scenes button.on { background: var(--accent); border-color: var(--accent); color:#fff; }
+  .scenes button.on b { background:#fff; color: var(--accent); }
+  .title-panel .zoom-btns { margin-top: 0; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .title-panel .zoom-btns button { font-size: 11px; padding: 2px 7px; }
+  .title-panel .zoom-btns button:disabled { opacity: .45; cursor: default; }
+  .title-panel .zoom-btns .sep { width: 6px; }
+  .scene-panel h3 { margin-bottom: 6px; }
+  .scene-panel details { margin: 5px 0; font-size: 12px; }
+  .scene-panel details > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 11.5px; }
+  .kpis { display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+  .kpis div { background:#f1f5f9; border-radius: 7px; padding: 6px 7px; }
+  .kpis b { display:block; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .kpis span { display:block; color: var(--muted); font-size: 10.5px; line-height: 1.3; }
+  .big-n { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  table.top10 tr[data-hex] { cursor: pointer; }
+  table.top10 tr[data-hex]:hover td { background:#eef4fb; }
+  table.top10 td:first-child { color: var(--muted); width: 16px; }
+  table.top10.prio { font-size: 11px; }
+  table.top10.prio td:nth-child(n+3), table.top10.prio th:nth-child(n+3) { padding-left: 4px; }
+  button.linkbtn { border: none; background: none; color: var(--accent); cursor: pointer; padding: 0; font: 600 11px Inter, system-ui, sans-serif; text-decoration: underline; }
+  .ecl-ic { background: none; border: none; }
+  .ecl { width:100%; height:100%; box-sizing:border-box; border-radius:50%; background: rgba(254,215,170,.92); border: 2px solid #c2410c; color:#7c2d12;
+    display:flex; align-items:center; justify-content:center; font: 700 11px/1 Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 4px rgba(15,23,42,.3); }
+  .legend .sw.dot { width: 11px; height: 11px; border-radius: 50%; margin: 0 4px 0 3px; }
+  .legend h3 .k { margin-left: 3px; }
+  .title-panel h1 { font-size: 14px; }
+  .scenes button { font-size: 11px; padding: 4px 5px; white-space: nowrap; letter-spacing: -.01em; }
+  .scenes button b { margin-right: 2px; }
+  table.top10 td:nth-child(2), table.top10 th:nth-child(2) { text-align: left; }
+  .legend .flood-compact { display: none; }
+  .legend.compact-flood .flood-compact { display: flex; }
+  .legend.compact-flood #leg-flood .seg, .legend.compact-flood #leg-flood .unit, .legend.compact-flood #leg-flood-b,
+  .legend.compact-flood #leg-flood-r, .legend.compact-flood #leg-flood .row:not(.flood-compact) { display: none; }
+  .legend #leg-water.far { display: none; }
+  .leaflet-control-layers.ctl-all .leaflet-control-layers-toggle, .leaflet-control-layers.ctl-efas .leaflet-control-layers-toggle {
+    background-image: none; width: auto; height: auto; padding: 5px 9px; font: 600 11.5px Inter, system-ui, sans-serif; color: var(--ink); text-decoration: none; }
+  .ctl-all .leaflet-control-layers-toggle::after { content: "Layers ▾"; }
+  .ctl-efas .leaflet-control-layers-toggle::after { content: "EFAS hazard ▾"; }
