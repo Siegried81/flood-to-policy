@@ -1,0 +1,255 @@
+{
+  "about": "Evidence register (research file for the presentation and policy brief; not shown on the map). Selected case studies, not complete regional coverage. Edit this file by hand; validate with: python -m pytest tests/test_evidence.py. Records = sourced facts, read in the source itself. Actions = our team's proposals, not commitments of any authority.",
+  "checked_by": "Team 78 (research and drafting assisted by Claude Code; every source opened and read on the date checked)",
+  "status_values": ["proposed", "planned", "in_progress", "completed", "unclear"],
+  "category_values": ["river_works", "flood_defence", "warning", "evacuation", "reconstruction", "shelter", "catchment_programme"],
+  "localities": [
+    {
+      "id": "BNAW",
+      "municipality": "Bad Neuenahr-Ahrweiler",
+      "country": "Germany",
+      "why_selected": "Ahr valley; most candidate facilities inside the observed 2021 extent of the three case studies."
+    },
+    {
+      "id": "ERF",
+      "municipality": "Erftstadt",
+      "country": "Germany",
+      "why_selected": "Erft; Blessem gravel-pit breach and erosion in July 2021."
+    },
+    {
+      "id": "VAL",
+      "municipality": "Valkenburg aan de Geul",
+      "country": "Netherlands",
+      "why_selected": "Geul; town flooded in July 2021 but almost absent from the EMS footprint (see action VAL-A1)."
+    }
+  ],
+  "records": [
+    {
+      "id": "BNAW-01",
+      "locality": "BNAW",
+      "scope": "Site within the municipality: Ahr at Lohrsdorfer Aue, between the B266 bridge and the Bürgerhaus",
+      "measure": "Partial clearance of deposits in the right floodplain of the Ahr (emergency measure)",
+      "category": "river_works",
+      "status": "in_progress",
+      "status_as_of": "2026-04-01",
+      "description": "Listed by the district as an emergency measure after the high water of January 2025. Contract July 2025, works September–October 2025, sampling and disposal from November 2025. State on 1 April 2026: in progress (removal finished, disposal ongoing).",
+      "source": {
+        "title": "Gewässerwiederherstellung der Ahr und ihrer Zuflüsse 2. Ordnung – Liste über gezielte Notmaßnahmen nach dem Hochwasserereignis im Januar 2025 (Stand: 01.04.2026)",
+        "publisher": "Kreisverwaltung Ahrweiler, Stabsstelle Hochwasserresilienz und Aufbaukoordination",
+        "url": "https://kreis-ahrweiler.de/wp-content/uploads/2026/04/20260401_GWH_Liste_Notmassnahmen.pdf",
+        "published": "2026-04-01"
+      },
+      "event_date": "Works September–October 2025; disposal from November 2025",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "That the district listed this measure and reported its state on 1 April 2026: \"in Ausführung (Abtrag abgeschlossen, Entsorgung läuft)\".",
+      "unverified": "Completion after 1 April 2026; effect on flood levels; any link to shelters or evacuation. The trigger named is the January 2025 high water, not July 2021 (the list is part of the Ahr restoration programme). No map coordinates are added: the site is described by text only."
+    },
+    {
+      "id": "BNAW-02",
+      "locality": "BNAW",
+      "scope": "Site within the municipality: Ahr at Walporzheim, between the railway (DB) construction site and the sports ground",
+      "measure": "Lowering of the left floodplain / channel bed (emergency measure)",
+      "category": "river_works",
+      "status": "in_progress",
+      "status_as_of": "2026-04-01",
+      "description": "Raised mean water level and deposits on the floodplains. Partial removal of the left floodplain up to the sports ground was finished as an emergency measure on public land; further steps (permission to continue on private land) were in preparation on 1 April 2026.",
+      "source": {
+        "title": "Gewässerwiederherstellung der Ahr und ihrer Zuflüsse 2. Ordnung – Liste über gezielte Notmaßnahmen nach dem Hochwasserereignis im Januar 2025 (Stand: 01.04.2026)",
+        "publisher": "Kreisverwaltung Ahrweiler, Stabsstelle Hochwasserresilienz und Aufbaukoordination",
+        "url": "https://kreis-ahrweiler.de/wp-content/uploads/2026/04/20260401_GWH_Liste_Notmassnahmen.pdf",
+        "published": "2026-04-01"
+      },
+      "event_date": "Contract June 2025; works from July 2025",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "Public-land part reported finished on 1 April 2026: \"Teilabtrag bis Sportplatz als Notmaßnahme auf öffentlichen Flächen fertiggestellt. Weitere Schritte in Vorbereitung\".",
+      "unverified": "Whether the private-land part has started or finished; effect on flood levels. Same January 2025 trigger as BNAW-01. No map coordinates are added."
+    },
+    {
+      "id": "ERF-01",
+      "locality": "ERF",
+      "scope": "Site within the municipality: erosion area between the Blessem gravel pit, the village of Blessem and the Erft",
+      "measure": "\"Sekundäraue\" (secondary floodplain): refill of the erosion gully, retention area, reconstruction of the pit's south wall, protection of the pit against future floods, restoration of drainage",
+      "category": "flood_defence",
+      "status": "planned",
+      "status_as_of": "not dated on the page (checked 2026-10-30)",
+      "description": "Project coordinated by Bezirksregierung Arnsberg (mining authority) since September 2021 with Bezirksregierung Köln, Rhein-Erft-Kreis, Stadt Erftstadt, Geologischer Dienst, Erftverband, the pit operator and RWE Power. Parts A and B were expected to take about three years, with completion \"expected in 2025\"; part C a further 8–10 years.",
+      "source": {
+        "title": "Gefahrenabwehr im Erosionsbereich zwischen Tagebau Blessem, Ortschaft Blessem und Fluss Erft",
+        "publisher": "Bezirksregierung Arnsberg",
+        "url": "https://www.bra.nrw.de/energie-bergbau/rohstoffgewinnung/gefahrenabwehr-im-erosionsbereich-zwischen-tagebau-blessem-ortschaft-blessem-und-fluss-erft",
+        "published": null
+      },
+      "additional_sources": [
+        {
+          "title": "FAQ – Hintergrund des Projektes",
+          "publisher": "Bezirksregierung Arnsberg",
+          "url": "https://www.bra.nrw.de/-3515",
+          "published": null
+        }
+      ],
+      "event_date": "Flood and erosion 14–16 July 2021; project assigned September 2021",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "The plan, the milestones and the partners; that completion of parts A and B was expected in 2025 (\"Ihre Fertigstellung ist somit für das Jahr 2025 zu erwarten\"); 8.7 ha eroded (FAQ).",
+      "unverified": "Whether parts A and B were actually completed: the page is undated and we found no completion notice. An expected date is not evidence of completion. No map coordinates are added."
+    },
+    {
+      "id": "VAL-01",
+      "locality": "VAL",
+      "scope": "Village within the municipality: Geul in Schin op Geul (gemeente Valkenburg aan de Geul)",
+      "measure": "Replacement of about 850 m of quay walls and 110 m of flood barrier (Hanewei), levelling of the stream bed",
+      "category": "reconstruction",
+      "status": "in_progress",
+      "status_as_of": "2026-10-22",
+      "description": "Repair of damage caused by the July 2021 high water. Planned from June 2026 to mid-2028. On 22 October 2026 the water board reported about one month of works, the first walls progressing and works continuing from 12 October at the Tolhuisstraat towards Panhuis. Aim includes better protecting homes in the Hanewei against future high water.",
+      "source": {
+        "title": "Herstel kademuur Schin op Geul (project page)",
+        "publisher": "Waterschap Limburg",
+        "url": "https://www.waterschaplimburg.nl/projecten/herstel-kademuur-schin-op-geul/",
+        "published": null
+      },
+      "additional_sources": [
+        {
+          "title": "Werkzaamheden aan kademuren Schin op Geul gaan verder",
+          "publisher": "Waterschap Limburg",
+          "url": "https://www.waterschaplimburg.nl/actueel/nieuws/2026/werkzaamheden-kademuren-schin-geul-gaan-verder/",
+          "published": "2026-10-22"
+        }
+      ],
+      "event_date": "Damage July 2021; works June 2026 – mid-2028 (planned)",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "Works are under way as of 22 October 2026 and planned until mid-2028; the scope (850 m walls, 110 m barrier).",
+      "unverified": "Completion; the protection level reached; whether works affect local access routes. No map coordinates are added."
+    },
+    {
+      "id": "VAL-02",
+      "locality": "VAL",
+      "scope": "Limburg tributaries including the Geul (regional, not specific to Valkenburg)",
+      "measure": "Early-warning system for Limburg's tributaries and streams",
+      "category": "warning",
+      "status": "in_progress",
+      "status_as_of": "2024-03-20",
+      "description": "Answer to residents who were not warned in 2021: \"work is under way\" on an early-warning system; it needs accurate gauges across the catchment, including abroad; such a system existed for the Meuse but not yet for the Limburg tributaries. Existing channels named: waterstandlimburg.nl app (water levels, location alerts), KNMI weather warnings, Veiligheidsregio Zuid-Limburg, NL-Alert when safety is at stake.",
+      "source": {
+        "title": "Informatiebijeenkomst water Schin op Geul, 20 maart 2024 – vragen en antwoorden",
+        "publisher": "Gemeente Valkenburg aan de Geul",
+        "url": "https://www.valkenburg.nl/data/downloadables/1/8/5/8/vraag-en-antwoord-infobijeenkomst-water-schin-op-geul-20032024.pdf",
+        "published": "2024-04-11"
+      },
+      "event_date": "Information meeting 20 March 2024",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "As of March 2024, an early-warning system for the tributaries was being developed and did not yet exist (\"Er wordt gewerkt aan een early warning systeem ... nog niet voor de Limburgse zijrivieren en beken\").",
+      "unverified": "Whether it is operational in 2026 and whether it covers the Geul at Valkenburg. The source is 2.5 years old. Publication date = PDF creation date (11 April 2024)."
+    },
+    {
+      "id": "VAL-03",
+      "locality": "VAL",
+      "scope": "Whole Geul catchment (eight Geul municipalities, Waterschap Limburg, Provincie Limburg); not specific to Valkenburg",
+      "measure": "Catchment plan for the Geul under the Waterveiligheid en Ruimte Limburg (WRL) programme, incl. a study of water storage in the Geul valley floors",
+      "category": "catchment_programme",
+      "status": "proposed",
+      "status_as_of": "2024-03-20",
+      "description": "Exploration phase: the valley-storage study had just started (about four months); a preferred scenario was still to be chosen jointly by the eight Geul municipalities, the water board and the province; a plan-level environmental assessment (plan-MER) was to be prepared; budget in tranches over a programme of about 15 years.",
+      "source": {
+        "title": "Informatiebijeenkomst water Schin op Geul, 20 maart 2024 – vragen en antwoorden",
+        "publisher": "Gemeente Valkenburg aan de Geul",
+        "url": "https://www.valkenburg.nl/data/downloadables/1/8/5/8/vraag-en-antwoord-infobijeenkomst-water-schin-op-geul-20032024.pdf",
+        "published": "2024-04-11"
+      },
+      "event_date": "Information meeting 20 March 2024",
+      "completion_date": null,
+      "checked": "2026-10-30",
+      "establishes": "In March 2024 no package of measures had been chosen; who decides; that a plan-MER would be prepared.",
+      "unverified": "Any decision taken since March 2024; budgets and measures for Valkenburg itself. This regional programme is not attached to a site on the map."
+    }
+  ],
+  "actions": [
+    {
+      "id": "BNAW-A1",
+      "locality": "BNAW",
+      "kind": "gap",
+      "finding": "Most candidate facilities in the municipality lie inside the observed 2021 extent, none has a documented capacity, and we found no official list of designated shelters or emergency meeting points.",
+      "basis": [
+        {"data": "candidates"},
+        {"data": "documented_capacity"},
+        {"data": "no_official_shelter_list"},
+        {"scenario": "In the planning scenario, places for these facilities can only be assumed."}
+      ],
+      "action": "Request the municipality's current list of designated emergency shelters / meeting points and compare it with the candidates; for listed sites, confirm usable capacity, current availability and access routes.",
+      "actor": "Municipal civil-protection / public-order office (role; contact to be identified)",
+      "info_needed": "Official list with addresses; usable capacity per site; operator and opening arrangement; whether each site was repaired or rebuilt after 2021."
+    },
+    {
+      "id": "BNAW-A2",
+      "locality": "BNAW",
+      "kind": "finding",
+      "finding": "Two river-channel emergency measures were reported in progress or partly finished on 1 April 2026.",
+      "basis": [{"source": "BNAW-01"}, {"source": "BNAW-02"}],
+      "action": "Ask the district office named in the source for the current status (after 1 April 2026) before citing these measures as completed. Do not treat them as reducing the 2021 exposure shown on the map.",
+      "actor": "Kreisverwaltung Ahrweiler, Stabsstelle Hochwasserresilienz und Aufbaukoordination (named in the source)",
+      "info_needed": "Updated list after 1 April 2026; whether the Walporzheim works continued on private land."
+    },
+    {
+      "id": "ERF-A1",
+      "locality": "ERF",
+      "kind": "finding",
+      "finding": "Completion of the Blessem secondary floodplain (parts A and B) was expected in 2025, but we found no evidence that it was completed.",
+      "basis": [{"source": "ERF-01"}],
+      "action": "Confirm with the project coordinator whether parts A and B, the south wall and the pit's flood protection were completed, and obtain a dated status report.",
+      "actor": "Bezirksregierung Arnsberg, mining authority (project coordinator named in the source)",
+      "info_needed": "Dated completion notice or status report; protection level of the pit's flood defences."
+    },
+    {
+      "id": "ERF-A2",
+      "locality": "ERF",
+      "kind": "gap",
+      "finding": "Candidate facilities are mapped, but none has a documented capacity and we found no official list of designated shelters.",
+      "basis": [{"data": "candidates"}, {"data": "documented_capacity"}, {"data": "no_official_shelter_list"}],
+      "action": "Request the municipality's list of designated shelters / meeting points; confirm usable capacity and availability for the listed candidates outside the 2021 extent.",
+      "actor": "Municipal civil-protection / public-order office (role; contact to be identified)",
+      "info_needed": "Official list; usable capacity; opening arrangement; access routes."
+    },
+    {
+      "id": "VAL-A1",
+      "locality": "VAL",
+      "kind": "gap",
+      "finding": "The EMS 2021 footprint shows almost no flooding in the municipality, although an official source documents July 2021 flood damage along the Geul in the municipality (Schin op Geul). Exposure here is likely under-detected; the footprint cannot show it is absent.",
+      "basis": [{"data": "exposure"}, {"source": "VAL-01"}, {"data": "not_mapped_note"}],
+      "action": "Do not use our exposure estimate for Valkenburg. Obtain an official local 2021 flood extent before estimating demand or shelter needs here.",
+      "actor": "Our team, with Waterschap Limburg as data holder",
+      "info_needed": "An official 2021 flood extent for the Geul in Valkenburg; affected addresses or residents."
+    },
+    {
+      "id": "VAL-A2",
+      "locality": "VAL",
+      "kind": "finding",
+      "finding": "In March 2024 an early-warning system for the Limburg tributaries was still being developed.",
+      "basis": [{"source": "VAL-02"}],
+      "action": "Confirm whether the early-warning system is now operational and covers the Geul at Valkenburg, and how warnings reach residents.",
+      "actor": "Waterschap Limburg and Veiligheidsregio Zuid-Limburg (both named in the source)",
+      "info_needed": "Operational status in 2026; gauges covered (incl. Belgian part of the catchment); warning thresholds and channels."
+    },
+    {
+      "id": "VAL-A3",
+      "locality": "VAL",
+      "kind": "gap",
+      "finding": "All candidate facilities are outside the mapped 2021 extent, but the extent is incomplete here, none has a documented capacity, and we found no official list of designated shelter locations.",
+      "basis": [{"data": "candidates"}, {"data": "documented_capacity"}, {"data": "no_official_shelter_list"}],
+      "action": "Request the designated reception (opvang) locations from the municipality / safety region and check each one's flood exposure against a local flood map before relying on it.",
+      "actor": "Gemeente Valkenburg aan de Geul / Veiligheidsregio Zuid-Limburg (role; contact to be identified)",
+      "info_needed": "Designated locations; usable capacity; availability; whether each site flooded in 2021."
+    }
+  ],
+  "searches_without_verified_result": [
+    {
+      "topic": "Official list of designated shelters / emergency meeting points (Notfalltreffpunkte, opvanglocaties)",
+      "localities": ["BNAW", "ERF", "VAL"],
+      "date": "2026-10-30",
+      "note": "Web searches returned no official list for these municipalities. This is a gap in our search, not evidence that no list exists."
+    }
+  ]
+}
