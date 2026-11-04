@@ -49,3 +49,8 @@ notebooks/
 # the local AI log.
 docs/perso/
 docs/ai_usage_log.md
+
+# Power BI: the report and semantic-model text definitions travel for the tests;
+# the regenerated CSVs / TopoJSON (bi/data) and the binary .pbix do not.
+bi/data/
+*.pbix

@@ -388,6 +388,57 @@ PRIORITY_NOTE = ("Priority weighs people reached, how far outside the map, how f
                  "how fast the river rises — the weights are the team's choice, not the AI's; weight "
                  "surprise and flashiness higher and Eschweiler/the Vesdre come first.")
 
+#: Warn-order for Anna: who to alert first, shortest lead time first. This is an
+#: ordered judgement, not a computed number of hours: we have no per-valley lead
+#: time, so it ranks catchments by how fast they fill (small steep rivers give
+#: the least warning), which is the order the recommendations already argue for.
+#: `rank`, place, `lead` (the lead-time read), `do` (first move).
+WARN_ORDER = (
+    (1, "Vesdre valley (Liège, Chaudfontaine, Pepinster, Verviers)",
+     "Shortest lead. A small, steep river that rises in hours; the European map does not even model it.",
+     "Send the cell-broadcast alert here first, with the nearest meeting point named in the message."),
+    (1, "Eschweiler and the Inde (Aachen region)",
+     "Shortest lead. Nine in ten of those the water reached were outside the mapped zone; the Inde is small and flashy.",
+     "Alert at the same time as the Vesdre; warn, don't wait for a river-gauge threshold that never trips."),
+    (3, "Venlo–Roermond and the Maas (Dutch Limburg)",
+     "More lead time. A big river mostly inside the mapped zone, so the forecast gives hours to a day more.",
+     "Warn next, and lean on the cross-border Meuse signal to time it with the German and Walloon reaches."),
+)
+
+#: Shelter gap per border place (Q3), the number Anna acts on: how many of the
+#: people the 2021 water reached had no dry public building within 500 m. Two
+#: reads, both from `outputs/shelter_access.csv`: `share_500m` counts any
+#: non-residential building on safe ground (the generous ceiling the brief
+#: quotes); `share_named` counts only named public buildings (schools, sports
+#: halls, civic halls, places of worship) — the stricter floor. The gap is a
+#: floor either way: straight-line reach ignores the flooded river in between.
+SHELTER_GAP = {
+    "EMSR518_AOI01": {"place": "Liège / Chaudfontaine", "reached": 1356, "without_500m": 855,
+                      "share_500m": 0.370, "share_named": 0.127},
+    "EMSR517_AOI09": {"place": "Eschweiler / Aachen region", "reached": 1213, "without_500m": 114,
+                      "share_500m": 0.906, "share_named": 0.038},
+    "EMSR520_AOI01": {"place": "Venlo–Roermond", "reached": 2449, "without_500m": 970,
+                      "share_500m": 0.604, "share_named": 0.022},
+}
+
+#: Who coordinates and who to call in each part of the border area — the whole
+#: point of a cross-border role made concrete. Hand-set from the public emergency
+#: structures (not computed, no phone numbers): `area`, `who`, `role`.
+CROSS_BORDER = (
+    ("Liège province (BE)",
+     "Provincial Governor, with the Walloon and federal crisis centres",
+     "Runs provincial emergency planning and the disciplines on the ground; raises it to the national centre when it crosses regions."),
+    ("Dutch Limburg (NL)",
+     "Veiligheidsregio Limburg-Noord and Zuid-Limburg",
+     "The safety regions lead warning, evacuation and shelter on the Dutch side of the Maas."),
+    ("Aachen region (DE)",
+     "StädteRegion Aachen, with Bezirksregierung Köln",
+     "Civil-protection and the fire service at Kreis level; the district government steps in for the wider disaster."),
+    ("Across the three (EMRIC)",
+     "Euregio Meuse-Rhine Incident Control and Crisis Management",
+     "The standing cross-border body for exactly this area — the one table where Anna lines up the three warnings and shares aid."),
+)
+
 
 def place_records(products: pd.DataFrame, *, first_key: str | None = None) -> list[dict[str, Any]]:
     """The selectable places: named ones first, then any other sizeable AOI.
@@ -832,6 +883,9 @@ SOURCES: tuple[str, ...] = (
     "(E2025, 1 km) for the European figures, JRC, © European Union.",
     "Flood protection: JRC PESETA IV flood protection standards (2019), © European Union.",
     "Boundaries: GISCO NUTS 2024, © EuroGeographics for the administrative boundaries.",
+    "Cross-border crisis coordination: EMRIC (Euregio Meuse-Rhine Incident Control and Crisis "
+    "Management), with the national and regional emergency services of Belgium, the Netherlands "
+    "and Germany.",
     PLAN_REVIEW_SOURCE,
 )
 

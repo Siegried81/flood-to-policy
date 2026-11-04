@@ -87,6 +87,11 @@ COPY --chown=app:app tests/ ./tests/
 # web/dist - which api/main.py mounts at / so the React UI is served by the same
 # process. The image has no Node toolchain, so dist is never built here.
 COPY --chown=app:app web/ ./web/
+# bi/ carries the Power BI project (PBIR report + semantic model definitions) that
+# tests/test_export_bi.py reads. Only the text definitions travel; bi/data/ (the
+# regenerated CSVs and the TopoJSON) is excluded in .dockerignore, and the .pbix is
+# gitignored, so this stays small.
+COPY --chown=app:app bi/ ./bi/
 
 USER app
 

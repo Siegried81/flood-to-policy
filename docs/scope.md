@@ -120,7 +120,7 @@ which is open and needs no credentials.
 
 The JRC maps already cover Europe — that is what they are. Nine return periods,
 272–350 MB each. Downloading all nine is **2.61 GiB**, and
-the whole `geodata` section — 51 entries, 111 jobs once the multi-file ones are
+the whole `geodata` section — 55 entries, 116 jobs once the multi-file ones are
 expanded: 61 files to download, 20 runtime API calls, and 35 files under six
 `folder` entries that `src.fetch` skips (30 HERA files that
 `scripts/fetch_hera.py` fetches, and the five `challenge_*` folders of the

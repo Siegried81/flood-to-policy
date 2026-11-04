@@ -112,6 +112,7 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
     for place in P.place_records(products, first_key=front or hero_aoi):
         layer = layers.get(place["key"])
         places.append({**place, "named": place["key"] in dict(P.NAMED_PLACES),
+                       "shelter_gap": P.SHELTER_GAP.get(place["key"]),
                        "map": _layer_view(layer) if layer else None})
     loc = None
     if locator:
@@ -146,6 +147,10 @@ def build_payload(products: pd.DataFrame, countries: pd.DataFrame, exposure: pd.
             "rows": [{"what": what, "who": who, "how": how}
                      for what, who, how in (P.RECOMMENDATION_1, *P.RECOMMENDATIONS)],
         },
+        "warn_order": [{"rank": rank, "place": place, "lead": lead, "do": do}
+                       for rank, place, lead, do in P.WARN_ORDER],
+        "cross_border": [{"area": area, "who": who, "role": role}
+                         for area, who, role in P.CROSS_BORDER],
         "next_steps": [{"what": what, "who": who, "basis": basis} for what, who, basis in P.NEXT_STEPS],
         "since": [{"region": region, "points": list(points)} for region, points in P.SINCE_2021],
         "conclusion": P.CONCLUSION,

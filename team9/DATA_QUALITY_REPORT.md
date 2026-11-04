@@ -1,4 +1,8 @@
-# Data quality report: priority map
+# Data quality report: asset screening scores
+
+> **Stage 4 (30 Oct 2026):** these are the asset-screening quality numbers, now optional context layers of
+> `flood_map.html` (scenes 2 and 4); the separate `priority_map.html` is retired. `priority_map.py --summary`
+> still prints them.
 
 The numbers below come from `python priority_map.py --offline --summary` (build of 2026-10-29). Categories used:
 
