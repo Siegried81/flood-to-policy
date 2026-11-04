@@ -142,6 +142,7 @@ flood-to-policy/
 ├── web/           # React + Vite UI: the July 2021 story and the Europe view
 ├── app/           # Streamlit: the same, no build step
 ├── team9/         # Team 9's FARI tool, source of the interactive map under web/public/team9/
+├── k8s/           # learning port of docker-compose.yml to Kubernetes, see k8s/README.md
 ├── docs/          # read these before the event
 └── tests/         # pytest, offline, no network
 ```
@@ -176,7 +177,8 @@ build tests that need the raw `data/`. The image carries `docs/`, `bi/`, `README
 and `pytest.ini`, which the docs-number, Power BI and AI-log tests read. A stale local image can fail to import `rasterio`
 (`libexpat.so.1` missing) where a fresh build of the same Dockerfile succeeds, so
 rebuild rather than trust an old local image: `docker compose build`. The `portable` image has not
-been built yet.
+been built yet. The same three services also exist as Kubernetes manifests under
+`k8s/`, a learning port run on kind; `k8s/README.md` has the steps.
 
 **VS Code dev container.** `.devcontainer/` opens the editor inside that image
 (`Ctrl+Shift+P` → *Dev Containers: Reopen in Container*): a `dev` service with

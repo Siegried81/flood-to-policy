@@ -1,11 +1,12 @@
 # Kubernetes manifests for flood-to-policy.
 # Ported from docker-compose.yml: app (Streamlit, 8501), api (uvicorn, 8010),
-# and the ollama sidecar (11434). This is a learning port of the Compose stack.
+# and an Ollama Deployment (11434). This is a learning port of the Compose stack.
 # A single app like this runs fine on Compose or a PaaS; k8s is here to practise
 # the objects (Deployment, Service, PVC, Secret). See README.md.
 #
-# Secrets (API keys etc., formerly the .env file) are injected from a Secret
-# named "flood-secrets" — create it before applying (see secret.example.yaml).
+# Secrets (API keys etc., formerly the .env file) come from a Secret named
+# "flood-secrets" (see secret.example.yaml). It is optional, like .env in Compose:
+# without it the pods still start and the kit runs key-less.
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -44,9 +45,15 @@ spec:
       labels:
         app: flood-app
     spec:
+      # The image runs as uid 10001 (Dockerfile); fsGroup makes the PVC writable
+      # by that user, since the data dir is written to at run time.
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: app
           image: siegried/flood-to-policy:latest
+          # :latest defaults to Always, which would ignore the kind-loaded image.
+          imagePullPolicy: IfNotPresent
           command:
             - python
             - -m
@@ -57,12 +64,15 @@ spec:
             - --server.address=0.0.0.0
           ports:
             - containerPort: 8501
+          # env beats envFrom, so an OLLAMA_URL=localhost from a .env-built Secret
+          # is overridden by flood-ollama here.
           env:
             - name: OLLAMA_URL
               value: "http://flood-ollama:11434"
           envFrom:
             - secretRef:
                 name: flood-secrets
+                optional: true
           volumeMounts:
             - name: data
               mountPath: /app/data
@@ -107,9 +117,14 @@ spec:
       labels:
         app: flood-api
     spec:
+      # Same reason as flood-app: the image runs as uid 10001 and writes to the PVC.
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: api
           image: siegried/flood-to-policy:latest
+          # :latest defaults to Always, which would ignore the kind-loaded image.
+          imagePullPolicy: IfNotPresent
           command:
             - python
             - -m
@@ -121,12 +136,14 @@ spec:
             - "8010"
           ports:
             - containerPort: 8010
+          # env beats envFrom, same as flood-app.
           env:
             - name: OLLAMA_URL
               value: "http://flood-ollama:11434"
           envFrom:
             - secretRef:
                 name: flood-secrets
+                optional: true
           volumeMounts:
             - name: data
               mountPath: /app/data
@@ -177,6 +194,15 @@ spec:
           volumeMounts:
             - name: models
               mountPath: /root/.ollama
+          # Mirrors the Compose healthcheck: the image ships no curl, and
+          # `ollama list` succeeds once the server answers.
+          readinessProbe:
+            exec:
+              command: ["ollama", "list"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
       volumes:
         - name: models
           persistentVolumeClaim:
