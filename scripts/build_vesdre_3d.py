@@ -24,12 +24,13 @@ OUT = ROOT / "web" / "public" / "vesdre_3d.html"
 
 MAPLIBRE = "4.7.1"  # pinned; terrain + hillshade are stable here
 
-# A few towns along the Meuse, south to north, for orientation.
+# Towns along the Meuse, south to north, for orientation.
 TOWNS = [
     ("Seraing", 5.5011, 50.5869),
     ("Liège", 5.5797, 50.6326),
     ("Herstal", 5.6333, 50.6639),
     ("Visé", 5.6986, 50.7378),
+    ("Maastricht", 5.6909, 50.8514),
 ]
 
 
@@ -69,8 +70,8 @@ def main() -> None:
   .card .legend .sw {{ width: 22px; height: 12px; border-radius: 2px; flex: none;
     background: #17b2ff; box-shadow: inset 0 0 0 1.5px #f2fbff, 0 0 7px #8fe3ff; }}
   .card .note {{ font-size: .8rem; color: #aebbc7; }}
-  .town {{ font: 600 12px system-ui, sans-serif; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000;
-    pointer-events: none; white-space: nowrap; }}
+  .town {{ font: 600 13px system-ui, sans-serif; color: #fff; white-space: nowrap; pointer-events: none;
+    text-shadow: 0 0 3px #000, 0 0 5px #000; background: rgba(12,16,20,.45); padding: 1px 7px; border-radius: 11px; }}
   .town::before {{ content: "● "; color: #ffd166; }}
   .maplibregl-ctrl-attrib {{ font-size: 10px; }}
 </style>
@@ -95,7 +96,7 @@ const TOWNS = {towns_json};
 const map = new maplibregl.Map({{
   container: 'map',
   maxPitch: 82,
-  center: [5.655, 50.705], zoom: 12.0, pitch: 60, bearing: -18,
+  center: [5.63, 50.675], zoom: 11.4, pitch: 50, bearing: -16,
   style: {{
     version: 8,
     glyphs: 'https://demotiles.maplibre.org/font/{{fontstack}}/{{range}}.pbf',
