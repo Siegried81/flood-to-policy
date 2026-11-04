@@ -1,0 +1,194 @@
+# Kubernetes manifests for flood-to-policy.
+# Ported from docker-compose.yml: app (Streamlit, 8501), api (uvicorn, 8010),
+# and the ollama sidecar (11434). This is a learning port of the Compose stack.
+# A single app like this runs fine on Compose or a PaaS; k8s is here to practise
+# the objects (Deployment, Service, PVC, Secret). See README.md.
+#
+# Secrets (API keys etc., formerly the .env file) are injected from a Secret
+# named "flood-secrets" — create it before applying (see secret.example.yaml).
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: flood-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: flood-ollama-models
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 20Gi
+---
+# ---- app: the Streamlit flood map ----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flood-app
+  labels:
+    app: flood-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flood-app
+  template:
+    metadata:
+      labels:
+        app: flood-app
+    spec:
+      containers:
+        - name: app
+          image: siegried/flood-to-policy:latest
+          command:
+            - python
+            - -m
+            - streamlit
+            - run
+            - app/streamlit_app.py
+            - --server.port=8501
+            - --server.address=0.0.0.0
+          ports:
+            - containerPort: 8501
+          env:
+            - name: OLLAMA_URL
+              value: "http://flood-ollama:11434"
+          envFrom:
+            - secretRef:
+                name: flood-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: flood-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flood-app
+spec:
+  selector:
+    app: flood-app
+  ports:
+    - port: 8501
+      targetPort: 8501
+  # ClusterIP by default (reachable inside the cluster). Add an Ingress for a
+  # public HTTP front door; Compose published this on 127.0.0.1 only.
+---
+# ---- api: the FastAPI JSON service ----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flood-api
+  labels:
+    app: flood-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flood-api
+  template:
+    metadata:
+      labels:
+        app: flood-api
+    spec:
+      containers:
+        - name: api
+          image: siegried/flood-to-policy:latest
+          command:
+            - python
+            - -m
+            - uvicorn
+            - api.main:app
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8010"
+          ports:
+            - containerPort: 8010
+          env:
+            - name: OLLAMA_URL
+              value: "http://flood-ollama:11434"
+          envFrom:
+            - secretRef:
+                name: flood-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8010
+            initialDelaySeconds: 20
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: flood-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flood-api
+spec:
+  selector:
+    app: flood-api
+  ports:
+    - port: 8010
+      targetPort: 8010
+---
+# ---- ollama: bundled local LLM, with persistent model storage ----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flood-ollama
+  labels:
+    app: flood-ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flood-ollama
+  template:
+    metadata:
+      labels:
+        app: flood-ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: flood-ollama-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flood-ollama
+spec:
+  selector:
+    app: flood-ollama
+  ports:
+    - port: 11434
+      targetPort: 11434
