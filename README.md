@@ -6,7 +6,7 @@
 > mine: the policy brief, which I adapted, in [`docs/hackathon/`](docs/hackathon/),
 > and the interactive map under [`web/public/team9/`](web/public/team9/), with its
 > source under [`team9/`](team9/) — those are Team 9's work (live at
-> https://flood-to-policy-team9-map.surge.sh/team9/). Next to these sit my AI sheet, my case notebook
+> https://warn-before-the-water.surge.sh/team9/). Next to these sit my AI sheet, my case notebook
 > (run on the organisers' data), its outputs and the Q2 sources it cites.
 
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
@@ -17,21 +17,32 @@ what the next round of the Floods Directive should change. Built for the
 crisis coordinator for Liège, Limburg and the Aachen region, with a flood
 warning on the table; my tool and the team's brief answer her four questions.
 
+**Start here.** A Python tool turns the July 2021 flood maps into three
+recommendations for the next Floods Directive round
+([`docs/policy_answer.md`](docs/policy_answer.md)); a React app puts the July 2021
+and Europe views in the browser (the live demo just below). Team 9's interactive
+map is under [`web/public/team9/`](web/public/team9/); my AI sheet and case notebook are in
+[`docs/hackathon/`](docs/hackathon/). The full index of the written work is
+[`docs/README.md`](docs/README.md).
+
 **Live demo (July 2021 and Europe views, no install):**
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
-
-| The July 2021 view | The Vesdre, house by house | Power BI, EU-27 |
-|---|---|---|
-| [![July 2021 view](docs/screenshots/react_july2021.png)](docs/screenshots/react_july2021.png) | [![Liège, the Meuse and the Vesdre](docs/screenshots/react_story_liege_meuse_vesdre.png)](docs/screenshots/react_story_liege_meuse_vesdre.png) | [![Power BI overview](docs/screenshots/power_bi_00_overview.png)](docs/screenshots/power_bi_00_overview.png) |
 
 [![Warn-order, the shelter gap and who to call across the border](docs/screenshots/react_anna_decision.png)](docs/screenshots/react_anna_decision.png)
 
 *The parts I added to the July 2021 view, in my own React app: who to warn first, the shelter gap per valley, and who decides across the border.*
 
-There's also a one-page [3D view of the Vesdre valley](web/public/vesdre_3d.html)
-(`scripts/build_vesdre_3d.py`): the relief with the July 2021 water draped on it,
-to show why a steep little river floods fast and a river dyke is the wrong lever
-there. It's a story scene, not an analysis map — no modelled depth is extruded.
+[![July 2021 floods: from exposure to planning — Team 9's four-scene map](docs/screenshots/team9_super_map.jpg)](https://warn-before-the-water.surge.sh/team9/)
+
+*Team 9's interactive map: four scenes, from what the satellites saw to where to act first ([live](https://warn-before-the-water.surge.sh/team9/)).*
+
+There's also a one-page [3D view of the Meuse at Liège](https://warn-before-the-water.surge.sh/vesdre_3d.html)
+(`scripts/build_vesdre_3d.py`): the July 2021 water Copernicus mapped, draped on the
+valley where the flood spread widest. Upstream the steep Vesdre barely shows — the
+satellites miss urban flooding, the water hiding between buildings. It's a story scene,
+not an analysis map — no modelled depth is extruded.
+
+[![The Meuse at Liège in 3D, the July 2021 flood draped on the valley](docs/screenshots/vesdre_3d.jpg)](https://warn-before-the-water.surge.sh/vesdre_3d.html)
 
 Every place's story map and every Power BI page are in
 [`docs/screenshots/`](docs/screenshots/) (pages described in

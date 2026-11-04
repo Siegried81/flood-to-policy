@@ -680,7 +680,7 @@ flood-to-policy/
 │   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool_anna/
 │   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
 │   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
-│   ├── build_vesdre_3d.py           # a one-page 3D terrain view of the Vesdre (MapLibre + the July 2021 water) -> web/public/vesdre_3d.html
+│   ├── build_vesdre_3d.py           # a one-page 3D terrain view of the Meuse at Liège (MapLibre + the July 2021 water) -> web/public/vesdre_3d.html
 │   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
 │   ├── build_bi_report.py           # writes the Power BI report (PBIR): cover, eight story pages, theme, two drillthroughs, tooltip
 │   ├── validate_bi_report.py        # checks every bi/ JSON file against Microsoft's vendored schemas

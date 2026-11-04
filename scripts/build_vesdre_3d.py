@@ -1,9 +1,10 @@
-"""Build a one-page 3D terrain view of the Vesdre valley, July 2021.
+"""Build a one-page 3D terrain view of the Meuse at Liège, July 2021.
 
-A storytelling scene, not an analysis map: the relief of the narrow Vesdre gorge
-with the water Copernicus saw in July 2021 draped on it, so the "small steep
-valley, warn — don't build a river dyke" point lands physically. Everything is
-keyless: MapLibre GL draws a terrarium DEM (AWS open elevation tiles) with Esri
+A storytelling scene, not an analysis map: the Meuse valley through Liège and
+north toward the Dutch border, with the water Copernicus saw in July 2021 draped
+on it — the stretch where the flood spread widest. (Upstream the steep Vesdre
+barely shows: EMS under-maps urban flooding, the water hiding between buildings.)
+Everything is keyless: MapLibre GL draws a terrarium DEM (AWS open elevation tiles) with Esri
 imagery as the texture, and the observed flood outline (EMSR518 AOI01, WGS84) is
 a fill layer that MapLibre drapes on the terrain. No EFAS depth is extruded: its
 "filled depth" includes the river channel, so a volume would make the big rivers
@@ -23,14 +24,12 @@ OUT = ROOT / "web" / "public" / "vesdre_3d.html"
 
 MAPLIBRE = "4.7.1"  # pinned; terrain + hillshade are stable here
 
-# A few towns along the Meuse and the Vesdre, west to east, for orientation.
+# A few towns along the Meuse, south to north, for orientation.
 TOWNS = [
+    ("Seraing", 5.5011, 50.5869),
     ("Liège", 5.5797, 50.6326),
-    ("Chaudfontaine", 5.6333, 50.5833),
-    ("Trooz", 5.6917, 50.5667),
-    ("Pepinster", 5.8083, 50.5667),
-    ("Verviers", 5.8622, 50.5897),
-    ("Eupen", 6.0369, 50.6286),
+    ("Herstal", 5.6333, 50.6639),
+    ("Visé", 5.6986, 50.7378),
 ]
 
 
@@ -55,7 +54,7 @@ def main() -> None:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Vesdre valley in 3D — July 2021</title>
+<title>The Meuse at Liège in 3D — July 2021</title>
 <link href="https://unpkg.com/maplibre-gl@{MAPLIBRE}/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@{MAPLIBRE}/dist/maplibre-gl.js"></script>
 <style>
@@ -66,6 +65,9 @@ def main() -> None:
     font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }}
   .card h1 {{ font-size: 1.05rem; margin: 0 0 .3rem; }}
   .card p {{ margin: .35rem 0; }}
+  .card .legend {{ display: flex; align-items: center; gap: 8px; margin: .55rem 0; font-size: .85rem; }}
+  .card .legend .sw {{ width: 22px; height: 12px; border-radius: 2px; flex: none;
+    background: #17b2ff; box-shadow: inset 0 0 0 1.5px #f2fbff, 0 0 7px #8fe3ff; }}
   .card .note {{ font-size: .8rem; color: #aebbc7; }}
   .town {{ font: 600 12px system-ui, sans-serif; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000;
     pointer-events: none; white-space: nowrap; }}
@@ -76,9 +78,12 @@ def main() -> None:
 <body>
 <div id="map"></div>
 <div class="card">
-  <h1>The Vesdre valley, July 2021 — in 3D</h1>
-  <p>The relief of the valley, with the water Copernicus mapped in July 2021 draped on it.
-  A small, steep river that rises in hours; the European flood map doesn't even model it.</p>
+  <h1>The Meuse at Liège, July 2021 — in 3D</h1>
+  <p>The Meuse through Liège and north toward the Dutch border, with the water Copernicus
+  mapped in July 2021 draped on the valley — the stretch where the flood spread widest.
+  Upstream, the steep Vesdre that tore through Verviers barely shows: the satellites miss
+  urban flooding, the water hiding between buildings.</p>
+  <div class="legend"><span class="sw"></span> Observed flood — Copernicus EMS, July 2021</div>
   <p class="note">Illustrative, not an analysis map. Terrain: AWS open DEM (Terrarium). Imagery © Esri.
   Observed flood © European Union, Copernicus EMS (EMSR518). No modelled depth is extruded.
   Drag to orbit · scroll to zoom.</p>
@@ -90,7 +95,7 @@ const TOWNS = {towns_json};
 const map = new maplibregl.Map({{
   container: 'map',
   maxPitch: 82,
-  center: [5.74, 50.565], zoom: 11.3, pitch: 73, bearing: -26,
+  center: [5.655, 50.705], zoom: 12.0, pitch: 60, bearing: -18,
   style: {{
     version: 8,
     glyphs: 'https://demotiles.maplibre.org/font/{{fontstack}}/{{range}}.pbf',
@@ -104,13 +109,16 @@ const map = new maplibregl.Map({{
       flood: {{ type: 'geojson', data: FLOOD }}
     }},
     layers: [
-      {{ id: 'esri', type: 'raster', source: 'esri' }},
+      {{ id: 'esri', type: 'raster', source: 'esri',
+        paint: {{ 'raster-saturation': -0.4, 'raster-contrast': 0.08, 'raster-brightness-max': 0.92 }} }},
       {{ id: 'hillshade', type: 'hillshade', source: 'dem',
         paint: {{ 'hillshade-exaggeration': 0.5 }} }},
       {{ id: 'flood-fill', type: 'fill', source: 'flood',
-        paint: {{ 'fill-color': '#29a3ff', 'fill-opacity': 0.72 }} }},
+        paint: {{ 'fill-color': '#17b2ff', 'fill-opacity': 0.82 }} }},
+      {{ id: 'flood-glow', type: 'line', source: 'flood',
+        paint: {{ 'line-color': '#8fe3ff', 'line-width': 7, 'line-blur': 5, 'line-opacity': 0.55 }} }},
       {{ id: 'flood-line', type: 'line', source: 'flood',
-        paint: {{ 'line-color': '#eaf6ff', 'line-width': 1.8 }} }}
+        paint: {{ 'line-color': '#f2fbff', 'line-width': 1.8, 'line-opacity': 0.95 }} }}
     ],
     sky: {{ 'sky-color': '#9ec6ff', 'horizon-color': '#dfeeff', 'fog-color': '#eef4fb', 'fog-ground-blend': 0.5 }}
   }}
