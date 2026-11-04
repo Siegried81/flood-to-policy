@@ -22,6 +22,9 @@ const STEPS = {
 // "51 %" must never wrap between the number and its sign.
 const nb = (text) => String(text ?? "").replace(/ %/g, " %");
 
+// A share (0–1) as a whole-percent string, in the "51 %" form the rest of the view uses.
+const fmtPct = (x) => (x == null ? "n/a" : `${Math.round(x * 100)} %`);
+
 // GeoJSON (Multi)Polygon in pixel units to SVG path data.
 function geoPath(geometry) {
   if (!geometry) return "";
@@ -267,6 +270,22 @@ function Facts({ place }) {
           ? `buildings graded destroyed, ${f.damaged} damaged`
           : "destroyed buildings: not graded on this kind of map"}
       </div>
+      {place.shelter_gap && (
+        <div className="ev-sheltergap">
+          <div className="ev-fig">
+            <div className="ev-n ev-out">{place.shelter_gap.without_500m.toLocaleString("en")}</div>
+            of the {place.shelter_gap.reached.toLocaleString("en")} people the water reached had no dry
+            public building within 500 m
+          </div>
+          <p className="ev-small">
+            That's the gap Anna plans for. It's a floor: straight-line reach ignores the flooded river
+            in between, and "public building" here counts any non-residential building on safe ground
+            ({nb(fmtPct(place.shelter_gap.share_500m))} within 500 m). Count only named places —
+            schools, sports halls, civic halls — and the reach drops to{" "}
+            <b>{nb(fmtPct(place.shelter_gap.share_named))}</b>.
+          </p>
+        </div>
+      )}
       <p className="ev-small">
         {place.country} · {place.key} · first satellite map; {kind}.
       </p>
@@ -518,6 +537,94 @@ function Since({ since }) {
   );
 }
 
+// Warn-order: who Anna alerts first. An ordered judgement (shortest lead time
+// first), not computed hours — said so in the note, since we have no per-valley
+// lead time.
+function WarnOrder({ order }) {
+  if (!order || !order.length) return null;
+  return (
+    <>
+      <h2 className="ev-h2"><span className="ev-kicker">Who to warn first</span>Warn-order: shortest lead time first</h2>
+      <ol className="ev-warnorder">
+        {order.map((o, i) => (
+          <li key={i}>
+            <span className="ev-wo-rank" data-rank={o.rank}>{o.rank}</span>
+            <div>
+              <div className="ev-wo-place">{o.place}</div>
+              <p className="ev-wo-lead">{o.lead}</p>
+              <p className="ev-wo-do"><b>First move.</b> {o.do}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="ev-small">
+        This is an ordered call, not a clock: small steep rivers (the Vesdre, the Inde) give the least
+        warning, so they're alerted first. We don't have a per-valley lead time in hours, so read it as
+        the order to act, not a countdown.
+      </p>
+    </>
+  );
+}
+
+// Who decides and who to call in each part of the border area — the cross-border
+// role made concrete.
+function CrossBorder({ rows }) {
+  if (!rows || !rows.length) return null;
+  return (
+    <>
+      <h2 className="ev-h2"><span className="ev-kicker">Across the border</span>Who decides, who to call</h2>
+      <table className="ev-recos">
+        <thead><tr><th>Where</th><th>Who leads</th><th>What they do</th></tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}><td><b>{r.area}</b></td><td>{r.who}</td><td>{r.role}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="ev-small">
+        Public emergency structures, not phone numbers. The point: three countries, three chains of
+        command, one flood — EMRIC is the table where they meet.
+      </p>
+    </>
+  );
+}
+
+// One printable A4 card for the chosen valley: what Anna walks out with. Hidden
+// on screen (a button prints it); the print stylesheet shows only this.
+function OnePager({ place, data }) {
+  if (!place) return null;
+  const a = place.action;
+  const g = place.shelter_gap;
+  return (
+    <section className="ev-onepager" aria-hidden="true">
+      <h1>Flood action card — {place.label}</h1>
+      <p className="ev-op-sub">July 2021 ({place.country}) · prepared for Anna, Liège–Limburg–Aachen crisis coordination · figures from this tool, not a live forecast.</p>
+      {a && (
+        <>
+          {a.priority && <p><b>Warn / evacuate.</b> {a.priority}</p>}
+          <p><b>Shelter.</b> {a.shelter}</p>
+          {g && <p><b>The gap.</b> {g.without_500m.toLocaleString("en")} of {g.reached.toLocaleString("en")} people the water reached had no dry public building within 500 m (a floor).</p>}
+          <p><b>Lever.</b> {a.lever}</p>
+          <p className="ev-op-since"><b>Since 2021.</b> {a.since}</p>
+        </>
+      )}
+      {data.warn_order && (
+        <>
+          <h2>Warn-order (shortest lead first)</h2>
+          <ol>{data.warn_order.map((o, i) => <li key={i}><b>{o.place}:</b> {o.do}</li>)}</ol>
+        </>
+      )}
+      {data.cross_border && (
+        <>
+          <h2>Who to call</h2>
+          <ul>{data.cross_border.map((r, i) => <li key={i}><b>{r.area}:</b> {r.who}</li>)}</ul>
+        </>
+      )}
+      <p className="ev-op-foot">Built {data.built || "n/a"} · {data.team}. Straight-line reach; "outside the mapped zone" is not "safe". See the tool for limits and sources.</p>
+    </section>
+  );
+}
+
 export default function Event2021() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -607,11 +714,22 @@ export default function Event2021() {
                   {place.map ? Math.round(place.map.pixel_m) : "n/a"} m across; a pixel with any water seen is
                   drawn as water, and orange only when more of its water lies outside the zone than inside.
                 </p>
+                <p className="ev-small ev-trigger">
+                  <b>What to act on:</b> all of it — the water that stayed inside the zone (dark blue), the
+                  water that spilled outside it (orange), and the pale-blue 1-in-100-year zone itself. Here
+                  most of the people the water reached are in the orange, outside the zone, so the zone alone
+                  would have missed them. Trigger the warning on the water <i>and</i> the zone, not the map alone.
+                </p>
               </>
             )}
           </div>
           <div className="ev-side">
             <Facts place={place} />
+            {place.action && (
+              <button type="button" className="ev-printbtn" onClick={() => window.print()}>
+                Print this valley's action card (A4)
+              </button>
+            )}
             <Locator locator={data.locator} current={place.key} selectable={selectable} onPick={setKey} />
           </div>
         </div>
@@ -629,7 +747,9 @@ export default function Event2021() {
 
       <Warnings warnings={data.warnings} />
       <Decision decision={data.decision} />
+      <WarnOrder order={data.warn_order} />
       <Recommendations recommendations={data.recommendations} />
+      <CrossBorder rows={data.cross_border} />
       <NextSteps steps={data.next_steps} />
       <Since since={data.since} />
       {data.conclusion && (
@@ -651,6 +771,8 @@ export default function Event2021() {
           by hand, except the legal date. Built {data.built || "n/a"} · {data.team}
         </p>
       </footer>
+
+      <OnePager place={place} data={data} />
     </div>
   );
 }

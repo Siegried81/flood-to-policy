@@ -3,14 +3,11 @@
 > **About this repository.** I prepared this repository for the European AI
 > Challenge 2026 hackathon, where I worked in a team of six. Nearly all of it is
 > my own work, built on my own through to the last day. What is the team's, not
-> mine: the policy brief, which I edited, and the AI sheet — the work of the six
-> of us — both in [`docs/hackathon/`](docs/hackathon/) as submitted; and the
-> interactive map under [`web/public/team9/`](web/public/team9/), with its source
-> under [`team9/`](team9/), which are Team 9's work (live at
-> https://flood-to-policy-team9-map.surge.sh/team9/).
-> Next to the two deliverables sit my case notebook (run on the organisers'
-> data), its outputs and the Q2 sources it cites. The rest of the repository is
-> my own.
+> mine: the policy brief, which I adapted, in [`docs/hackathon/`](docs/hackathon/),
+> and the interactive map under [`web/public/team9/`](web/public/team9/), with its
+> source under [`team9/`](team9/) — those are Team 9's work (live at
+> https://flood-to-policy-team9-map.surge.sh/team9/). Next to these sit my AI sheet, my case notebook
+> (run on the organisers' data), its outputs and the Q2 sources it cites.
 
 From flood maps to a policy recommendation: the July 2021 floods in Belgium,
 Germany and the Netherlands, read against the European flood hazard map, and
@@ -26,6 +23,15 @@ https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
 | The July 2021 view | The Vesdre, house by house | Power BI, EU-27 |
 |---|---|---|
 | [![July 2021 view](docs/screenshots/react_july2021.png)](docs/screenshots/react_july2021.png) | [![Liège, the Meuse and the Vesdre](docs/screenshots/react_story_liege_meuse_vesdre.png)](docs/screenshots/react_story_liege_meuse_vesdre.png) | [![Power BI overview](docs/screenshots/power_bi_00_overview.png)](docs/screenshots/power_bi_00_overview.png) |
+
+[![Warn-order, the shelter gap and who to call across the border](docs/screenshots/react_anna_decision.png)](docs/screenshots/react_anna_decision.png)
+
+*The parts I added to the July 2021 view, in my own React app: who to warn first, the shelter gap per valley, and who decides across the border.*
+
+There's also a one-page [3D view of the Vesdre valley](web/public/vesdre_3d.html)
+(`scripts/build_vesdre_3d.py`): the relief with the July 2021 water draped on it,
+to show why a steep little river floods fast and a river dyke is the wrong lever
+there. It's a story scene, not an analysis map — no modelled depth is extruded.
 
 Every place's story map and every Power BI page are in
 [`docs/screenshots/`](docs/screenshots/) (pages described in
@@ -118,100 +124,45 @@ decision-maker actually has.
 
 ```
 flood-to-policy/
-├── config/sources.yaml         # every dataset + document, with provenance
-├── config/legislation.yaml     # every legal instrument cited: CELEX, ELI URL, dates, articles relied on
-├── src/
-│   ├── data_io.py              # loading + CRS harmonisation, one entry point
-│   ├── exposure.py             # hazard × population, per admin unit
-│   ├── vulnerability.py        # composite index + sensitivity analysis
-│   ├── validate.py             # modelled hazard vs observed 2021 extent: hit rate, FAR, IoU
-│   ├── rdh.py                  # JRC Risk Data Hub client, responses cached to disk
-│   ├── losses.py               # RDH loss rows → a levelled, joinable table
-│   ├── events.py               # blind-spot probe over reported coverage (not evidence)
-│   ├── assets.py               # built-up surface exposed: the asset half of exposure
-│   ├── environment.py          # Natura 2000 area on flood-prone ground (context, not exposure)
-│   ├── climate.py              # future flood hazard per region, from the CDS projections
-│   ├── basins.py               # river basin districts: exposed in a basin you do not control
-│   ├── apsfr.py                # what the Member State declared at risk, vs what the model shows
-│   ├── demographics.py         # Eurostat indicators at NUTS3: the axes the index weighs
-│   ├── facilities.py           # hospitals and schools inside the flood footprint (GISCO)
-│   ├── landcover.py            # CORINE 2018 land cover inside the RP100 zone
-│   ├── sealing.py              # sealed soil per region: the runoff side the river maps leave out
-│   ├── hera.py                 # observed trend in annual peak discharge (HERA v2)
-│   ├── pluvial.py              # projected heavy rain and discharge by warming level (C3S ECDE)
-│   ├── efas.py                 # July 2021 as a return period: EFAS reanalysis peak vs EFAS levels
-│   ├── rainfall.py             # July 2021 event rainfall per NUTS3 region (EMO-1)
-│   ├── event2021.py            # July 2021, product by product: water, people and buildings per EMS map
-│   ├── policy_tool.py          # the challenge policy tool: one static, offline HTML page for July 2021
-│   ├── story_maps.py           # pure helpers behind the July 2021 story maps, shared by every renderer
-│   ├── activations.py          # CEMS rapid-mapping flood activations by country and year
-│   ├── toon_io.py              # compact table encoding for LLM prompts
-│   ├── legislation.py          # config/legislation.yaml -> citations with article and EUR-Lex URL
-│   ├── svgmap.py               # offline choropleth as inline SVG (no tile server)
-│   ├── translate.py            # translate an approved brief section, and check its figures survived
-│   ├── usage_log.py            # read/write the local AI log, the running note behind the Annex 7 AI sheet
-│   ├── fetch.py                # parallel, polite, idempotent collection
-│   ├── workflow.py             # LangGraph brief pipeline with an approval gate
-│   ├── rag.py                  # grounded "cite or refuse" over the policy corpus
-│   └── nlquery.py              # plain-words questions -> a whitelisted query spec, run by pandas
-├── scripts/
-│   ├── build_exposure.py            # freezes data/processed/exposure.parquet, one row per NUTS3 x RP
-│   ├── build_context.py             # freezes data/processed/context.parquet, what qualifies an exposure figure
-│   ├── fetch_cds_member.py          # CDS ensemble members, each verified against what was asked
-│   ├── fetch_hera.py                # the 30 HERA v2 discharge files (~69.5 GiB), resumable, one at a time
-│   ├── fetch_efas_july2021.py       # EFAS reanalysis for July 2021 over the Meuse/Vesdre/Ahr box
-│   ├── fetch_c3s_ecde.py            # C3S ECDE heavy-precipitation and flood-recurrence indicators
-│   ├── cems_activations.py          # CEMS flood activations by country and year, cached
-│   ├── rainfall_jul2021.py          # freezes data/processed/rainfall_jul2021.parquet (EMO-1, 581 regions)
-│   ├── build_geometry.py            # freezes data/processed/regions.geojson, the choropleth's polygons
-│   ├── validate_2021.py             # JRC RP10/100/500 and Walloon aléa vs four July 2021 truths, Wallonia window
-│   ├── groundsource_2021.py         # news-reported July 2021 floods (Groundsource) against the JRC 1-in-100 map, corroboration only
-│   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
-│   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
-│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool_anna/
-│   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
-│   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
-│   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
-│   ├── build_bi_report.py           # writes the Power BI report (PBIR): cover, eight story pages, theme, two drillthroughs, tooltip
-│   ├── validate_bi_report.py        # checks every bi/ JSON file against Microsoft's vendored schemas
-│   ├── docs_numbers.py              # measures the figures the docs quote and rewrites every marked copy
-│   └── check_offline_readiness.py   # is this laptop demo-ready with the Wi-Fi off?
-├── api/main.py                 # JSON API over src/, for the React UI
-├── api/mcp_server.py           # 3 intent-based MCP tools for agents, answered in flat TOON
-├── web/                        # React + Vite UI: choropleth, sensitivity, approval gate
-├── app/streamlit_app.py        # seven tabs, no build step: the React five, ask-the-table, the AI log
-├── Dockerfile                  # Linux image: the portability answer, not a requirement here
-├── docker-compose.yml          # Streamlit / API / tests / offline check / portable demo
-├── docs/                       # read these before the event
-└── tests/                      # pytest, offline, no network
+├── config/        # sources.yaml (every dataset + document, with provenance) and legislation.yaml
+├── src/           # the analysis: exposure, vulnerability, validation, the July 2021 event, the policy tool
+├── scripts/       # one-off builders that freeze the tables in data/processed/ and fetch the raw data
+├── api/           # JSON API over src/ (main.py) and 3 intent-based MCP tools (mcp_server.py)
+├── web/           # React + Vite UI: the July 2021 story and the Europe view
+├── app/           # Streamlit: the same, no build step
+├── team9/         # Team 9's FARI tool, source of the interactive map under web/public/team9/
+├── docs/          # read these before the event
+└── tests/         # pytest, offline, no network
 ```
 
-Two of those earn a word here rather than being found by accident.
+The full tree, file by file, is in
+[`docs/technical_deep_dive.md`](docs/technical_deep_dive.md#9-repository-layout-file-by-file).
+
+Two of these are worth calling out so you don't trip over them.
 `src/validate.py` is the credibility half: it scores the modelled hazard layer
 against the observed July 2021 extent and returns a hit rate, a false alarm ratio
 and an IoU, every one of them `None` rather than `0.0` when its denominator is
-empty. `scripts/check_offline_readiness.py` answers the question `pytest` cannot
-— the suite mocks the network away, which is exactly what hides a missing 300 MB
-raster — and answers it in byte counts, exiting 1 when the demo would still need
-a connection.
+empty. `pytest` mocks the network away, which is exactly what hides a missing
+300 MB raster. `scripts/check_offline_readiness.py` checks the files in byte
+counts instead, and exits 1 when the demo would still need a connection.
 
 `Dockerfile` and `docker-compose.yml` exist because `rasterio`, `pyogrio`,
 `rasterstats` and `tiktoken` could not load their native libraries on this
 Windows host; the `pyogrio`/`pyproj` caps in `requirements.txt` bought back three
 of them. Windows Smart App Control then refused `rasterio`'s own GDAL build, which
 no pin fixed, on some days and not others with nothing reinstalled (the details
-are in `requirements.txt`). **The policy moves both ways, so measure rather than believe
-either state.** Measured 2026-10-23, the Windows venv collects the whole suite, as
+are in `requirements.txt`). **So check which state you're in each time, rather
+than trusting the last run.** Measured 2026-10-23, the Windows venv collects the whole suite, as
 the WSL2 venv does:
-**<!-- numbers:tests_collected -->1,128<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
+**<!-- numbers:tests_collected -->1,129<!-- /numbers --> collected, nothing deselected, all passing**. The WSL2 venv stays: it is the
 only route that does not depend on the policy, and it is where a continental
 raster build belongs.
 
 **The `app` image builds and runs:** all four libraries import inside it.
-`docker compose --profile tools run --rm test` on a fresh build, last measured on
-a smaller suite than today's, gave 703 passed, 0 failed, without `data/` or
-`.env`; the image carries `docs/`, `README.md` and `pytest.ini`, which four tests
-and the AI log tab read. A stale local image can fail to import `rasterio`
+`docker compose --profile tools run --rm test` on a fresh build gave
+1,127 passed, 2 skipped, 0 failed, without `data/` or `.env`; the two skips are the
+build tests that need the raw `data/`. The image carries `docs/`, `bi/`, `README.md`
+and `pytest.ini`, which the docs-number, Power BI and AI-log tests read. A stale local image can fail to import `rasterio`
 (`libexpat.so.1` missing) where a fresh build of the same Dockerfile succeeds, so
 rebuild rather than trust an old local image: `docker compose build`. The `portable` image has not
 been built yet.
@@ -257,7 +208,7 @@ neither pytest nor rasterio.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,128<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,129<!-- /numbers --> tests, offline: no network, no model
                                         # Windows: re-measure, Smart App Control may block
                                         # rasterio (see above). WSL2: wsl -d Ubuntu, then
                                         #   ~/venvs/flood-policy-kit/bin/python -m pytest -q
@@ -376,7 +327,7 @@ served under a sub-path. To update the Space, upload the contents of
 `web/dist/` (`index.html`, `event_2021_web.json` and the `assets/` and `europe/`
 folders) under *Files → Add file → Upload files*. Leave out `web/dist/team9/` —
 Team 9's interactive map (one page, four scenes), copied into the build from
-`web/public/team9/`: ~36 MB this personal Space does not use, served separately on Surge. In the static build the region
+`web/public/team9/`: ~37 MB this personal Space does not use, served separately on Surge. In the static build the region
 map is drawn from GISCO's 1:20 million NUTS file, which the viewer's browser
 fetches from GISCO itself, so no GISCO geometry is published here; the
 vulnerability ranking is precomputed at ±30 % and top 10 for every indicator

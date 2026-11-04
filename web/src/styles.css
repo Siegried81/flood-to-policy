@@ -327,3 +327,37 @@ th.sortable-header:hover {
 .ev-limits li { break-inside: avoid; margin: 0 0 0.7em; font-size: 0.92rem; }
 .ev-footer { margin-top: 3em; border-top: 1px solid var(--border); padding-top: 10px; font-size: 0.8rem; color: var(--muted); }
 .ev-footer ul { padding-left: 1.1em; }
+
+/* Anna features: shelter gap, warn-order, cross-border trigger note, one-pager. */
+.ev-sheltergap { margin: 0.7em 0; padding: 0.6em 0.8em; border-left: 3px solid var(--accent);
+  background: var(--accent-soft); border-radius: var(--radius); }
+.ev-trigger { border-left: 3px solid #f0a030; padding-left: 10px; }
+
+.ev-warnorder { list-style: none; margin: 0.4em 0; padding: 0; counter-reset: wo; }
+.ev-warnorder li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0;
+  border-bottom: 1px solid var(--border); }
+.ev-wo-rank { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: grid;
+  place-items: center; font-weight: 700; color: #fff; background: #c0392b; }
+.ev-wo-rank[data-rank="3"] { background: #e08a2c; }
+.ev-wo-place { font-weight: 600; }
+.ev-wo-lead { margin: 0.15em 0; font-size: 0.93rem; }
+.ev-wo-do { margin: 0.15em 0 0; font-size: 0.93rem; }
+
+.ev-printbtn { display: block; width: 100%; margin: 0.6em 0; padding: 8px 12px; cursor: pointer;
+  border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: var(--radius);
+  font: inherit; font-weight: 600; }
+.ev-printbtn:hover { background: var(--accent-soft); }
+
+/* The one-pager is for print only; hidden on screen. */
+.ev-onepager { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  .ev-onepager, .ev-onepager * { visibility: visible; }
+  .ev-onepager { display: block; visibility: visible; position: absolute; top: 0; left: 0; right: 0;
+    padding: 1.5cm; color: #000; font-size: 11pt; }
+  .ev-onepager h1 { font-size: 16pt; margin: 0 0 0.2em; }
+  .ev-onepager h2 { font-size: 12pt; margin: 0.8em 0 0.2em; }
+  .ev-onepager .ev-op-sub, .ev-onepager .ev-op-foot { font-size: 9pt; color: #333; }
+  .ev-onepager p { margin: 0.35em 0; }
+  .ev-onepager ol, .ev-onepager ul { margin: 0.2em 0; padding-left: 1.2em; }
+}

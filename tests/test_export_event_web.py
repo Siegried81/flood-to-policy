@@ -25,7 +25,8 @@ from tests.test_policy_tool import _countries, _exposure, _layer, _products
 ROOT = Path(__file__).resolve().parents[1]
 TOP_KEYS = {"schema", "built", "team", "hero", "strip", "combined", "agreement", "chart",
             "raster_classes", "places", "locator", "how_we_counted", "warnings", "recommendations",
-            "next_steps", "since", "conclusion", "limits", "sources", "attribution"}
+            "warn_order", "cross_border", "next_steps", "since", "conclusion", "limits", "sources",
+            "attribution"}
 
 
 def _web_layer() -> dict:
@@ -51,6 +52,20 @@ def test_payload_has_the_contract_keys(payload):
     assert [s["country"] for s in payload["strip"]] == ["BE", "DE", "NL"]
     assert payload["chart"]["return_periods"] == [10, 100, 500]
     assert len(payload["raster_classes"]) == 5
+
+
+def test_anna_feature_fields_are_well_formed(payload):
+    """Warn-order, cross-border and the per-place shelter gap feed the Anna panels;
+    the shelter shares stay ordered (named <= any-building, both in 0..1)."""
+    assert [o["rank"] for o in payload["warn_order"]] == [1, 1, 3]
+    assert all({"place", "lead", "do"} <= set(o) for o in payload["warn_order"])
+    assert len(payload["cross_border"]) == 4
+    assert all({"area", "who", "role"} <= set(r) for r in payload["cross_border"])
+    gaps = [p["shelter_gap"] for p in payload["places"] if p.get("shelter_gap")]
+    assert gaps, "at least one border place carries a shelter gap"
+    for g in gaps:
+        assert 0 <= g["share_named"] <= g["share_500m"] <= 1
+        assert 0 <= g["without_500m"] <= g["reached"]
 
 
 def test_hero_is_the_policy_tool_hero(payload):
@@ -167,7 +182,10 @@ def test_full_build_goes_to_an_ignored_file_only():
 
     assert X.FULL_OUT not in (X.OUT, X.WEB_OUT)
     rel = X.FULL_OUT.relative_to(ROOT).as_posix()
-    ignored = subprocess.run(["git", "check-ignore", "-q", rel], cwd=ROOT)
+    try:
+        ignored = subprocess.run(["git", "check-ignore", "-q", rel], cwd=ROOT)
+    except FileNotFoundError:
+        pytest.skip("git not available (e.g. the container image ships no git)")
     if ignored.returncode == 128:
         pytest.skip("not a git checkout")
     assert ignored.returncode == 0, f"{rel} must be gitignored: it carries GISCO geometry"

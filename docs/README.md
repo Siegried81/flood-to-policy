@@ -7,8 +7,8 @@ sheet in the Annex 7 template, sent by 13:30 on Day 2, then a five-minute live
 demo, judged equally on evidence, policy usefulness, clarity and responsible
 AI use. The brief is a funnel ([`scope.md`](scope.md)): the July 2021 flood in
 Belgium, Germany and the Netherlands at the core, the kit's EU-wide findings
-as the context. Seventeen Markdown files in this folder, 428.6 KB measured on
-2026-11-01, sixteen of them indexed below. Most of that is background written
+as the context. Eighteen Markdown files in this folder, 447.3 KB measured on
+2026-11-04, sixteen of them indexed below. Most of that is background written
 before the data was frozen; the argument
 itself is short, and this page exists so a reader opens it first rather than a
 reference of 50 KB or more.

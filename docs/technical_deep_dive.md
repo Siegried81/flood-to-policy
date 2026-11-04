@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,128<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,129<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -529,7 +529,7 @@ re-measure the rows after any test change.
 | `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
 | `test_validate_2021.py` | 16 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total, `--epoch 2020` reading its own tiles and writing its own file |
 | `test_api.py` | 83 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
-| `test_streamlit_app.py` | 67 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
+| `test_streamlit_app.py` | 68 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
 | `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
 | `test_rag.py` | 80 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
 | `test_losses.py` | 29 | the RDH euro vintages and the levelling |
@@ -569,11 +569,11 @@ re-measure the rows after any test change.
 | `test_climate_rules.py` | 5 | the two climate reading rules: the 80 % sign column when present, the interquartile spread at sixteen members and the full range at two, both sign counts in the period summary |
 | `test_event2021.py` | 18 | the July 2021 products on synthetic data: which bucket folders count as products, half a flooded cell is half its people, permanent water out of the score but not the headcount, an overlapping product counted once per country, one product end to end |
 | `test_event2021_infrastructure.py` | 13 | the July 2021 roads, networks and services: a class from the EMS `info` code, km on the ground and once per segment, a feature counted once with its most severe grade, nothing outside the AOI |
-| `test_export_event_web.py` | 16 | the React app's July 2021 JSON: the contract keys, every number the policy tool's, missing is null never zero, no GISCO line in the committed file, `--full` goes to an ignored file only |
+| `test_export_event_web.py` | 18 | the React app's July 2021 JSON: the contract keys (incl. the Anna warn-order, cross-border and shelter-gap fields), every number the policy tool's, missing is null never zero, no GISCO line in the committed file, `--full` goes to an ignored file only |
 | `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
 | `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
 | `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
-| `test_policy_tool.py` | 24 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team 9", the EU-27 States absent from the risk-area layer read from the context table |
+| `test_policy_tool.py` | 28 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team 9", the EU-27 States absent from the risk-area layer read from the context table |
 | `test_export_interactive.py` | 2 | the interactive flood-layer export for the web view |
 | `test_frozen_numbers.py` | 1 | the frozen hackathon numbers still match the pipeline |
 
@@ -602,7 +602,7 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,128<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,129<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->73<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
@@ -620,3 +620,79 @@ counts do not: re-derive any of them before putting it in a brief.
 
 Re-derive rather than quoting this table. Every number above is a reading of the
 repository at a moment, and the repository moves.
+
+## 9. Repository layout, file by file
+
+Moved here from the README to keep that shorter; this is the full annotated tree.
+
+```
+flood-to-policy/
+├── config/sources.yaml         # every dataset + document, with provenance
+├── config/legislation.yaml     # every legal instrument cited: CELEX, ELI URL, dates, articles relied on
+├── src/
+│   ├── data_io.py              # loading + CRS harmonisation, one entry point
+│   ├── exposure.py             # hazard × population, per admin unit
+│   ├── vulnerability.py        # composite index + sensitivity analysis
+│   ├── validate.py             # modelled hazard vs observed 2021 extent: hit rate, FAR, IoU
+│   ├── rdh.py                  # JRC Risk Data Hub client, responses cached to disk
+│   ├── losses.py               # RDH loss rows → a levelled, joinable table
+│   ├── events.py               # blind-spot probe over reported coverage (not evidence)
+│   ├── assets.py               # built-up surface exposed: the asset half of exposure
+│   ├── environment.py          # Natura 2000 area on flood-prone ground (context, not exposure)
+│   ├── climate.py              # future flood hazard per region, from the CDS projections
+│   ├── basins.py               # river basin districts: exposed in a basin you do not control
+│   ├── apsfr.py                # what the Member State declared at risk, vs what the model shows
+│   ├── demographics.py         # Eurostat indicators at NUTS3: the axes the index weighs
+│   ├── facilities.py           # hospitals and schools inside the flood footprint (GISCO)
+│   ├── landcover.py            # CORINE 2018 land cover inside the RP100 zone
+│   ├── sealing.py              # sealed soil per region: the runoff side the river maps leave out
+│   ├── hera.py                 # observed trend in annual peak discharge (HERA v2)
+│   ├── pluvial.py              # projected heavy rain and discharge by warming level (C3S ECDE)
+│   ├── efas.py                 # July 2021 as a return period: EFAS reanalysis peak vs EFAS levels
+│   ├── rainfall.py             # July 2021 event rainfall per NUTS3 region (EMO-1)
+│   ├── event2021.py            # July 2021, product by product: water, people and buildings per EMS map
+│   ├── policy_tool.py          # the challenge policy tool: one static, offline HTML page for July 2021
+│   ├── story_maps.py           # pure helpers behind the July 2021 story maps, shared by every renderer
+│   ├── activations.py          # CEMS rapid-mapping flood activations by country and year
+│   ├── toon_io.py              # compact table encoding for LLM prompts
+│   ├── legislation.py          # config/legislation.yaml -> citations with article and EUR-Lex URL
+│   ├── svgmap.py               # offline choropleth as inline SVG (no tile server)
+│   ├── translate.py            # translate an approved brief section, and check its figures survived
+│   ├── usage_log.py            # read/write the local AI log, the running note behind the Annex 7 AI sheet
+│   ├── fetch.py                # parallel, polite, idempotent collection
+│   ├── workflow.py             # LangGraph brief pipeline with an approval gate
+│   ├── rag.py                  # grounded "cite or refuse" over the policy corpus
+│   └── nlquery.py              # plain-words questions -> a whitelisted query spec, run by pandas
+├── scripts/
+│   ├── build_exposure.py            # freezes data/processed/exposure.parquet, one row per NUTS3 x RP
+│   ├── build_context.py             # freezes data/processed/context.parquet, what qualifies an exposure figure
+│   ├── fetch_cds_member.py          # CDS ensemble members, each verified against what was asked
+│   ├── fetch_hera.py                # the 30 HERA v2 discharge files (~69 GB), resumable, one at a time
+│   ├── fetch_efas_july2021.py       # EFAS reanalysis for July 2021 over the Meuse/Vesdre/Ahr box
+│   ├── fetch_c3s_ecde.py            # C3S ECDE heavy-precipitation and flood-recurrence indicators
+│   ├── cems_activations.py          # CEMS flood activations by country and year, cached
+│   ├── rainfall_jul2021.py          # freezes data/processed/rainfall_jul2021.parquet (EMO-1, 581 regions)
+│   ├── build_geometry.py            # freezes data/processed/regions.geojson, the choropleth's polygons
+│   ├── validate_2021.py             # JRC RP10/100/500 and Walloon aléa vs four July 2021 truths, Wallonia window
+│   ├── groundsource_2021.py         # news-reported July 2021 floods (Groundsource) against the JRC 1-in-100 map, corroboration only
+│   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
+│   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
+│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool_anna/
+│   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
+│   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
+│   ├── build_vesdre_3d.py           # a one-page 3D terrain view of the Vesdre (MapLibre + the July 2021 water) -> web/public/vesdre_3d.html
+│   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
+│   ├── build_bi_report.py           # writes the Power BI report (PBIR): cover, eight story pages, theme, two drillthroughs, tooltip
+│   ├── validate_bi_report.py        # checks every bi/ JSON file against Microsoft's vendored schemas
+│   ├── docs_numbers.py              # measures the figures the docs quote and rewrites every marked copy
+│   └── check_offline_readiness.py   # is this laptop demo-ready with the Wi-Fi off?
+├── api/main.py                 # JSON API over src/, for the React UI
+├── api/mcp_server.py           # 3 intent-based MCP tools for agents, answered in flat TOON
+├── web/                        # React + Vite UI: choropleth, sensitivity, approval gate
+├── app/streamlit_app.py        # seven tabs, no build step: the React five, ask-the-table, the AI log
+├── team9/                      # Team 9's FARI tool: source of the interactive map under web/public/team9/
+├── Dockerfile                  # Linux image: the portability answer, not a requirement here
+├── docker-compose.yml          # Streamlit / API / tests / offline check / portable demo
+├── docs/                       # read these before the event
+└── tests/                      # pytest, offline, no network
+```
