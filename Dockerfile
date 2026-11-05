@@ -110,10 +110,14 @@ USER app
 
 EXPOSE 8501 8010
 
-# Streamlit's own liveness endpoint. Probed with python because the slim image
-# ships no curl.
+# The same image runs either Streamlit (default CMD, 8501) or the API with the
+# React UI (uvicorn, 8010), so healthy means either one answers. Probing 8501
+# only marked every API container unhealthy. Probed with python because the slim
+# image ships no curl; urlopen raises on a refused connection or an error status,
+# which makes python exit non-zero.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4).status == 200 else 1)"]
+    CMD python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=2)" \
+     || python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8010/api/health', timeout=2)"
 
 # Exec form, so Streamlit is PID 1 and gets SIGTERM directly from `docker stop`.
 CMD ["python", "-m", "streamlit", "run", "app/streamlit_app.py", \
