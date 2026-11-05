@@ -43,7 +43,11 @@ jobs:
       # Copied into env so `if:` can test it (secrets cannot be read in `if:`).
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     steps:
+      # lfs: the Team 9 map in web/public/team9/ is stored in Git LFS. Without
+      # it the React build would ship a 130-byte pointer file instead of the map.
       - uses: actions/checkout@v7
+        with:
+          lfs: true
 
       # Buildx is required for the GitHub Actions layer cache below.
       - uses: docker/setup-buildx-action@v4

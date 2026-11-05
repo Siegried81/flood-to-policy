@@ -35,3 +35,6 @@ jobs:
       # The readiness script is what the `check` service runs; with no data in
       # the image it must report BLOCKED and exit 1, not crash. `!` inverts it.
       - run: "! docker run --rm flood-to-policy:ci python scripts/check_offline_readiness.py"
+      # The React UI is built inside the image (web/dist is gitignored); the API
+      # serves it at /, so it has to be there.
+      - run: docker run --rm flood-to-policy:ci test -f web/dist/index.html

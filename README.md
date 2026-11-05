@@ -196,6 +196,8 @@ No build needed to run it:
 ```bash
 docker pull ghcr.io/siegried81/flood-to-policy:latest     # or siegried/flood-to-policy on Docker Hub
 docker run --rm -p 8501:8501 -v "$PWD/data:/app/data" ghcr.io/siegried81/flood-to-policy:latest
+# the React UI instead: same image, the API serves it on http://localhost:8010
+docker run --rm -p 8010:8010 -v "$PWD/data:/app/data" ghcr.io/siegried81/flood-to-policy:latest   python -m uvicorn api.main:app --host 0.0.0.0 --port 8010
 ```
 
 Add `--env-file .env` for an LLM key. The `portable` image (data baked in) is

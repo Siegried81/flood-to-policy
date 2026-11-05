@@ -72,9 +72,8 @@ services:
         # starts alone and talks to a host Ollama, or to Groq.
         required: false
 
-  # JSON API for the React UI (api/main.py). It also serves web/dist when that
-  # folder was built on the host before `docker compose build`, since the image
-  # has no Node toolchain. Port 8010, matching web/vite.config.js's proxy and the
+  # JSON API for the React UI (api/main.py). It also serves the React UI itself,
+  # built into the image by the Dockerfile's `web` stage. Port 8010, matching web/vite.config.js's proxy and the
   # README, so the same URL works inside and outside the container.
   api:
     <<: *app-common

@@ -37,6 +37,18 @@
 # into an image is dead before the image is useful.
 
 ARG BASE_IMAGE=python:3.12-slim
+
+# --- React UI build -------------------------------------------------------------
+# web/dist is gitignored, so a fresh clone, and the publish runner, has no build
+# of the React UI. This stage makes one. Only the static files reach the final
+# image, not Node: api/main.py serves web/dist at / on port 8010.
+FROM node:22-slim AS web
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+RUN npm run build
+
 FROM ${BASE_IMAGE} AS app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -83,10 +95,11 @@ COPY --chown=app:app README.md pytest.ini ./
 # Tests travel with the image on purpose: "pytest green with the Wi-Fi off" is a
 # line on the day-of checklist, and on this host it can only be run in here.
 COPY --chown=app:app tests/ ./tests/
-# web/ carries the Vite sources and, when it was built on the host beforehand,
-# web/dist - which api/main.py mounts at / so the React UI is served by the same
-# process. The image has no Node toolchain, so dist is never built here.
+# web/ carries the Vite sources; web/dist comes from the `web` stage above, so
+# it always matches the sources rather than whatever was last built on the host.
+# api/main.py mounts it at / so the React UI is served by the same process.
 COPY --chown=app:app web/ ./web/
+COPY --from=web --chown=app:app /web/dist ./web/dist
 # bi/ carries the Power BI project (PBIR report + semantic model definitions) that
 # tests/test_export_bi.py reads. Only the text definitions travel; bi/data/ (the
 # regenerated CSVs and the TopoJSON) is excluded in .dockerignore, and the .pbix is
