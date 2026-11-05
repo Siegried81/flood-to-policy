@@ -23,8 +23,10 @@ __pycache__/
 .git/
 .github/
 
-# Built on the host, never in the image: there is no Node toolchain in here.
+# The Dockerfile's `web` stage installs and builds these itself, so the host's
+# copies (a local npm install, a build made for surge) must not leak in.
 web/node_modules/
+web/dist/
 
 # A download that was still in flight when the image was built. `src.fetch`
 # streams to <name>.part and renames only on success, so baking one in would put

@@ -27,9 +27,10 @@ Images from this repository:
 docker run -d -p 127.0.0.1:8501:8501 -v "$PWD/data:/app/data" siegried/flood-to-policy
 # open http://localhost:8501
 
-# JSON API instead of Streamlit
+# React UI + JSON API instead of Streamlit
 docker run -d -p 127.0.0.1:8010:8010 -v "$PWD/data:/app/data" siegried/flood-to-policy \
   python -m uvicorn api.main:app --host 0.0.0.0 --port 8010
+# open http://localhost:8010
 ```
 
 ## Environment variables
