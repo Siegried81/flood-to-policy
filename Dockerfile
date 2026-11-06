@@ -22,8 +22,10 @@
 # (that base ships a system Python, so pip then needs
 # `--break-system-packages`; it is a fallback, not the tested path.)
 #
-# **Two stages, because the data is 6.4 GiB** (measured 2026-10-23). `app` holds the code only and
-# expects `data/` to be bind-mounted - that is the day-to-day image, rebuilt in
+# **Two stages, because the data is far bigger than the code**: 83 GiB measured
+# 2026-11-05, 70 GiB of it HERA river discharge. `app` holds the code and the
+# four small files committed under data/processed/, and expects the rest of
+# `data/` to be bind-mounted - that is the day-to-day image, rebuilt in
 # seconds. `portable` is `app` with the whole data tree copied in, which is the
 # image that fits on a USB stick and runs the demo on a machine that has never
 # seen this repo. `portable` is last, so a bare `docker build .` produces the
@@ -80,7 +82,7 @@ RUN useradd --create-home --uid 10001 app \
 
 # Source, path by path rather than `COPY . .`: data/ has to stay in the build
 # context for the `portable` stage below, and a wholesale copy would then pull
-# 6.4 GiB into this stage too. Being explicit also means a new file at the repo
+# the whole data tree into this stage too. Being explicit also means a new file at the repo
 # root cannot silently end up in the image.
 COPY --chown=app:app src/ ./src/
 COPY --chown=app:app app/ ./app/
@@ -105,6 +107,12 @@ COPY --from=web --chown=app:app /web/dist ./web/dist
 # regenerated CSVs and the TopoJSON) is excluded in .dockerignore, and the .pbix is
 # gitignored, so this stays small.
 COPY --chown=app:app bi/ ./bi/
+# The four files committed under data/processed/ (3.9 MB): the two frozen tables,
+# the July 2021 story and the notice carrying their licences. With them the image
+# shows the project from Docker Hub alone, with nothing cloned and nothing
+# mounted. A bind mount of data/ hides them and serves the host's copies instead.
+COPY --chown=app:app data/processed/DATA_NOTICE.md data/processed/event_2021_web.json \
+     data/processed/exposure.parquet data/processed/context.parquet ./data/processed/
 
 USER app
 
@@ -130,9 +138,9 @@ CMD ["python", "-m", "streamlit", "run", "app/streamlit_app.py", \
 # from the venue network and nothing from the Windows machine.
 #
 # It is the LAST stage deliberately, so the default `docker build .` is the image
-# that cannot fail for lack of data. It costs ~6.5 GiB and a long first build; the
-# alternative is a 2 GiB image plus a folder someone has to remember to copy, and
-# the folder is the half that gets forgotten.
+# that cannot fail for lack of data. It costs as much disk as data/ itself and a
+# long first build; the alternative is a 1.6 GB image plus a folder someone has to
+# remember to copy, and the folder is the half that gets forgotten.
 #
 # `*.part` files are excluded in .dockerignore, so a download that was still in
 # flight at build time cannot be baked in as if it were a complete raster.

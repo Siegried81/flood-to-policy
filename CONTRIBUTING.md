@@ -1,7 +1,7 @@
 # Contributing (Team 9)
 
-Short guide for teammates improving the flood-to-policy tool during the
-hackathon. See the live result first:
+Short guide for teammates working on the flood-to-policy tool. It was written
+for the hackathon and still holds. See the live result first:
 https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
 
 ## Setup
@@ -36,7 +36,7 @@ Web app (React, what the Hugging Face Space serves):
 ```bash
 python scripts/export_event_web.py --satellite --hero-aoi EMSR517_AOI09 \
   --front-aois "EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01"
-cd web && VITE_STATIC=1 npm install && npm run build   # output in web/dist
+cd web && npm ci && VITE_STATIC=1 npm run build         # output in web/dist
 ```
 
 ## Where to work
@@ -51,7 +51,7 @@ cd web && VITE_STATIC=1 npm install && npm run build   # output in web/dist
 The tool and the web app share `src/policy_tool.py` for every figure and
 formatted string, so a fix there lands in both.
 
-## Rules (from CLAUDE.md)
+## Rules
 
 - Run `python -m pytest -q` after any change; it must stay green. A numbers
   guard checks that every figure in the docs matches the code/artifacts.
@@ -61,7 +61,7 @@ formatted string, so a fix there lands in both.
   `docs/perso/`, `.env`, or GISCO geometry.
 - Branch off `main`; do not commit straight to `main`.
 
-## Do NOT put in the jury submission
+## What stayed out of the jury submission
 
-The GitHub link, the personal Hugging Face link, and any real name — the
+The GitHub link, the personal Hugging Face link and any real name: the
 submitted files say "Team 9" only.

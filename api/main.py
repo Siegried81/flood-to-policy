@@ -327,7 +327,8 @@ def geometry() -> dict:
             status_code=404,
             detail="No regions.geojson. Build it with `python scripts/build_geometry.py`, "
                    "which simplifies the GISCO boundaries `python -m src.fetch` downloads. "
-                   "Without it this endpoint 404s and the choropleth renders nothing.",
+                   "Without it this endpoint 404s and the React map falls back to GISCO's "
+                   "1:20 million file, fetched by the browser.",
         )
     return json.loads(GEOMETRY.read_text(encoding="utf-8"))
 

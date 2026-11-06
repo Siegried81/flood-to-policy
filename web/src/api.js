@@ -68,7 +68,12 @@ export async function getExposure(returnPeriod) {
   return request(returnPeriod == null ? "/api/exposure" : `/api/exposure?return_period=${returnPeriod}`);
 }
 
-export const getGeometry = () => (STATIC_BUILD ? giscoRegions() : request("/api/geometry"));
+// The API serves data/processed/regions.geojson when it has been built, and
+// `/api/meta` says so in `has_geometry`. The published Docker image ships
+// without it (GISCO geometry is not ours to pass on), so there, as in a static
+// build, the browser fetches GISCO's own file and the map still draws.
+export const getGeometry = (serverHasGeometry) =>
+  serverHasGeometry && !STATIC_BUILD ? request("/api/geometry") : giscoRegions();
 
 // A SECOND table, fetched separately and deliberately never merged into the
 // exposure rows. The vulnerability index is a weighted mean over whichever

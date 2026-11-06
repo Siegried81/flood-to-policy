@@ -93,9 +93,10 @@ export default function EuropeView({ config }) {
         setReturnPeriod(defaultReturnPeriod(m.return_periods));
         // Geometry is optional: without it the ranking still works, so a missing
         // file degrades the map rather than breaking the page. `has_geometry`
-        // says whether the server holds the polygons; a static build holds none
-        // and fetches GISCO's own file in the browser instead (api.js).
-        if (m.has_geometry || m.static) getGeometry().then(setGeometry).catch(() => {});
+        // says whether the server holds the polygons; without them (a static
+        // build, the published Docker image) the browser fetches GISCO's own
+        // file instead (api.js), and only a failed fetch leaves the map empty.
+        getGeometry(m.has_geometry).then(setGeometry).catch(() => {});
       })
       .catch((e) => setError(e.message));
   }, []);
