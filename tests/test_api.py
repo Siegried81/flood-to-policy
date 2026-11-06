@@ -530,6 +530,18 @@ def test_the_react_map_carries_the_boundary_credit():
     assert "© EuroGeographics for the administrative boundaries" in caption
 
 
+def test_the_react_map_falls_back_to_gisco_when_the_api_has_no_geometry():
+    """The published image carries no regions.geojson, so `has_geometry` is
+    false there; the client must then fetch GISCO's file itself, as the static
+    build does, or the Europe map is empty for anyone running the image alone."""
+    client_js = (ROOT / "web" / "src" / "api.js").read_text(encoding="utf-8")
+    body = client_js[client_js.index("export const getGeometry"):]
+    body = body[:body.index(";")]
+    assert 'serverHasGeometry && !STATIC_BUILD ? request("/api/geometry") : giscoRegions()' in body
+    view = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    assert "getGeometry(m.has_geometry)" in view
+
+
 def test_the_react_approve_call_carries_the_token_header():
     """The server reads `X-Approve-Token`; a client that never sends it cannot
     approve once the token is set. Pinned on the source, as the other JSX guards are."""

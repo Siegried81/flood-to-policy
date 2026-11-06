@@ -103,12 +103,12 @@ def test_meta_says_static_and_asks_for_no_token(exported):
 
 
 def test_meta_says_the_build_hosts_no_geometry(exported):
-    # The static files carry no polygons; the view keys the GISCO fetch on
-    # `static`, so the map still draws (EuropeView.jsx).
+    # The static files carry no polygons; the view passes `has_geometry` to
+    # getGeometry, which fetches GISCO's file when it is false (api.js).
     meta = json.loads((exported / "meta.json").read_text(encoding="utf-8"))
     assert meta["has_geometry"] is False
     view = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
-    assert "m.has_geometry || m.static" in view
+    assert "getGeometry(m.has_geometry)" in view
 
 
 # Credits the Europe view must show, each as worded in DATA_NOTICE.md. The

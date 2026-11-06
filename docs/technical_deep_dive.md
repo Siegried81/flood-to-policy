@@ -65,7 +65,7 @@ server nor `npm`. They do NOT show the same views. React has two views
 (`VIEWS` in `web/src/App.jsx`): "July 2021", which opens first and reads the
 event JSON (§5), and "Europe", which holds five tabs (Exposure, Context,
 Vulnerability, Draft, Translation) and draws the choropleth inside the first.
-Streamlit has seven tabs, adding "Ask the table" and the AI usage log. The
+Streamlit has eight tabs: the July 2021 view, the five Europe tabs, "Ask the table" and the AI usage log. The
 React UI is the one to demo.
 
 **A static build needs no API.** `VITE_STATIC=1` builds a React app that reads
@@ -73,7 +73,7 @@ files shipped in `dist/` instead of calling the server: the July 2021 JSON
 written by `scripts/export_event_web.py`, and the Europe view's API answers
 frozen into `web/public/europe/` by `scripts/export_europe_web.py`. Draft and
 Translation call a language model, so they are switched off there. The public
-demo is that build, served as a static Hugging Face Space (README, "Live demo").
+demo is that build, served as a static Hugging Face Space (§10.4).
 
 ---
 
@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,129<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,130<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -528,7 +528,7 @@ re-measure the rows after any test change.
 | `test_offline_readiness.py` | 56 | the demo runs with the Wi-Fi off: the three verdicts, `--strict`, a rejected file is not present, the two caches `src.fetch` does not fill |
 | `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
 | `test_validate_2021.py` | 16 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total, `--epoch 2020` reading its own tiles and writing its own file |
-| `test_api.py` | 83 | the routes, the 404s that name their builder, the JSX guards, a table frozen before the units rename, the approve token and the bounds on `k` |
+| `test_api.py` | 84 | the routes, the 404s that name their builder, the JSX guards (the GISCO map fallback among them), a table frozen before the units rename, the approve token and the bounds on `k` |
 | `test_streamlit_app.py` | 68 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
 | `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
 | `test_rag.py` | 80 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
@@ -587,7 +587,7 @@ The React shots follow the scope: the July 2021 view, one story map per named
 place (`react_story_*.png`: the Ahr, Liège on the Meuse and the Vesdre, ...) and
 the Europe exposure map for context. Run with `HOSTED=1` they match the public
 Space (Natural Earth borders). Only the React shots are kept in
-`docs/screenshots/`, credited in the README; nothing it does calls a model.
+`docs/screenshots/`, credited at the end of the README; nothing it does calls a model.
 
 `test_data_io.py` earns its three tests: a dead `pyproj` is the silent failure in
 this stack. `geopandas` still imports, `GeoDataFrame(..., crs=...)` still returns
@@ -602,7 +602,7 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,129<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,130<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->73<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
@@ -623,7 +623,7 @@ repository at a moment, and the repository moves.
 
 ## 9. Repository layout, file by file
 
-Moved here from the README to keep that shorter; this is the full annotated tree.
+The full annotated tree.
 
 ```
 flood-to-policy/
@@ -693,6 +693,196 @@ flood-to-policy/
 ├── team9/                      # Team 9's FARI tool: source of the interactive map under web/public/team9/
 ├── Dockerfile                  # Linux image: the portability answer, not a requirement here
 ├── docker-compose.yml          # Streamlit / API / tests / offline check / portable demo
-├── docs/                       # read these before the event
+├── docs/                       # the written work, indexed in docs/README.md
 └── tests/                      # pytest, offline, no network
+```
+
+---
+
+## 10. Running it: Windows, Docker and deployment
+
+The README keeps the commands. This section keeps the reasons behind them and
+the setups you only need once.
+
+### 10.1 Why Docker on this Windows machine
+
+`rasterio`, `pyogrio`, `rasterstats` and `tiktoken` could not load their native
+libraries on this Windows host. The `pyogrio`/`pyproj` caps in
+`requirements.txt` brought three of them back. Smart App Control then refused
+`rasterio`'s own GDAL build, which no pin fixed, on some days and not others
+with nothing reinstalled (details in `requirements.txt`). So check which state
+you're in each time rather than trusting the last run. On 2026-10-23 the Windows
+venv collected the whole suite, as the WSL2 venv does. The WSL2 venv stays: it
+is the only route that doesn't depend on the policy, and it is where a
+continental raster build belongs.
+
+The `app` image is the third route, and the one that doesn't care about the
+host. All four libraries import inside it. It also carries the four files committed
+under `data/processed/` (3.9 MB), so it runs with nothing mounted: the July 2021
+view, the Europe tables, and the Europe map, whose GISCO boundaries the browser
+fetches when the API has no `regions.geojson` (`has_geometry` is false), as the
+static build does. Without those files, an unmounted image gave 1,114 passed, 13
+skipped and 2 failed (the two tests that read them). Measured 2026-11-06 with
+them, 1,128 passed and 2 skipped, mounted or not. A stale local image
+can fail to import `rasterio` (`libexpat.so.1` missing) where a fresh build of
+the same Dockerfile works, so rebuild rather than trust an old one:
+`docker compose build`.
+
+The image carries `docs/`, `bi/`, `README.md` and `pytest.ini`, which the
+docs-number, Power BI and AI-log tests read, and the React UI built by a
+`node:22-slim` stage, so `web/dist/` always matches the sources in the commit.
+The `portable` stage copies `data/` in as well (83 GiB on 2026-11-05, 70 of it
+HERA discharge files); it has never been built and is never published. The same
+services also exist as Kubernetes manifests under `k8s/`, a learning port run on
+kind (`k8s/README.md`).
+
+**Two traps when running it.** `docker compose up` does not replace a running
+container whose image has changed: `docker compose pull` then `up -d` does. And
+`-v "${PWD}/data:/app/data"` mounts whatever folder you're standing in and hides
+the image's own `data/`, so from the wrong directory the app starts empty.
+
+**VS Code dev container.** `.devcontainer/` opens the editor inside that image
+(`Ctrl+Shift+P`, *Dev Containers: Reopen in Container*): a `dev` service with
+the checkout mounted at `/workspaces/flood-to-policy`, `data/` included, so
+tests and raster work run on Linux without the WSL venv. It leaves `app` and
+`api` alone and starts nothing; Streamlit and the API started from its terminal
+are forwarded on 8501 and 8010.
+
+**The published image.** `.github/workflows/publish.yml` builds the `app` stage
+on every push to `main` and on `v*` tags, checks out Git LFS files so the
+37 MB Team 9 map is real and not a pointer, starts the container and waits for
+the health check, then pushes to GitHub Container Registry and, when the
+`DOCKERHUB_*` secrets are set, to Docker Hub with `DOCKERHUB.md` as the page
+text. The health check accepts either Streamlit on 8501 or the API on 8010,
+since the same image runs both.
+
+Ubuntu and WSL ship no `python` on `PATH`, only `python3`. Calling
+`.venv/bin/...` directly instead of activating the venv keeps that out of the
+way, and removes the classic morning failure: running against system Python
+because the activation was forgotten.
+
+### 10.2 `--stripes` is memory, not meaning
+
+The windows are disjoint, so the figures don't depend on the stripe count, and
+`tests/test_stripes.py` holds that (§3.4). The default of 10 was enough on a
+workstation and not inside a 16 GB WSL VM: a nine-period run at 24 was killed by
+the OOM killer on the 100-year period, which floods more cells than the frequent
+ones. 72 peaks around 7.5 GB. The exposure build **parks each return period** in
+`data/processed/exposure_parts/` as it finishes and reuses what is there, so an
+interrupted run costs one period rather than all of them. `--return-period`
+narrows what is computed without shrinking the frozen table, and `--rebuild`
+recomputes a parked period.
+
+### 10.3 The data `src.fetch` does not cover
+
+`src.fetch` downloads what `config/sources.yaml` declares: 99 files (61
+geodata, 35 policy corpus, 3 context; counted 31 October), about 6.96 GiB
+measured 25 October. The run is idempotent, so an interrupted download costs
+only the missing files. HERA, the EFAS July 2021 reanalysis and the C3S ECDE
+indicators have their own fetch scripts. Three more sources need a step by
+hand, each for its own reason:
+
+- **JRC Risk Data Hub** wants an EU Login bearer token that expires after 10
+  hours. Responses are cached to disk, so the token only matters for a fresh
+  fetch.
+- **EEA river basin districts** is a REST service that takes about five minutes
+  over 8 pages and answers HTTP 500 to a page it dislikes. `src/basins.py`
+  caches it to `data/processed/basins_cache/` (288 MiB).
+- **Copernicus CDS hydrology projections** come from
+  `scripts/fetch_cds_member.py` (one member per request, under the form's 1000
+  cap; `--all-missing` for the rest of the ensemble; `CDSAPI_KEY` or
+  `~/.cdsapirc`), or by hand through the CDS form. The `.nc` files land in
+  `data/raw/download/cds_hydrology_projections/`.
+
+`scripts/check_offline_readiness.py` skips `access: api` and `folder` entries,
+so none of the three is in its per-file table, but each has its own check. The
+RDH cache is a **FAIL** when empty (it is the only offline route to a loss
+figure); the basins cache and the CDS folder are a **WARN** when missing (the map
+and the brief run without them, and the shared-basin and climate layers say
+so). The verdict is `READY`, `READY WITH CAVEATS` or `BLOCKED`. `--strict` turns
+every caveat into a block: an `ANTHROPIC_API_KEY` or `GROQ_API_KEY` left in
+`.env` is a caveat on an ordinary day, and was a block on the event day, when
+personal keys were not allowed (Annex 3).
+
+### 10.4 The static build behind the live demo
+
+A static build needs no API (§1). It shows the July 2021 view and the Europe
+view (Exposure with the return-period selector, Context and Vulnerability) from
+the API's own answers, frozen into `web/public/europe/`. The public demo is that
+build, served as a static Hugging Face Space:
+https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
+
+```bash
+.venv/bin/python scripts/export_event_web.py           # only after a new event_2021.py run: the committed JSON is already the public build
+.venv/bin/python scripts/export_europe_web.py          # Europe view: frozen API answers -> web/public/europe/ (gitignored, ~19 MB)
+cd web && npm ci                                        # once per fresh clone: node_modules is gitignored
+VITE_STATIC=1 VITE_BASE=/ npm run build                 # in web/ -> web/dist/
+```
+
+In Git Bash, prefix the build with `MSYS_NO_PATHCONV=1` so the base isn't
+rewritten into a Windows path; use `VITE_BASE=/flood-to-policy/` for a site
+served under a sub-path. To update the Space, upload the contents of
+`web/dist/` (`index.html`, `event_2021_web.json`, `assets/` and `europe/`)
+under *Files → Add file → Upload files*. Leave out `web/dist/team9/`: Team 9's
+map is ~37 MB, served separately on Surge. In the static build the region map
+comes from GISCO's 1:20 million NUTS file, fetched by the viewer's browser from
+GISCO itself, so no GISCO geometry is published here. The vulnerability ranking
+is precomputed at ±30 % and top 10 for every indicator set. Draft and
+Translation call a language model and stay local.
+
+`export_event_web.py --full` writes `event_2021_web.full.json` (GISCO borders
+and NUTS3), local only, which `GET /api/event2021` serves when present. The React
+app reads the public `web/public/event_2021_web.json` first and calls the API
+only when that file is missing, so the local React UI shows the public build
+even after a `--full` run.
+
+**Two API switches.** `HOSTED=1` turns the API into a public demo:
+`/api/draft`, `/api/translate`, free-text `/api/ask` and `/api/approve` answer
+403 before any model is called, and the React UI greys them out (it reads
+`GET /api/config`). `POST /api/approve` requires the `X-Approve-Token` header
+when `FLOOD_APPROVE_TOKEN` is set; unset, it relies on the API being published on
+127.0.0.1 only (`docker-compose.yml`).
+
+### 10.5 Agent access (MCP)
+
+`api/mcp_server.py` exposes the kit to an AI agent (Claude Desktop, Claude Code,
+any MCP client) as **three tools shaped around a question, not around a
+route**.
+
+| Tool | The question it answers |
+|---|---|
+| `rank_regions(top_n, return_period, country)` | where should we look first? |
+| `profile_regions(region_ids)` | tell me about / compare these regions |
+| `find_policy_evidence(question, k)` | what does the corpus say about X? (cite or refuse) |
+
+Each does its chaining on the server and answers with a small **flattened TOON**
+table, so the agent makes one call instead of chaining `/exposure`, `/context`
+and `/search` over raw JSON. `/approve` is deliberately not a tool: a human
+signs the brief. The return period travels in a `# return_period=...` header
+with every figure.
+
+```bash
+.venv/bin/python -m api.mcp_server                      # stdio, what desktop clients launch
+claude mcp add flood-kit -- .venv/bin/python -m api.mcp_server   # register in Claude Code
+.venv/bin/python -m api.mcp_server streamable-http      # over HTTP (e.g. a Render web service)
+docker compose --profile agent run --rm -T mcp          # same, inside the container
+```
+
+### 10.6 Asking the table in plain words
+
+The Streamlit tab **Ask the table** and `POST /api/ask` let someone who doesn't
+write pandas query `exposure.parquet` (§6 has the design). The model writes a
+small JSON query spec and nothing else; `src/nlquery.py` refuses any column or
+operator outside its whitelist and pandas runs the rest, so every figure in an
+answer is a value of the frozen table. Each answer names its return period and
+carries the definition and unit of every column it used.
+
+```bash
+curl -s localhost:8010/api/ask -H 'Content-Type: application/json' \
+  -d '{"question": "Which five Belgian regions have the largest share exposed at RP100?"}'
+# No key and no local model? Send the spec itself; no model is called.
+curl -s localhost:8010/api/ask -H 'Content-Type: application/json' -d '{"spec": {
+  "columns": ["region", "exposed_share"], "return_period": 100, "limit": 5,
+  "filters": [{"column": "country", "op": "==", "value": "BE"}],
+  "sort": {"column": "exposed_share", "descending": true}}}'
 ```

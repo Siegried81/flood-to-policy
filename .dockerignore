@@ -1,9 +1,10 @@
 # What must not reach the build context, and why.
 #
 # Note what is NOT here: data/. The `portable` stage in the Dockerfile copies the
-# whole data tree (81 GiB on 2026-10-27, about 69.5 GiB of it HERA) into the image on purpose, so the tree has to stay in
+# whole data tree (83 GiB on 2026-11-05, 70 GiB of it HERA) into the image on purpose, so the tree has to stay in
 # the context. BuildKit only transfers the files a COPY actually asks for, so the
-# `app` stage - which never copies data/ - does not pay for it.
+# `app` stage, which copies only four small files from data/processed/, does not
+# pay for the rest.
 #
 # Secrets
 .env

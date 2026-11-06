@@ -35,8 +35,8 @@ Deployment.
 kind create cluster --name flood
 
 # 2. build the image and load it into the cluster (no registry needed).
-#    --target app is the ~2 GiB code-only stage; without it Docker builds the
-#    last stage, `portable`, with 6.4 GiB of data baked in.
+#    --target app is the code-only stage (about 1.6 GB); without it Docker
+#    builds the last stage, `portable`, with the whole data/ tree baked in.
 docker build --target app -t siegried/flood-to-policy:latest ..
 kind load docker-image siegried/flood-to-policy:latest --name flood
 
@@ -44,7 +44,8 @@ kind load docker-image siegried/flood-to-policy:latest --name flood
 kubectl create secret generic flood-secrets --from-env-file=../.env
 kubectl apply -f flood-to-policy.yaml
 
-# 4. data: the PVC starts empty. Copy ../data into the app pod (slow, 6.4 GiB).
+# 4. data: the PVC starts empty. Copy ../data into the app pod (slow: 83 GiB,
+#    70 of it HERA discharge files).
 #    The api pod shares the same PVC, so one copy is enough.
 kubectl cp ../data "$(kubectl get pod -l app=flood-app -o name | cut -d/ -f2):/app/data"
 #    Or skip the copy: mount the host folder into the kind node at cluster
