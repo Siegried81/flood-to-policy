@@ -83,7 +83,9 @@ services:
       - "127.0.0.1:8010:8010"  # API reachable from this machine only
     restart: unless-stopped
     healthcheck:
-      # The image's own healthcheck probes Streamlit on 8501; this one probes the API.
+      # The image's own healthcheck passes if either Streamlit (8501) or the API
+      # (8010) answers; this one probes the API alone, so a Streamlit process
+      # answering in its place cannot mark this service healthy.
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8010/api/health', timeout=4).status == 200 else 1)"]
       interval: 30s
       timeout: 5s

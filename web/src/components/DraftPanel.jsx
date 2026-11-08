@@ -38,8 +38,9 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
     try {
       // The edited text is sent exactly as the human left it. It is deliberately
       // never passed back through the model to polish, which would hand the last
-      // word to the machine.
-      const body = await approve(edited, token);
+      // word to the machine. The draft's passages and table go with it, so the
+      // server checks the edit against the sources it was written from.
+      const body = await approve(edited, token, result);
       setApproved(body.approved_at);
     } catch (e) {
       setError(e.message);

@@ -34,7 +34,9 @@ entitled to know that.
 **Nulls are counted, not hidden.** A region whose `exposed_pop` was not
 measured fails every numeric comparison, which silently reads as "does not
 qualify". `null_excluded` reports how many rows of the period were dropped for a
-null on a filtered column, so "not measured" never travels as "not exposed".
+null on a filtered column, so "not measured" never travels as "not exposed". A
+row that also fails a filter on a value it does have is not counted: the null is
+not why it was dropped.
 
 One LLM call per question, through `rag.complete_with_provider` - the same
 provider path, key rotation and local fallback as the drafting step. No retry,
@@ -489,11 +491,19 @@ def execute(df: pd.DataFrame, spec: dict, *, default_return_period: int | None =
 
     keep = pd.Series(True, index=df.index)
     nulls = pd.Series(False, index=df.index)
+    # A row that fails a filter on a value it HAS is ruled out whatever its nulls
+    # say, so it is not "excluded because not measured": a Dutch region with no
+    # figure is dropped from a question about Belgium for being Dutch.
+    failed_on_value = pd.Series(False, index=df.index)
     for item in clean["filters"]:
         series = df[item["column"]]
-        keep &= _mask(series, item["op"], item["value"])
-        if item["op"] not in NULL_OPS:
+        mask = _mask(series, item["op"], item["value"])
+        keep &= mask
+        if item["op"] in NULL_OPS:
+            failed_on_value |= ~mask
+        else:
             nulls |= series.isna()
+            failed_on_value |= ~mask & series.notna()
     matched = df[keep]
     if clean["sort"]:
         matched = matched.sort_values(
@@ -513,7 +523,7 @@ def execute(df: pd.DataFrame, spec: dict, *, default_return_period: int | None =
                      "scenario. Extents are nested; never add periods together.")
     if len(matched) > len(shown):
         notes.append(f"{len(matched)} rows matched; the first {len(shown)} are shown.")
-    null_excluded = int((nulls & ~keep).sum())
+    null_excluded = int((nulls & ~keep & ~failed_on_value).sum())
     if null_excluded:
         notes.append(f"{null_excluded} rows were excluded because a filtered column is "
                      "null there - not measured, which is not the same as not matching.")

@@ -498,7 +498,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,130<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,133<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -602,7 +602,7 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,130<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,133<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->73<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |

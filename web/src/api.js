@@ -138,8 +138,17 @@ export const translate = (text, language) =>
 // The token, when the server asks for one, is typed by the person approving and
 // sent per call. It is never built into the bundle: a secret in the JavaScript
 // is a secret every visitor of the page holds.
-export const approve = (text, token) =>
-  post("/api/approve", { text }, token ? { "X-Approve-Token": token } : {});
+//
+// `draft` is the /api/draft answer the text was edited from. Its passages and
+// table text go back with the edit, so the server re-checks the numbers and the
+// citation range against the sources the model was given. Without them it can
+// only check the markers against the five-passage maximum, and says so.
+export const approve = (text, token, draft) =>
+  post(
+    "/api/approve",
+    { text, passages: draft?.passages ?? null, table_text: draft?.table_text ?? "" },
+    token ? { "X-Approve-Token": token } : {},
+  );
 
 // What this deployment allows (GET /api/config): in the hosted demo the model
 // and write routes answer 403, and the UI greys them instead of failing on click.
