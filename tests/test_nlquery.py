@@ -113,6 +113,20 @@ def test_a_null_is_counted_as_not_measured_not_as_not_matching():
     assert any("not measured" in note for note in answer.notes)
 
 
+def test_a_null_row_another_filter_rules_out_is_not_counted_as_excluded_for_the_null():
+    """NL33 has no exposure at RP100, but it is Dutch: a question about Belgium
+    drops it for its country, not for the null. Counting it said "1 row excluded
+    because not measured" about a region the question never asked about; on the
+    real table a Belgian poverty question reported 147 such rows, none Belgian."""
+    answer = nlquery.execute(_table(), _spec(
+        return_period=100,
+        filters=[{"column": "country", "op": "==", "value": "BE"},
+                 {"column": "exposed_pop", "op": ">", "value": 0}]))
+    assert {r["nuts_id"] for r in answer.rows} == {"BE31", "BE32"}
+    assert answer.null_excluded == 0
+    assert not any("not measured" in note for note in answer.notes)
+
+
 def test_not_equal_does_not_match_an_unmeasured_region():
     answer = nlquery.execute(_table(), _spec(
         return_period=100,

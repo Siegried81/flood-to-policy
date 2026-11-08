@@ -548,7 +548,22 @@ def test_the_react_approve_call_carries_the_token_header():
     client_js = (ROOT / "web" / "src" / "api.js").read_text(encoding="utf-8")
     assert '"X-Approve-Token": token' in client_js
     panel = (ROOT / "web" / "src" / "components" / "DraftPanel.jsx").read_text(encoding="utf-8")
-    assert "approve(edited, token)" in panel and 'type="password"' in panel
+    assert "approve(edited, token" in panel and 'type="password"' in panel
+
+
+def test_the_react_approve_call_sends_the_sources_back():
+    """`/api/approve` re-checks the edited text against the passages and table
+    the draft was written from, but only when the client sends them. The React
+    panel sent the text alone, so every approval from it was recorded as
+    "sources not supplied: numbers and grounding unchecked", and [S4] after a
+    three-passage draft was approved because the range fell back to five. The
+    Streamlit tab always passed both."""
+    client_js = (ROOT / "web" / "src" / "api.js").read_text(encoding="utf-8")
+    body = client_js[client_js.index("export const approve"):]
+    body = body[:body.index(";")]
+    assert "passages" in body and "table_text" in body
+    panel = (ROOT / "web" / "src" / "components" / "DraftPanel.jsx").read_text(encoding="utf-8")
+    assert "approve(edited, token, result)" in panel
 
 
 def test_no_table_is_a_404_that_says_how_to_build_one(tmp_path, monkeypatch):

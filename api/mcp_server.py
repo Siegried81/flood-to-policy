@@ -119,7 +119,17 @@ def rank_regions(top_n: int = 10, return_period: int | None = None,
     key = main._region_key(df)
     df, period, defaulted = main._one_return_period(df, return_period)
     if country:
-        df = df[df[key].astype(str).str.upper().str.startswith(country.strip().upper())]
+        prefix = country.strip().upper()
+        ids = df[key].astype(str).str.upper()
+        matched = ids.str.startswith(prefix)
+        # A code the table never uses ("GR" for Greece, which NUTS writes "EL",
+        # or "UK") matches nothing. An empty ranking would read as "no region of
+        # that country is exposed", so it is refused with the codes that exist.
+        if not matched.any():
+            known = ", ".join(sorted(ids.str[:2].unique()))
+            raise ToolError(f"No region id starts with {prefix!r}. Country prefixes "
+                            f"in the table: {known}. Greece is EL in NUTS.")
+        df = df[matched]
     df = _with_share(df)
     # Share when we have it, absolute count otherwise - and the header says which,
     # because the two rankings answer different questions.

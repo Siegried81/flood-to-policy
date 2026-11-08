@@ -63,6 +63,15 @@ def test_rank_filters_by_country_and_caps_rows(frozen):
     assert "regions_considered=2" in out and "defaulted=False" in out
 
 
+def test_rank_refuses_a_country_code_the_table_never_uses(frozen):
+    """An agent writes "GR" for Greece or "UK" for Britain; the table writes "EL"
+    and has no UK. A matching nothing must not come back as an empty ranking,
+    which reads as "no region of that country is exposed"."""
+    with pytest.raises(mcp_tools.ToolError, match="No region id starts with 'GR'") as raised:
+        mcp_tools.rank_regions(country="GR")
+    assert "BE, DE" in str(raised.value)
+
+
 def test_unknown_period_reaches_the_agent_as_a_readable_error(frozen):
     # HTTPException means nothing to an MCP client; its detail must survive.
     with pytest.raises(mcp_tools.ToolError, match="Available: \\[10, 100\\]"):
