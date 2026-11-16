@@ -210,6 +210,7 @@ def build_server():
     can use without the MCP SDK installed.
     """
     from mcp.server.mcpserver import MCPServer
+    from mcp.types import ToolAnnotations
 
     server = MCPServer(
         name="flood-to-policy",
@@ -220,8 +221,15 @@ def build_server():
             "statutory flood map: always state the return period with a figure."
         ),
     )
+    # All four hints, set explicitly, so a host can show the tools as safe to run
+    # without asking (OpenAI's directory rejects a tool missing any of them).
+    # The values are the same for all three: each one reads the local tables or the local
+    # corpus index, writes nothing, returns the same answer for the same input,
+    # and never reaches the network (`/approve`, the one write, is not exposed).
+    read_only = ToolAnnotations(read_only_hint=True, destructive_hint=False,
+                                idempotent_hint=True, open_world_hint=False)
     for fn in TOOLS:
-        server.add_tool(fn)
+        server.add_tool(fn, annotations=read_only)
     return server
 
 

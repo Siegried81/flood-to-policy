@@ -145,6 +145,19 @@ def test_server_exposes_exactly_the_three_intent_tools():
     assert not names & {"approve", "draft", "translate"}
 
 
+def test_every_tool_declares_all_four_hints_as_read_only():
+    """Hosts and directories read these hints to decide whether to ask the user
+    before a call; a missing one counts as undeclared, not as false."""
+    pytest.importorskip("mcp")
+    import asyncio
+
+    for tool in asyncio.run(mcp_tools.build_server().list_tools()):
+        hints = tool.annotations
+        assert hints is not None, tool.name
+        assert (hints.read_only_hint, hints.destructive_hint,
+                hints.idempotent_hint, hints.open_world_hint) == (True, False, True, False), tool.name
+
+
 def test_api_error_detail_reaches_the_model_through_the_server(frozen):
     """Through the real MCP call path, not just the function: in mcp 2.x any
     exception other than ToolError is masked as a bare "Error executing tool"."""
