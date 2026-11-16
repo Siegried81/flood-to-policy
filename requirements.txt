@@ -60,7 +60,7 @@ Pillow>=13.0.0        # src/story_maps.py composites the satellite basemap PNGs
 # LLM layer
 tiktoken>=0.14.0
 requests>=2.34.2
-anthropic>=2.6.0      # Claude, asked first when ANTHROPIC_API_KEY is set
+anthropic>=2.8.0      # Claude, asked first when ANTHROPIC_API_KEY is set
 pyyaml>=6.0.3
 python-dotenv>=1.2.4    # reads .env, so an unset key means "unavailable" and not "unread"
 
@@ -69,14 +69,14 @@ pytest>=9.2.0
 jsonschema>=4.26.0     # scripts/validate_bi_report.py: the Power BI files against Microsoft's schemas
 
 # API for the React UI
-fastapi>=0.162.0
+fastapi>=0.162.7
 uvicorn>=0.54.0
-pypdf>=7.0.0          # the policy corpus includes PDFs
+pypdf>=7.1.0          # the policy corpus includes PDFs
 pyarrow>=26.0.1       # parquet round-trips dtypes exactly; CSV loses a NUTS code's leading zero
 
 # Workflow + optional tracing
-langgraph>=1.2.20
-langchain-core>=1.7.6
+langgraph>=1.2.21
+langchain-core>=1.8.0
 
 # Agent access: intent-based MCP tools (api/mcp_server.py). Pure Python.
 mcp>=2.3.0
