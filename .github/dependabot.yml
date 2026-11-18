@@ -43,3 +43,22 @@ updates:
       actions:
         patterns:
           - "*"
+
+  # Base images in the Dockerfile: the `python-base` and `web` stages. CI and
+  # the image both run Python 3.12, so only 3.12 patch updates come in, and the
+  # Node build stage stays on 22. Moving either is a deliberate change: bump CI
+  # and the Dockerfile together.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    ignore:
+      - dependency-name: python
+        versions: [">=3.13"]
+      - dependency-name: node
+        versions: [">=23"]
+    groups:
+      docker:
+        patterns:
+          - "*"

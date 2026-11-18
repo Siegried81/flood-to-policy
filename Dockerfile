@@ -38,7 +38,13 @@
 # only ever be passed at run time: it expires after 10 hours, so a token baked
 # into an image is dead before the image is useful.
 
-ARG BASE_IMAGE=python:3.12-slim
+# The default base is the `python-base` stage below rather than an image name,
+# so the tested image sits on a literal `FROM` line that Dependabot can read and
+# bump. `--build-arg BASE_IMAGE=<image>` still replaces it: the stage is then
+# never built.
+ARG BASE_IMAGE=python-base
+
+FROM python:3.12-slim AS python-base
 
 # --- React UI build -------------------------------------------------------------
 # web/dist is gitignored, so a fresh clone, and the publish runner, has no build
