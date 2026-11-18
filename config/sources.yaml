@@ -592,7 +592,7 @@ geodata:
       and unauthenticated calls hit a bot-defence challenge rather than a clean
       401. Create the account now and cache responses to disk; do not call this
       live in front of a jury. Everything else in this file is open.
-    verified: null  # live call made: 77 hazards, 1,297 loss rows for BE
+    verified: 2026-10-06  # live call: 77 hazards, 1,297 loss rows for BE (API v3.2)
 
   - id: wallonia_flood_hazard_official
     # Resolved through the Walloon CSW. The catalogue root that used to

@@ -1,5 +1,7 @@
 # Flood to policy
 
+[![tests](https://github.com/Siegried81/flood-to-policy/actions/workflows/ci.yml/badge.svg)](https://github.com/Siegried81/flood-to-policy/actions/workflows/ci.yml)
+
 > **About this repository.** I prepared it for the European AI Challenge 2026
 > hackathon, where I worked in a team of six. Nearly all of it is my own work,
 > up to the last day. Two parts are the team's: the policy brief in
@@ -166,7 +168,7 @@ for `.venv/bin/python`.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,134<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,143<!-- /numbers --> tests, offline: no network, no model
 .venv/bin/python -m src.fetch           # 99 files, about 7 GiB (re-run only to fill gaps)
 .venv/bin/python scripts/build_exposure.py --stripes 72 # -> data/processed/exposure.parquet
 .venv/bin/python scripts/build_context.py  --stripes 72 # -> data/processed/context.parquet
