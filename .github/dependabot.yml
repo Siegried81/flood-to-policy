@@ -43,3 +43,20 @@ updates:
       actions:
         patterns:
           - "*"
+
+  # Base images in the Dockerfile. Dependabot only reads literal `FROM` lines:
+  # the Python stage is `FROM ${BASE_IMAGE}`, set by `ARG BASE_IMAGE=...`, so
+  # only the Node build stage is tracked here. The Python base has to be bumped
+  # by hand, together with the python-version in CI.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    ignore:
+      - dependency-name: node
+        versions: [">=23"]
+    groups:
+      docker:
+        patterns:
+          - "*"
