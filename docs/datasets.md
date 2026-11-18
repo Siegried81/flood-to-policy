@@ -478,6 +478,19 @@ affected, casualties — per administrative unit and per event. It is what turns
 modelled ranking into a validated one, and its published vulnerability index is a
 free cross-check on the one `src/vulnerability.py` builds.
 
+**Cache version: RDH API v3.2, fetched 6 October 2026.** The JSON files in
+`data/processed/rdh_cache/` carry no version field, and neither does the API. The
+version comes from the fetch date, kept per file under `rdh_cache/_meta/`
+(`rdh.cache_meta()`): the JRC announced v3.3 to API users in November 2026, so
+these responses predate it. `tests/test_rdh_cache_snapshot.py` re-measures every
+figure quoted on this page against the cache and fails on the first that moves.
+v3.3 regrouped some events and may have renumbered their codes (no loss data was
+dropped, per the JRC). After any refresh, check that the codes used here
+(`FLEU202107120015`, `FLBE202107130001`, and the ones in `tests/test_losses.py`)
+still exist before trusting the row counts above. v4.0 will follow the RDLS 1.0
+metadata standard, which breaks compatibility, so `src/rdh.py` will need work
+then.
+
 **Trap 1 — the rows are NESTED. Filter on `admin_unit_level` before any sum.**
 The same event is reported at Country, NUTS1, NUTS2 *and* NUTS3 level, so a naive
 `sum()` counts it about four times over. Measured on the July 2021 event: summing

@@ -26,7 +26,9 @@ definition in this repo of "this response is not the thing I asked for".
 
 **Never call it live in front of a jury.** Same rule as the rasters and GDELT:
 every answer is cached under `data/processed/rdh_cache/`, and a cached answer is
-served without touching the network. Fill the cache the day before.
+served without touching the network. Fill the cache the day before. Each
+answer's fetch date, URL and parameters go to `rdh_cache/_meta/`, so a cached
+figure can be placed before or after an API release.
 
 **Paging is mandatory, not optional.** The API's default `limit` is 10 and its
 maximum is 10000. A caller who forgets gets the first ten rows and no warning, so
@@ -37,6 +39,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -108,6 +111,29 @@ def _cache_path(collection: str, params: dict[str, Any]) -> Path:
     tag = "_".join(f"{k}-{v}" for k, v in sorted(params.items()) if k != "limit")
     safe = "".join(c if c.isalnum() or c in "-_" else "." for c in tag)
     return CACHE_DIR / f"{collection}{('__' + safe) if safe else ''}.json"
+
+
+def _meta_path(cache: Path) -> Path:
+    """Where the provenance of one cached answer is kept.
+
+    A subfolder rather than a sibling file, because
+    `scripts/check_offline_readiness.py` reads every `rdh_cache/*.json` as rows.
+    """
+    return cache.parent / "_meta" / cache.name
+
+
+def cache_meta(collection: str, **params: Any) -> dict | None:
+    """When and from where a cached answer was fetched, or None if not recorded.
+
+    The cached file holds rows only, and the API changes under it (v3.3
+    renumbered some event codes), so a figure taken from the cache has to be
+    datable. The API reports no version of its own, so the fetch date is what
+    places an answer before or after a release.
+    """
+    path = _meta_path(_cache_path(collection, params))
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def items(
@@ -182,6 +208,15 @@ def items(
     if use_cache:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(rows, indent=1), encoding="utf-8")
+        meta = {
+            "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "url": url,
+            "params": {k: v for k, v in sorted(params.items())},
+            "n_rows": len(rows),
+            "number_matched": matched,
+        }
+        _meta_path(cache).parent.mkdir(exist_ok=True)
+        _meta_path(cache).write_text(json.dumps(meta, indent=1), encoding="utf-8")
     return rows
 
 

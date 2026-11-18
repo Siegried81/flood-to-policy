@@ -131,6 +131,28 @@ def test_second_call_is_served_from_disk(isolated):
     assert get.call_count == 1
 
 
+def test_a_fetch_records_when_and_where_it_came_from(isolated):
+    """The rows carry no API version, so the fetch date is what dates a figure."""
+    with patch.object(R.requests, "get", return_value=_Response(_page(2, 2))):
+        R.flood_losses(token="t", country="BE")
+    meta = R.cache_meta("losses", admin_unit_country_code="BE")
+    assert meta["url"].endswith("/losses/losses/items")
+    assert meta["params"] == {"admin_unit_country_code": "BE"}
+    assert meta["n_rows"] == 2 and meta["number_matched"] == 2
+    assert meta["fetched_at"].endswith("+00:00")
+
+
+def test_meta_stays_out_of_the_row_files(isolated):
+    """The readiness check reads every rdh_cache/*.json as rows."""
+    with patch.object(R.requests, "get", return_value=_Response(_page(1, 1))):
+        R.items("hazard", token="t")
+    assert [p.name for p in R.CACHE_DIR.glob("*.json")] == ["hazard.json"]
+
+
+def test_no_meta_for_an_answer_cached_before_it_existed(isolated):
+    assert R.cache_meta("hazard") is None
+
+
 def test_different_parameters_do_not_share_a_cache_entry(isolated):
     """Belgian losses and Italian losses are not the same answer."""
     with patch.object(R.requests, "get", return_value=_Response(_page(1, 1))) as get:
