@@ -22,8 +22,8 @@ warning on the table. My tool and the team's brief answer her four questions.
 
 **Start here.** A Python tool turns the July 2021 flood maps into three
 recommendations for the next Floods Directive round
-([`docs/policy_answer.md`](docs/policy_answer.md)). A React app puts the July
-2021 and Europe views in the browser. The full index of the written work is
+([`docs/policy_answer.md`](docs/policy_answer.md)). A React app opens on Team
+9's map, then the July 2021 and Europe views. The full index of the written work is
 [`docs/README.md`](docs/README.md).
 
 **Live demo (July 2021 and Europe views, no install):**
@@ -168,7 +168,7 @@ for `.venv/bin/python`.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,143<!-- /numbers --> tests, offline: no network, no model
+.venv/bin/python -m pytest -q           # <!-- numbers:tests_collected -->1,148<!-- /numbers --> tests, offline: no network, no model
 .venv/bin/python -m src.fetch           # 99 files, about 7 GiB (re-run only to fill gaps)
 .venv/bin/python scripts/build_exposure.py --stripes 72 # -> data/processed/exposure.parquet
 .venv/bin/python scripts/build_context.py  --stripes 72 # -> data/processed/context.parquet

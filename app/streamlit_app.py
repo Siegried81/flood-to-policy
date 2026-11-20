@@ -57,6 +57,11 @@ EXPOSURE_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "e
 CONTEXT_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "context.parquet"
 GEOMETRY_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "regions.geojson"
 WEB_CACHE = Path(__file__).resolve().parents[1] / "data" / "processed" / "event_2021_web.json"
+# Team 9's four-scene map: the same file the React app shows in its "Team 9 map"
+# view. It lives in Git LFS, so a checkout without `git lfs pull` holds a pointer
+# of about 130 bytes under this name instead of the 37 MB page.
+TEAM_MAP = Path(__file__).resolve().parents[1] / "web" / "public" / "team9" / "flood_map.html"
+TEAM_MAP_MIN_BYTES = 1_000_000
 
 
 def _build_state(path: Path) -> float | None:
@@ -410,8 +415,11 @@ has_exposure = "exposed_pop" in view.columns
 # depend on which period is selected.
 indicators = vulnerability_indicators(exposure)
 
-july_tab, map_tab, context_tab, vuln_tab, ask_tab, draft_tab, translate_tab, log_tab = st.tabs(
-    ["July 2021", "Exposure", "What qualifies it", "Who is most vulnerable",
+# "Team 9 map" first, as in the React app: the team's shared map is where a
+# visitor lands. Its 37 MB still waits behind the toggle inside the tab.
+(team_tab, july_tab, map_tab, context_tab, vuln_tab, ask_tab, draft_tab,
+ translate_tab, log_tab) = st.tabs(
+    ["Team 9 map", "July 2021", "Exposure", "What qualifies it", "Who is most vulnerable",
      "Ask the table", "Draft a brief section", "Translation", "AI usage log"]
 )
 
@@ -425,6 +433,33 @@ with july_tab:
         )
     else:
         render_july2021(web_story)
+
+# --- Team 9 map -----------------------------------------------------------------
+with team_tab:
+    # Behind a toggle, off by default. Every tab runs on every rerun, and
+    # `st.iframe` sends a local HTML file inline, so an always-on map would push
+    # 37 MB to the browser each time any widget anywhere in the app moved.
+    # Streamlit's static serving would avoid that, but it only serves files under
+    # app/static/, which means a second 37 MB copy of the map in Git LFS.
+    st.caption(
+        "Team 9's interactive map: four scenes, from what the satellites saw to "
+        "where to act first. The same map as the React app's Team 9 tab and "
+        "[the live version](https://warn-before-the-water.surge.sh/team9/)."
+    )
+    try:
+        team_map_bytes = TEAM_MAP.stat().st_size
+    except FileNotFoundError:
+        team_map_bytes = 0
+    if team_map_bytes < TEAM_MAP_MIN_BYTES:
+        st.info(
+            "The map file is missing or is still a Git LFS pointer: run "
+            "`git lfs pull` to fetch `web/public/team9/flood_map.html`."
+        )
+    elif st.toggle(
+        f"Show the map ({team_map_bytes / 1e6:.0f} MB, reloaded on every change while it is on)",
+        key="team9_map_on",
+    ):
+        st.iframe(TEAM_MAP, height=720)
 
 # --- Exposure -------------------------------------------------------------------
 with map_tab:

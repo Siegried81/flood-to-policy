@@ -198,7 +198,7 @@ th.sortable-header:hover {
   text-decoration: underline;
 }
 
-/* ---- App header and the two views -------------------------------------- */
+/* ---- App header and the views ------------------------------------------- */
 .shell { max-width: 1240px; }
 .app-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
   border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 18px; }
@@ -211,6 +211,11 @@ th.sortable-header:hover {
 .demo-chip { margin-left: 10px; }
 .view-title { font-size: 1.3rem; margin: 6px 0; }
 .tab.tab-off { opacity: 0.45; text-decoration: line-through; }
+
+/* ---- Team 9 map view ---------------------------------------------------- */
+/* The map is a full Leaflet page, so it gets most of the viewport height. */
+.team-map-frame { width: 100%; height: 78vh; min-height: 420px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface); }
 
 /* ---- July 2021 view ----------------------------------------------------- */
 /* Projector-first: larger type than the kit's tabs, and the two water colours
