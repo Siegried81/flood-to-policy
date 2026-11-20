@@ -29,6 +29,7 @@ from streamlit.testing.v1 import AppTest
 from scripts import build_geometry
 from src import rag, svgmap, usage_log
 from tests.test_api import _context_table, _nested_table
+from tests.test_web_team_map import needs_team_map
 
 #: What the patched download answers, so a test can check the page relays it.
 OFFLINE = "could not download the GISCO boundaries: offline in this test"
@@ -214,6 +215,52 @@ def test_the_july_2021_tab_mirrors_the_space_story():
     texts = _texts(at)
     assert "July 2021 floods in the Liège, Limburg and Aachen border area" in texts
     assert "What to recommend" in texts
+
+
+def _team_map_iframes(app_test) -> list:
+    """The iframes holding Team 9's map, picked by the page's own title: the
+    Folium output carries <svg> too, so "not the choropleth" cannot be tested
+    by the absence of an SVG."""
+    return [f for f in app_test.get("iframe")
+            if "exposure and planning map</title>" in (f.srcdoc or "")]
+
+
+@needs_team_map
+def test_the_team_map_tab_waits_for_the_toggle_then_shows_the_map():
+    """Off by default, so the 37 MB page is not sent on every rerun of the app;
+    on, the iframe carries the real map file, not a stub or an LFS pointer."""
+    with _frozen(_nested_table()):
+        at = AppTest.from_file(str(APP), default_timeout=120).run()
+        assert at.exception == []
+        assert at.tabs[0].label == "Team 9 map"
+        assert _team_map_iframes(at) == []
+        at.toggle(key="team9_map_on").set_value(True).run()
+    assert at.exception == []
+    frames = _team_map_iframes(at)
+    assert len(frames) == 1
+    assert len(frames[0].srcdoc) > 1_000_000
+
+
+def test_the_team_map_tab_says_how_to_fetch_a_missing_map():
+    """A checkout without `git lfs pull` holds a 130-byte pointer: the tab says
+    so instead of offering a toggle that would embed the pointer text."""
+    team_map = _key(ROOT / "web" / "public" / "team9" / "flood_map.html")
+
+    class _Pointer:
+        st_size = 130
+        st_mtime = time.time()
+
+    with _frozen(_nested_table()):
+        frozen_stat = pathlib.Path.stat
+
+        def stat(self, *args, **kwargs):
+            return _Pointer() if _key(self) == team_map else frozen_stat(self, *args, **kwargs)
+
+        with patch.object(pathlib.Path, "stat", stat):
+            at = AppTest.from_file(str(APP), default_timeout=60).run()
+    assert at.exception == []
+    assert "git lfs pull" in _texts(at)
+    assert not [t for t in at.toggle if t.key == "team9_map_on"]
 
 
 def test_either_identifier_spelling_is_accepted():

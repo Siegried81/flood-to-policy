@@ -61,11 +61,13 @@ coupling them would guarantee it happened.
 **Both UIs read the same frozen table.** They cannot disagree about a number,
 because there is only one number - `app/streamlit_app.py` reads the parquet
 directly rather than going through the API, which is why it needs neither the
-server nor `npm`. They do NOT show the same views. React has two views
-(`VIEWS` in `web/src/App.jsx`): "July 2021", which opens first and reads the
-event JSON (§5), and "Europe", which holds five tabs (Exposure, Context,
-Vulnerability, Draft, Translation) and draws the choropleth inside the first.
-Streamlit has eight tabs: the July 2021 view, the five Europe tabs, "Ask the table" and the AI usage log. The
+server nor `npm`. They do NOT show the same views. React has three views
+(`VIEWS` in `web/src/App.jsx`): "Team 9 map", which opens first and loads the
+team's `web/public/team9/flood_map.html` in an iframe
+(`web/src/components/TeamMap.jsx`), "July 2021", which reads the event JSON
+(§5), and "Europe", which holds five tabs (Exposure, Context, Vulnerability,
+Draft, Translation) and draws the choropleth inside the first.
+Streamlit has nine tabs: the Team 9 map first (behind a toggle, so its 37 MB is not resent on every rerun), the July 2021 view, the five Europe tabs, "Ask the table" and the AI usage log. The
 React UI is the one to demo.
 
 **A static build needs no API.** `VITE_STATIC=1` builds a React app that reads
@@ -498,7 +500,7 @@ down in advance.
 
 ## 7. The test suite
 
-**<!-- numbers:tests_collected -->1,143<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
+**<!-- numbers:tests_collected -->1,148<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
 full suite passed on Windows and in WSL2, nothing deselected.
 
 Do not quote a Windows run as a property of the platform. Smart App Control
@@ -602,7 +604,7 @@ does not.
 
 | Claim | Source |
 |---|---|
-| <!-- numbers:tests_collected -->1,143<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
+| <!-- numbers:tests_collected -->1,148<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
 | 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
 | ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
