@@ -1,7 +1,7 @@
 # flood-to-policy on Kubernetes
 
 A learning port of `docker-compose.yml` to Kubernetes. Same three pieces: the
-Streamlit app (8501), the FastAPI API (8010), and an Ollama Deployment (11434).
+Streamlit app (8501), the FastAPI API (8001), and an Ollama Deployment (11434).
 
 **Is k8s needed here?** No. One app this size belongs on Docker Compose or a PaaS
 (Render, Railway). This port exists to practise the Kubernetes objects:
@@ -12,7 +12,7 @@ Deployment, Service, PersistentVolumeClaim, Secret, readiness probes.
 | Compose | Kubernetes |
 |---|---|
 | `app` service (Streamlit 8501) | Deployment + Service `flood-app` |
-| `api` service (uvicorn 8010) | Deployment + Service `flood-api` |
+| `api` service (uvicorn 8001) | Deployment + Service `flood-api` |
 | `ollama` service (11434) | Deployment + Service `flood-ollama` |
 | `.env` file | Secret `flood-secrets` |
 | `./data` bind mount | PVC `flood-data` |

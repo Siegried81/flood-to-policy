@@ -49,7 +49,7 @@ FROM python:3.12-slim AS python-base
 # --- React UI build -------------------------------------------------------------
 # web/dist is gitignored, so a fresh clone, and the publish runner, has no build
 # of the React UI. This stage makes one. Only the static files reach the final
-# image, not Node: api/main.py serves web/dist at / on port 8010.
+# image, not Node: api/main.py serves web/dist at / on port 8001.
 FROM node:22-slim AS web
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
@@ -122,16 +122,16 @@ COPY --chown=app:app data/processed/DATA_NOTICE.md data/processed/event_2021_web
 
 USER app
 
-EXPOSE 8501 8010
+EXPOSE 8501 8001
 
 # The same image runs either Streamlit (default CMD, 8501) or the API with the
-# React UI (uvicorn, 8010), so healthy means either one answers. Probing 8501
+# React UI (uvicorn, 8001), so healthy means either one answers. Probing 8501
 # only marked every API container unhealthy. Probed with python because the slim
 # image ships no curl; urlopen raises on a refused connection or an error status,
 # which makes python exit non-zero.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=2)" \
-     || python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8010/api/health', timeout=2)"
+     || python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8001/api/health', timeout=2)"
 
 # Exec form, so Streamlit is PID 1 and gets SIGTERM directly from `docker stop`.
 CMD ["python", "-m", "streamlit", "run", "app/streamlit_app.py", \

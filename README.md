@@ -146,15 +146,15 @@ the built React UI and the four data files committed here, so it runs with
 nothing cloned:
 
 ```bash
-docker run --rm -p 127.0.0.1:8010:8010 siegried/flood-to-policy \
-  python -m uvicorn api.main:app --host 0.0.0.0 --port 8010    # http://localhost:8010
+docker run --rm -p 127.0.0.1:8001:8001 siegried/flood-to-policy \
+  python -m uvicorn api.main:app --host 0.0.0.0 --port 8001    # http://localhost:8001
 ```
 
 From a clone with the full `data/`, compose mounts it:
 
 ```bash
 docker compose pull
-docker compose --profile api up -d    # Streamlit on http://localhost:8501, React + API on http://localhost:8010
+docker compose --profile api up -d    # Streamlit on http://localhost:8501, React + API on http://localhost:8001
 ```
 
 Add `--env-file .env` for an LLM key. Why Docker matters on this Windows
@@ -185,7 +185,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 # Either UI. Both read the same frozen table, so they can't disagree on a number.
 .venv/bin/streamlit run app/streamlit_app.py            # no build step
-.venv/bin/uvicorn api.main:app --port 8010              # + the React dev server, below
+.venv/bin/uvicorn api.main:app --port 8001              # + the React dev server, below
 cd web && npm ci && npm run dev                         # open http://localhost:5190
 ```
 

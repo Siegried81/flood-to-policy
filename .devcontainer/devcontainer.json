@@ -16,7 +16,7 @@
 		"ghcr.io/devcontainers/features/git:1": {}
 	},
 	// Streamlit and the API, when started from the container's terminal.
-	"forwardPorts": [8501, 8010],
+	"forwardPorts": [8501, 8001],
 	"customizations": {
 		"vscode": {
 			"extensions": ["ms-python.python", "ms-python.debugpy"],

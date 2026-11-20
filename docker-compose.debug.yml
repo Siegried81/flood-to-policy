@@ -27,7 +27,7 @@ services:
     # API (profile api): attach on 127.0.0.1:5679
     command: >-
       sh -c "pip install --quiet --no-cache-dir --target /tmp/debug $$(grep -i '^debugpy' requirements-dev.txt)
-      && PYTHONPATH=/tmp/debug:$${PYTHONPATH:-} exec python -m debugpy --listen 0.0.0.0:5679 -m uvicorn api.main:app --host 0.0.0.0 --port 8010"
+      && PYTHONPATH=/tmp/debug:$${PYTHONPATH:-} exec python -m debugpy --listen 0.0.0.0:5679 -m uvicorn api.main:app --host 0.0.0.0 --port 8001"
     ports:
       - "127.0.0.1:5679:5679"
     volumes:

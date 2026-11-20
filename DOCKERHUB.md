@@ -19,15 +19,15 @@ Flood-risk policy toolkit built for the European AI Challenge 2026 (JRC x FARI):
 
 The image is about 1.7 GB. It holds the code, the tests, the built React UI and the four small data files committed to the repository: the two frozen tables, the July 2021 story and their licence notice. That is enough to see the project with nothing cloned and nothing mounted. You get the July 2021 view, the Europe ranking, and the Europe map, whose region boundaries the browser fetches from Eurostat/GISCO. Rebuilding the tables needs the full `data/` folder (83 GiB on the author's machine, 70 of it HERA river discharge files).
 
-Two UIs from the same image: the React UI with its JSON API on 8010, and Streamlit on 8501 (the default command).
+Two UIs from the same image: the React UI with its JSON API on 8001, and Streamlit on 8501 (the default command).
 
 ## How to use this image
 
 ```bash
 # the React UI and its JSON API, the one to look at
-docker run -d -p 127.0.0.1:8010:8010 siegried/flood-to-policy \
-  python -m uvicorn api.main:app --host 0.0.0.0 --port 8010
-# open http://localhost:8010
+docker run -d -p 127.0.0.1:8001:8001 siegried/flood-to-policy \
+  python -m uvicorn api.main:app --host 0.0.0.0 --port 8001
+# open http://localhost:8001
 
 # Streamlit instead
 docker run -d -p 127.0.0.1:8501:8501 siegried/flood-to-policy
