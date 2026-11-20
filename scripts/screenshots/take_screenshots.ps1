@@ -1,7 +1,7 @@
 # Starts Streamlit (8599), FastAPI (8099) and Vite dev (5199 -> /api on 8099),
 # waits for all three, runs take_screenshots.py (Playwright, headless) into
 # docs/screenshots/, then stops only the processes it started. Avoids
-# 8501/8000/5173/8010/5190, so a demo already running is never disturbed.
+# 8501/8000/5173/8001/5190, so a demo already running is never disturbed.
 #
 #   powershell -ExecutionPolicy Bypass -File scripts\screenshots\take_screenshots.ps1 [-Theme dark|light]
 #

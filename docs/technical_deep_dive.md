@@ -746,14 +746,14 @@ the image's own `data/`, so from the wrong directory the app starts empty.
 the checkout mounted at `/workspaces/flood-to-policy`, `data/` included, so
 tests and raster work run on Linux without the WSL venv. It leaves `app` and
 `api` alone and starts nothing; Streamlit and the API started from its terminal
-are forwarded on 8501 and 8010.
+are forwarded on 8501 and 8001.
 
 **The published image.** `.github/workflows/publish.yml` builds the `app` stage
 on every push to `main` and on `v*` tags, checks out Git LFS files so the
 37 MB Team 9 map is real and not a pointer, starts the container and waits for
 the health check, then pushes to GitHub Container Registry and, when the
 `DOCKERHUB_*` secrets are set, to Docker Hub with `DOCKERHUB.md` as the page
-text. The health check accepts either Streamlit on 8501 or the API on 8010,
+text. The health check accepts either Streamlit on 8501 or the API on 8001,
 since the same image runs both.
 
 Ubuntu and WSL ship no `python` on `PATH`, only `python3`. Calling
@@ -878,10 +878,10 @@ answer is a value of the frozen table. Each answer names its return period and
 carries the definition and unit of every column it used.
 
 ```bash
-curl -s localhost:8010/api/ask -H 'Content-Type: application/json' \
+curl -s localhost:8001/api/ask -H 'Content-Type: application/json' \
   -d '{"question": "Which five Belgian regions have the largest share exposed at RP100?"}'
 # No key and no local model? Send the spec itself; no model is called.
-curl -s localhost:8010/api/ask -H 'Content-Type: application/json' -d '{"spec": {
+curl -s localhost:8001/api/ask -H 'Content-Type: application/json' -d '{"spec": {
   "columns": ["region", "exposed_share"], "return_period": 100, "limit": 5,
   "filters": [{"column": "country", "op": "==", "value": "BE"}],
   "sort": {"column": "exposed_share", "descending": true}}}'

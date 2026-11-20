@@ -1,7 +1,7 @@
 # Flood to policy in Linux: Streamlit map, JSON API, the offline check, the tests.
 #
 #   docker compose up --build                            # Streamlit on :8501, data bind-mounted
-#   docker compose --profile api up --build              # + JSON API / React UI on :8010
+#   docker compose --profile api up --build              # + JSON API / React UI on :8001
 #   docker compose --profile tools run --rm check        # is this machine demo-ready offline?
 #   docker compose --profile tools run --rm test         # the full suite, geospatial included
 #   docker compose --profile portable up --build         # the self-contained demo image
@@ -73,20 +73,21 @@ services:
         required: false
 
   # JSON API for the React UI (api/main.py). It also serves the React UI itself,
-  # built into the image by the Dockerfile's `web` stage. Port 8010, matching web/vite.config.js's proxy and the
-  # README, so the same URL works inside and outside the container.
+  # built into the image by the Dockerfile's `web` stage. Port 8001, matching web/vite.config.js's proxy and the
+  # README, so the same URL works inside and outside the container. The local stacks share one rule, UI on 850N
+  # and API on 800N; this is project 1, hence 8501 and 8001.
   api:
     <<: *app-common
     profiles: ["api"]
-    command: ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8010"]
+    command: ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8001"]
     ports:
-      - "127.0.0.1:8010:8010"  # API reachable from this machine only
+      - "127.0.0.1:8001:8001"  # API reachable from this machine only
     restart: unless-stopped
     healthcheck:
       # The image's own healthcheck passes if either Streamlit (8501) or the API
-      # (8010) answers; this one probes the API alone, so a Streamlit process
+      # (8001) answers; this one probes the API alone, so a Streamlit process
       # answering in its place cannot mark this service healthy.
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8010/api/health', timeout=4).status == 200 else 1)"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8001/api/health', timeout=4).status == 200 else 1)"]
       interval: 30s
       timeout: 5s
       start_period: 20s

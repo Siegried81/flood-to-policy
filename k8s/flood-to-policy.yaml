@@ -1,5 +1,5 @@
 # Kubernetes manifests for flood-to-policy.
-# Ported from docker-compose.yml: app (Streamlit, 8501), api (uvicorn, 8010),
+# Ported from docker-compose.yml: app (Streamlit, 8501), api (uvicorn, 8001),
 # and an Ollama Deployment (11434). This is a learning port of the Compose stack.
 # A single app like this runs fine on Compose or a PaaS; k8s is here to practise
 # the objects (Deployment, Service, PVC, Secret). See README.md.
@@ -133,9 +133,9 @@ spec:
             - --host
             - 0.0.0.0
             - --port
-            - "8010"
+            - "8001"
           ports:
-            - containerPort: 8010
+            - containerPort: 8001
           # env beats envFrom, same as flood-app.
           env:
             - name: OLLAMA_URL
@@ -150,7 +150,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 8010
+              port: 8001
             initialDelaySeconds: 20
             periodSeconds: 30
       volumes:
@@ -166,8 +166,8 @@ spec:
   selector:
     app: flood-api
   ports:
-    - port: 8010
-      targetPort: 8010
+    - port: 8001
+      targetPort: 8001
 ---
 # ---- ollama: bundled local LLM, with persistent model storage ----
 apiVersion: apps/v1

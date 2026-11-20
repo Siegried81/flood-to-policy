@@ -27,7 +27,7 @@ Two things it deliberately does NOT do:
 With `HOSTED=1` (the public demo) every route that would call a model or write
 the brief answers 403 before touching a provider; `GET /api/config` tells the UI.
 
-Run with `uvicorn api.main:app --port 8010`.
+Run with `uvicorn api.main:app --port 8001`.
 """
 
 from __future__ import annotations
