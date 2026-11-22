@@ -1,9 +1,5 @@
-// VS Code "Reopen in Container": a Linux shell on the project's own image, where
-// rasterio, pyogrio, rasterstats and tiktoken load. On this Windows machine the
-// application-control policy refuses their DLLs, so this is the in-editor
-// alternative to the WSL venv for tests and raster work.
-//
-// It adds a separate `dev` service and leaves `app` and `api` untouched.
+// VS Code "Reopen in Container": a Linux shell on the project's `test` image
+// (geospatial stack + pytest). Adds a separate `dev` service; `app` and `api` untouched.
 {
 	"name": "flood-to-policy (Linux, geospatial stack)",
 	"dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],

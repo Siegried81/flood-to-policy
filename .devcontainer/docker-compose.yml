@@ -4,8 +4,8 @@ services:
   dev:
     build:
       context: .
-      target: app
-    image: flood-to-policy:latest
+      target: test
+    image: flood-to-policy:test
     env_file:
       - path: .env
         required: false

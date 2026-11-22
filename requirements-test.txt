@@ -1,0 +1,9 @@
+# What the test suite needs on top of requirements.txt (CI and the Docker `test` target).
+-r requirements.txt
+pytest>=9.2.0
+jsonschema>=4.26.0    # scripts/validate_bi_report.py: Power BI files against Microsoft's schemas
+# team9/tests (testpaths in pytest.ini):
+folium>=0.20.0
+gcsfs>=2026.10.1
+matplotlib>=3.11.2
+scipy>=1.18.1         # independent linear-programming check of the allocation
