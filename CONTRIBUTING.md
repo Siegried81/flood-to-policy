@@ -1,67 +1,52 @@
-# Contributing (Team 9)
-
-Short guide for teammates working on the flood-to-policy tool. It was written
-for the hackathon and still holds. See the live result first:
-https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
+# Contributing
 
 ## Setup
 
 ```bash
 git clone https://github.com/Siegried81/flood-to-policy
 cd flood-to-policy
-python -m venv .venv
-# Windows PowerShell: .\.venv\Scripts\Activate.ps1
-# macOS/Linux:        source .venv/bin/activate
-pip install -r requirements-dev.txt
-python -m pytest -q            # must end in "passed", with no failure
+python -m venv .venv && source .venv/bin/activate     # Windows: .\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt                   # runtime + pytest + local tools
+python -m pytest -q                                   # tests/ and team9/tests, offline
+cd web && npm ci && npm run build                     # front end
 ```
 
-The full test suite is offline (all network calls are mocked), so it runs
-without the data bucket.
+`requirements.txt` is runtime only (it is what the Docker image installs),
+`requirements-test.txt` adds pytest, `requirements-dev.txt` adds cdsapi, debugpy,
+playwright. The suite mocks the network, so it runs without the data bucket.
 
 ## Rebuild the deliverables
 
-Offline tool (self-contained HTML page):
-
 ```bash
-python scripts/build_policy_tool.py --satellite \
-  --hero-aoi EMSR517_AOI09 --hero-place "Eschweiler, in the Aachen region" \
-  --front-aois "EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01" \
-  --no-png --out docs/perso/policy_tool_anna
-# open docs/perso/policy_tool_anna/policy_tool.html
-```
+# Offline policy tool (one self-contained HTML page; output is gitignored: GISCO geometry)
+python scripts/build_policy_tool.py --satellite --hero-aoi EMSR517_AOI09 \
+  --hero-place "Eschweiler, in the Aachen region" \
+  --front-aois "EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01" --no-png --out _build/policy_tool
 
-Web app (React, what the Hugging Face Space serves):
-
-```bash
+# Web app (what the Hugging Face Space serves)
 python scripts/export_event_web.py --satellite --hero-aoi EMSR517_AOI09 \
   --front-aois "EMSR517_AOI09,EMSR518_AOI01,EMSR520_AOI01"
-cd web && npm ci && VITE_STATIC=1 npm run build         # output in web/dist
+cd web && npm ci && VITE_STATIC=1 npm run build      # output in web/dist
 ```
 
 ## Where to work
 
-| You want to change... | Edit |
+| To change | Edit |
 |---|---|
-| The offline HTML tool (figures, text, decision cards, priority scores) | `src/policy_tool.py` |
-| The React app / the Space | `web/src/components/Event2021.jsx`, `web/src/App.jsx` |
-| The builders (`--satellite`, `--front-aois`, `--hero-*`) | `scripts/build_policy_tool.py`, `scripts/export_event_web.py` |
-| The numbers | `data/processed/event_2021_*.parquet` (output of `src/event2021.py`) |
-
-The tool and the web app share `src/policy_tool.py` for every figure and
-formatted string, so a fix there lands in both.
+| Figures, text, decision cards of the HTML tool and the web app | `src/policy_tool.py` (shared by both) |
+| React app | `web/src/` |
+| Builders | `scripts/build_policy_tool.py`, `scripts/export_event_web.py` |
+| The numbers | `data/processed/event_2021_*.parquet`, written by `src/event2021.py` |
 
 ## Rules
 
-- Run `python -m pytest -q` after any change; it must stay green. A numbers
-  guard checks that every figure in the docs matches the code/artifacts.
-- All code, comments and commit messages in English.
+- Keep `python -m pytest -q` green; doc figures are checked against the code
+  (`scripts/docs_numbers.py --check`).
+- Code, comments and commit messages in English; comments say why, not history.
 - Prove a bug before fixing it; measure before and after.
-- No secrets in the repo (only in a gitignored `.env`). Do not commit
-  `docs/perso/`, `.env`, or GISCO geometry.
+- No secrets in the repo (only the gitignored `.env`), and no GISCO geometry.
+- Two generated HTML pages are kept, latest build only, because the README links them:
+  `web/public/vesdre_3d.html` (rebuild with `scripts/build_vesdre_3d.py`) and Team 9's
+  `web/public/team9/flood_map.html` (Git LFS: run `git lfs pull`). Overwrite them when you
+  rebuild; commit no other generated HTML.
 - Branch off `main`; do not commit straight to `main`.
-
-## What stayed out of the jury submission
-
-The GitHub link, the personal Hugging Face link and any real name: the
-submitted files say "Team 9" only.
