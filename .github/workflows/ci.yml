@@ -1,15 +1,19 @@
 name: tests
 
-# Offline by design: the suite must pass with no network, because on the day the
-# venue Wi-Fi is the first thing to fail.
+# Offline by design: the suite must pass with no network.
 on: [push, pull_request]
 
-# The workflows only read the checkout. Stated rather than inherited, because the
-# default token can write to the repo and nothing here needs that.
 permissions:
   contents: read
 
+# A newer push to the same ref makes the running checks obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # CI runs Python 3.12 (as the Docker image does); the local Windows venv is cp314.
+  # Wheels differ per version, so a green CI does not cover cp314-only breakage.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -18,23 +22,35 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: python -m pytest -q
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-test.txt
+      - run: python -m pytest -q   # tests/ and team9/tests (see pytest.ini)
 
-  # The image is how the geospatial half runs on the Windows host, and the README
-  # recorded it as "reviewed but untested" for lack of a Docker daemon there. The
-  # runner is the clean machine the dress rehearsal asks for: build the code-only
-  # stage (the portable one needs the 6.4 GiB data tree, which CI does not have)
-  # and prove the native stack the image exists for actually loads inside it.
+  # The React UI: install, build (prebuild copies data/processed/event_2021_web.json).
+  # web/ has no lint script, so there is no lint step.
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+
+  # Build the code-only stage on a clean machine and check the native stack loads.
   docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: docker build --target app -t flood-to-policy:ci .
       - run: docker run --rm flood-to-policy:ci python -c "import rasterio, pyogrio, rasterstats, tiktoken; print('native stack loads')"
-      # The readiness script is what the `check` service runs; with no data in
-      # the image it must report BLOCKED and exit 1, not crash. `!` inverts it.
+      # With no data in the image the readiness script must report BLOCKED and exit 1.
       - run: "! docker run --rm flood-to-policy:ci python scripts/check_offline_readiness.py"
-      # The React UI is built inside the image (web/dist is gitignored); the API
-      # serves it at /, so it has to be there.
+      # The React UI is built inside the image; the API serves it at /.
       - run: docker run --rm flood-to-policy:ci test -f web/dist/index.html

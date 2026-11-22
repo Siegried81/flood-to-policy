@@ -81,7 +81,12 @@ def test_constant_gap_keeps_exposure_ranking():
 @pytest.fixture(scope="module")
 def real():
     import map as M
-    d = M.prepare()
+    try:
+        d = M.prepare()   # reads team9/cache, else Google Cloud Storage
+    except Exception as exc:
+        if type(exc).__name__ == "DefaultCredentialsError":
+            pytest.skip("team9/cache is empty and no Google Cloud credentials are available")
+        raise
     o = dm.build_demand(d["flood"], d["hexes"])
     hx, oh = dm.hex_summary(o, d["hexes"], M.hex_index, M.hex_polygons)
     return M, d, o, hx, oh
