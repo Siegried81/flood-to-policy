@@ -74,7 +74,7 @@ def frozen(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client(frozen) -> TestClient:
-    return TestClient(app)
+    return TestClient(app, client=("127.0.0.1", 50000))
 
 
 # --- the nested-period total ----------------------------------------------------
@@ -599,24 +599,51 @@ def test_no_region_identifier_is_a_500_that_names_the_problem(frozen):
 def test_approve_is_the_only_route_that_writes(tmp_path, monkeypatch, client):
     monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
     monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
-    body = client.post("/api/approve", json={"text": "Approved text, unchanged."}).json()
+    local = TestClient(app, client=("127.0.0.1", 50000))
+    body = local.post("/api/approve", json={"text": "Approved text, unchanged."}).json()
     written = (tmp_path / "approved.md").read_text(encoding="utf-8")
     assert "Approved text, unchanged." in written
     assert body["approved_at"]
 
 
-def test_approve_without_a_token_accepts_the_docker_port_forward(tmp_path, monkeypatch, frozen):
-    """No token configured: a caller behind Docker's port-forward may approve.
-
-    The React UI on the host reaches the API container through the published
-    port, so the container sees the bridge gateway, never loopback. Refusing
-    non-loopback callers turned the Approve button into a 403 under Docker.
-    """
+def test_approve_without_a_token_accepts_loopback_only(tmp_path, monkeypatch, frozen):
+    """No token configured: only a loopback caller may approve; a remote one gets 403."""
     monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
+    monkeypatch.delenv("HOSTED", raising=False)
     monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    monkeypatch.setattr(api, "_in_container", lambda: False)
+    for host in ("203.0.113.7", "172.17.0.1", "192.168.1.20", "testclient"):
+        remote = TestClient(app, client=(host, 50000))
+        assert remote.post("/api/approve", json={"text": "x"}).status_code == 403
+    assert not (tmp_path / "approved.md").exists()
+    for host in ("127.0.0.1", "::1", "localhost"):
+        local = TestClient(app, client=(host, 50000))
+        assert local.post("/api/approve", json={"text": "x"}).status_code == 200
+    assert (tmp_path / "approved.md").exists()
+
+
+def test_approve_without_a_token_accepts_the_docker_gateway_inside_a_container(tmp_path, monkeypatch, frozen):
+    """Behind Docker's port-forward (published on 127.0.0.1 only) the caller is the bridge gateway."""
+    monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
+    monkeypatch.delenv("HOSTED", raising=False)
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    monkeypatch.setattr(api, "_in_container", lambda: True)
     gateway = TestClient(app, client=("172.17.0.1", 50000))
     assert gateway.post("/api/approve", json={"text": "x"}).status_code == 200
-    assert (tmp_path / "approved.md").exists()
+    public = TestClient(app, client=("8.8.8.8", 50000))
+    assert public.post("/api/approve", json={"text": "x"}).status_code == 403
+
+
+def test_approve_is_refused_in_the_hosted_demo_even_from_loopback(tmp_path, monkeypatch, frozen):
+    monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
+    monkeypatch.setenv("HOSTED", "1")
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    local = TestClient(app, client=("127.0.0.1", 50000))
+    assert local.post("/api/approve", json={"text": "x"}).status_code == 403
+    monkeypatch.setenv("FLOOD_APPROVE_TOKEN", "s3cret-test-value")
+    headers = {"X-Approve-Token": "s3cret-test-value"}
+    assert local.post("/api/approve", json={"text": "x"}, headers=headers).status_code == 403
+    assert not (tmp_path / "approved.md").exists()
 
 
 def test_approve_requires_the_configured_token(tmp_path, monkeypatch, client):

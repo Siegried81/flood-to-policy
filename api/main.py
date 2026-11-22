@@ -32,6 +32,7 @@ Run with `uvicorn api.main:app --port 8001`.
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
@@ -41,7 +42,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI, Header, HTTPException, Query, Response
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -842,25 +843,48 @@ class ApproveRequest(BaseModel):
     table_text: str = Field(default="", max_length=rag.PROMPT_CHAR_BUDGET)
 
 
-def _check_approver(token: str | None) -> None:
-    """Refuse an approval without the configured token.
+def _in_container() -> bool:
+    """True inside a Docker container (the marker file Docker creates)."""
+    return Path("/.dockerenv").exists()
 
-    Approve is the only route that writes, so it is the one worth guarding.
-    With FLOOD_APPROVE_TOKEN set, the caller must send it in X-Approve-Token
-    (compared in constant time, so timing does not leak it). Without it, any
-    caller that reaches the API may approve: the compose file publishes the API
-    on 127.0.0.1 only, so that is this machine. The client address is not
-    checked, because behind Docker's port-forward every caller, the React UI
-    on the host included, arrives from the bridge gateway and not from loopback.
+
+def _is_local_caller(host: str | None) -> bool:
+    """Loopback, or (inside Docker only) a private address.
+
+    Behind Docker's port-forward every caller, the host's own browser included,
+    arrives from the bridge gateway (a private address), never from loopback;
+    compose publishes the port on 127.0.0.1 only, so that is this machine.
+    """
+    try:
+        ip = ipaddress.ip_address(host or "")
+    except ValueError:
+        return host == "localhost"
+    return ip.is_loopback or (_in_container() and ip.is_private)
+
+
+def _check_approver(token: str | None, client_host: str | None = None) -> None:
+    """Refuse an approval that is not authorised.
+
+    Approve is the only route that writes. With FLOOD_APPROVE_TOKEN set, the caller
+    must send it in X-Approve-Token (constant-time compare). Without a token only a
+    local caller may approve (see `_is_local_caller`); a remote one gets 403 until a
+    token is configured. The hosted demo refuses before this runs.
     """
     expected = os.environ.get("FLOOD_APPROVE_TOKEN")
-    if expected and (not token or not secrets.compare_digest(token.encode(), expected.encode())):
-        raise HTTPException(status_code=403, detail="Invalid or missing X-Approve-Token.")
+    if expected:
+        if not token or not secrets.compare_digest(token.encode(), expected.encode()):
+            raise HTTPException(status_code=403, detail="Invalid or missing X-Approve-Token.")
+    elif not _is_local_caller(client_host):
+        raise HTTPException(
+            status_code=403,
+            detail="Approving needs FLOOD_APPROVE_TOKEN when the API is reached from another machine.",
+        )
 
 
 @app.post("/api/approve")
 def approve(
     req: ApproveRequest,
+    request: Request,
     x_approve_token: str | None = Header(default=None),
 ) -> dict:
     """Append approved text to the brief. The only route that writes to it.
@@ -878,7 +902,7 @@ def approve(
     the text and returned, and the decision stays the human's.
     """
     _refuse_if_hosted("Approving")
-    _check_approver(x_approve_token)
+    _check_approver(x_approve_token, request.client.host if request.client else None)
     passages = None
     if req.passages is not None:
         passages = [{"text": str(p.get("text", ""))} for p in req.passages]
