@@ -71,3 +71,9 @@ docs/tab_review.md
 docs/hackathon/policy_brief_team9.docx
 # The screenshot script also emits Streamlit shots; only the React/Power BI ones ship.
 docs/screenshots/streamlit_*.png
+
+# Generated, not sources (regenerate: see README "Structure" and team9/README.md).
+# scripts/export_event_web.py; copy of data/processed/event_2021_web.json made by `npm run prebuild`
+web/public/event_2021_web.json
+# team9/shelters.py (OSM Overpass)
+team9/shelter_candidates.geojson
