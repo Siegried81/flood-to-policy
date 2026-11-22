@@ -136,7 +136,7 @@ demo needs the network. Doc figures are held to the code by
 
 | Fact | Where it comes from |
 |---|---|
-| <!-- numbers:tests_collected -->1,313<!-- /numbers --> tests | `scripts/docs_numbers.py --write` (`pytest --collect-only`) |
+| <!-- numbers:tests_collected -->1,150<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> verified, <!-- numbers:sources_licensed -->43<!-- /numbers --> licensed | `config/sources.yaml` entries |
 
 ## 8. Repository layout
