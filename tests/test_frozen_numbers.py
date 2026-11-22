@@ -1,6 +1,6 @@
 """The case notebook reproduces the pipeline, checked automatically.
 
-The notebook (`docs/perso/case_notebook_v2.ipynb`) re-applies the July 2021
+The notebook (`docs/hackathon/case_notebook.ipynb`) re-applies the July 2021
 method live on the data bucket and freezes its three border places' figures to
 `outputs/frozen_numbers.csv`. The pipeline (`src/event2021.py`) writes the same
 figures to `event_2021_hazard`. This test asserts the two coincide, so the

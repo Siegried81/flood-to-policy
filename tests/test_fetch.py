@@ -666,9 +666,9 @@ def test_folder_entries_are_not_mirrored(workspace, monkeypatch):
     assert results == []
 
 
-# --- the policy sources docs/policy_context.md cited and nothing declared ----------
+# --- policy sources once cited in prose and not declared ----------------------
 
-#: The twelve entries added for the thirteen documents `policy_context.md` cited
+#: The twelve entries added for the thirteen documents a former policy note cited
 #: without a declaration. The thirteenth, the Belgian Insurance Act of 4 April
 #: 2014, is not declared: its ELI on www.ejustice.just.fgov.be is disallowed by
 #: that host's robots.txt (measured 2026-10-12), and a declared file the fetcher

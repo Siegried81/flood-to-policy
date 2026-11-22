@@ -1,7 +1,7 @@
 """River basin districts: who is exposed in a basin they do not control.
 
-NUTS3 answers "who is exposed". It cannot answer the question `docs/strategy.md`
-names as the one most teams will not ask: the Meuse rises in France, floods
+NUTS3 answers "who is exposed". It cannot answer the question
+that matters across a border: the Meuse rises in France, floods
 Belgium and reaches the Netherlands, so a warning issued nationally arrives late
 downstream. That is the argument for action at EU level rather than national
 level, and it needs the unit water obeys rather than the unit administrations are

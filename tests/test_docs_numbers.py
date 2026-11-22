@@ -79,9 +79,10 @@ def test_no_marked_block_in_the_repo_is_stale(facts, capsys):
         assert stale == [], f"{name} is stale; run scripts/docs_numbers.py --write"
 
 
-def test_the_two_files_this_script_owns_carry_a_marker():
-    """Without a marker the guard above passes vacuously, which is not a guard."""
-    for name in ("requirements.txt", "docs/technical_deep_dive.md"):
+def test_the_file_this_script_owns_carries_a_marker():
+    """Without a marker the guard above passes vacuously, which is not a guard.
+    Prose carries no counts; the one table that does is marker-managed."""
+    for name in ("docs/technical_deep_dive.md",):
         assert "<!-- numbers:tests_collected -->" in (dn.ROOT / name).read_text(encoding="utf-8")
 
 

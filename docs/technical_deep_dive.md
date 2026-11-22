@@ -1,890 +1,202 @@
 # Technical deep dive
 
-The README answers *what this is and how to run it*. This answers *how it works
-and why it is built this way* — the questions a technical juror asks after the
-three minutes are up, and the questions you will ask yourself at 02:00 when a
-number looks wrong.
+How it works and why. Commands live in the [README](../README.md); the dated record of
+changes to what a figure means is [decisions.md](decisions.md). Figures here are measured on the frozen tables; re-derive
+them rather than quoting this page.
 
-Everything here is re-derived from the code and the config as they stand on
-27 October 2026. Where a figure comes from a measurement rather than from the
-repository, it says so, with the date it was measured. `docs/decisions.md` carries the dated record of every
-change to what a number means; this file describes the current state only.
-
----
-
-## 1. The pipeline, end to end
+## 1. Pipeline
 
 ```
-config/sources.yaml          one file owns every URL
-        │
-        ▼
-python -m src.fetch          99 files, idempotent, robots-aware
-        │
-        ├───────────────────────┬───────────────────────┐
-        ▼                       ▼                       ▼
-build_exposure.py          build_context.py          build_geometry.py
- hazard × population        built-up, Natura,         boundaries →
- per NUTS3 × RP             basins, future            simplified polygons
- + Eurostat indicators      discharge, declared
- --protection: the same     areas, GDP, density,
- pass behind the JRC        income, residual
- protection standards       exposure, hospitals and
-        │                   schools, the 2010 epoch
-        ▼                       │                       │
-exposure.parquet                ▼                       ▼
-exposure_protected.parquet  context.parquet         regions.geojson
-        │                       │                       │
-        └───────────────────────┼───────────────────────┘
-                                ▼
-                  api/main.py             14 JSON routes over src/
-                        │
-        ┌───────────────┼──────────────────────────┐
-        ▼               ▼                          ▼
-   web/ (React)    app/streamlit_app.py      scripts/export_bi.py
-   2 views: July   7 tabs, reads the          → bi/data/*.csv
-   2021, Europe    parquets directly          → bi/FloodToPolicy.pbip
-   (5 tabs, SVG                                 (Power BI, docs/power_bi.md)
-   choropleth)
+config/sources.yaml            one file owns every URL
+python -m src.fetch            idempotent, robots-aware download into data/raw/
+   |-- scripts/build_exposure.py   hazard x population per NUTS3 x return period (+ --protection)
+   |-- scripts/build_context.py    built-up, Natura, basins, climate, residual exposure, facilities
+   `-- scripts/build_geometry.py   boundaries -> simplified regions.geojson
+data/processed/{exposure,context}.parquet, regions.geojson
+   -> api/main.py (JSON routes over src/) -> web/ (React), scripts/export_bi.py (Power BI)
+   -> app/streamlit_app.py reads the parquets directly (no server, no npm)
 ```
 
-The July 2021 event has its own chain, beside this one, from the organisers'
-bucket to the policy tool and the React app's first view (§5, "The July 2021
-pipeline").
+The July 2021 event has its own chain (section 5). The exposure table is a multi-hour
+continental pass; the geometry takes seconds, so they are separate files. Both UIs
+read the same frozen tables and cannot disagree on a number. React has three views
+(`VIEWS` in `web/src/App.jsx`: Team 9 map, July 2021, Europe); Streamlit shows the
+same content in tabs.
 
-Two properties of this shape are deliberate.
+A static build (`VITE_STATIC=1`) needs no API: it reads `event_2021_web.json` and the
+Europe answers frozen into `web/public/europe/` by `scripts/export_europe_web.py`.
+Draft and Translation call a model and stay off there.
 
-**The two derived files are separate.** The exposure table is a multi-hour
-continental pass over 300 MB rasters; the geometry is seconds over one 25 MB
-boundary file. Re-running the slow one to redraw a map would be absurd, and
-coupling them would guarantee it happened.
+## 2. Coordinate systems
 
-**Both UIs read the same frozen table.** They cannot disagree about a number,
-because there is only one number - `app/streamlit_app.py` reads the parquet
-directly rather than going through the API, which is why it needs neither the
-server nor `npm`. They do NOT show the same views. React has three views
-(`VIEWS` in `web/src/App.jsx`): "Team 9 map", which opens first and loads the
-team's `web/public/team9/flood_map.html` in an iframe
-(`web/src/components/TeamMap.jsx`), "July 2021", which reads the event JSON
-(§5), and "Europe", which holds five tabs (Exposure, Context, Vulnerability,
-Draft, Translation) and draws the choropleth inside the first.
-Streamlit has nine tabs: the Team 9 map first (behind a toggle, so its 37 MB is not resent on every rerun), the July 2021 view, the five Europe tabs, "Ask the table" and the AI usage log. The
-React UI is the one to demo.
+A layer in the wrong CRS still plots, joins and produces a number, just the wrong one.
 
-**A static build needs no API.** `VITE_STATIC=1` builds a React app that reads
-files shipped in `dist/` instead of calling the server: the July 2021 JSON
-written by `scripts/export_event_web.py`, and the Europe view's API answers
-frozen into `web/public/europe/` by `scripts/export_europe_web.py`. Draft and
-Translation call a language model, so they are switched off there. The public
-demo is that build, served as a static Hugging Face Space (§10.4).
-
----
-
-## 2. Five coordinate systems, and which one does what
-
-This is the section to read before touching anything. The most expensive
-geospatial bug is silent: a layer in the wrong CRS still plots, still joins, and
-still produces a number. It is just the wrong number.
-
-| CRS | Where | Used for |
-|---|---|---|
-| **EPSG:3035** (ETRS89-LAEA) | `data_io.WORKING_CRS` | every area, distance and zonal computation |
-| **EPSG:4326** | JRC hazard rasters; `data_io.WEB_CRS` | the hazard's own grid; the last step before display |
-| **ESRI:54009** (World Mollweide) | GHS-POP | the population grid, and the grid exposure is computed on |
-| **EPSG:27704** (Equi7 Europe) | JRC observed flood depth | the validation layer's own grid |
-| **EPSG:31370** (Belgian Lambert 72) | the Walloon *aléa* and July 2021 layers | Belgium only; reprojected before any European join |
-
-Three rules follow. The first is enforced in `src/data_io.py`; the second is
-enforced where it matters rather than centrally - `scripts/build_exposure.py`
-asserts the boundary CRS before opening a raster, and `exposed_population`
-reprojects the polygons to the population grid itself. `data_io.check_alignment`
-exists for the third-party case and is currently called by nothing, which is
-worth knowing before relying on it.
-
-- **A file with no CRS raises.** Guessing one is how a whole analysis lands
-  silently in the wrong place. `load_vector` refuses rather than assuming 4326.
-- **Reproject the polygons to the raster, never the raster to the polygons.**
-  Reprojecting a raster of *counts* moves people between cells. `check_alignment`
-  fails loudly when the two disagree, because `rasterstats` will otherwise return
-  zeros for every polygon — a result that reads as "nobody is exposed" rather
-  than as an error.
-- **A tolerance is a distance, so it is applied in a metric CRS.** A degree is
-  not a distance: 0.01° is about 1.1 km north–south everywhere but ~700 m
-  east–west at Belgian latitudes and under 500 m in northern Finland.
-  `build_geometry.py` therefore simplifies in 3035 and converts to 4326
-  afterwards.
-
-The hazard rasters are 3 arc-seconds — about **92 m north–south but 60 m
-east–west** at Belgian latitudes. The cells are not square, so any area computed
-in 4326 is wrong. `docs/geospatial_crash_course.md` works this through.
-
----
-
-## 3. Exposure: what the number means
-
-`Risk = Hazard × Exposure × Vulnerability`. This repository computes the middle
-term and gives the third its own module; the first arrives as data.
-
-### 3.1 The two modes
-
-`src/exposure.py` offers `fraction` and `binary`, and they answer different
-questions.
-
-- **`fraction`** (default) thresholds the hazard at its own resolution, then
-  averages the 0/1 wet mask over each population cell. A cell 30% flooded
-  contributes 30% of its people. Right at 1 km, where one population cell holds
-  roughly 185 hazard cells at Belgian latitudes.
-- **`binary`** counts a population cell's whole population as soon as any part of
-  it is flooded. Coarser, and an over-estimate by construction.
-
-The order matters in `fraction` mode: **threshold first, average second.**
-Averaging depths and thresholding afterwards answers "is the *mean* depth above
-the threshold?", which systematically under-reports small deep floods.
-
-### 3.2 `nodata_means_dry`, the argument that decides what the figure means
-
-The JRC hazard maps are sparse: they store a depth **only** where there is
-inundation. Measured on RP100 over a 1,468,800-cell window of Belgian land,
-4.85% of cells carry a value and 100% of those are deeper than 0 m. On such a
-layer the valid mask **is** the flood footprint.
-
-- `nodata_means_dry=True` (default) — nodata is ground the layer looked at and
-  found dry. The flooded share is the wet mask over the **whole** cell.
-- `nodata_means_dry=False` — nodata is ground nobody looked at, which is what an
-  AOI-clipped delineation (Copernicus EMSR, the Walloon 2021 layers) gives you.
-  The share is measured over the observed part and extrapolated onto the unit.
-
-Passing `False` for a sparse layer collapses the two: every cell holding any
-water reads as wholly flooded, and the "fractional" figure becomes the binary
-over-estimate under another name — **13,771,935 people against 5,065,526** over
-BE/NL/LU at RP100, bit-identical to what `mode="binary"` returns. Passing `True`
-for an AOI-clipped layer reports unobserved ground as dry. Neither is recoverable
-from the output, so neither is inferred.
-
-### 3.3 Four columns, and why `None` is not `0.0`
-
-| Column | Meaning |
+| CRS | Used for |
 |---|---|
-| `exposed_pop` | people on flood-prone ground, extrapolated onto the whole unit where the layer covered only part of it, or `None` when nothing was measured |
-| `exposed_pop_observed` | the same count with **no extrapolation in it**. This is the one that is additive over disjoint windows, so a windowed build sums this and divides once at the end |
-| `cells_counted` | population cells whose **centre** falls in the unit |
-| `hazard_coverage` | the share of the unit, in [0, 1], the hazard layer covers |
+| EPSG:3035 (ETRS89-LAEA), `data_io.WORKING_CRS` | every area, distance and zonal computation |
+| EPSG:4326, `data_io.WEB_CRS` | the JRC hazard rasters' own grid; display |
+| ESRI:54009 (Mollweide) | GHS-POP, the grid exposure is computed on |
+| EPSG:27704 (Equi7 Europe) | JRC observed flood depth |
+| EPSG:31370 (Belgian Lambert 72) | Walloon layers; reprojected before any European join |
 
-A unit the population grid covers but the hazard raster does not would otherwise
-report a measured `0.0`. That is the one error that must never reach a brief,
-because it reads as reassurance. `None` means "not measured"; `0.0` with a
-positive coverage means "measured, nobody exposed", which is a real finding.
+- A file with no CRS raises (`load_vector`); never assume 4326.
+- Reproject the polygons to the raster, never a raster of counts to the polygons (it
+  moves people between cells). `scripts/build_exposure.py` asserts the boundary CRS
+  before opening a raster; `pyproj` is pinned because without it geopandas silently
+  returns `crs=None`.
+- A tolerance is a distance, so apply it in a metric CRS (`build_geometry.py`
+  simplifies in 3035, then converts).
+- Hazard cells are 3 arc-seconds, about 92 m north-south by 60 m east-west at Belgian
+  latitudes: not square, so never compute an area in 4326.
 
-`all_touched=False` on the zonal statistics: a cell belongs to the unit
-containing its centre. `True` would count every boundary cell in *both*
-neighbours, so the sum over all units would exceed the national total.
+## 3. What the exposure number means
 
-**Report `hazard_coverage` next to `exposed_pop`.** Below 1.0 the figure is an
-extrapolation from the observed part onto the whole unit, and the reader is
-entitled to know that.
+`Risk = Hazard x Exposure x Vulnerability`. Hazard arrives as data (JRC river flood
+maps); this repository computes exposure (GHS-POP, OSM infrastructure) and gives
+vulnerability (age, income, building type) its own module. Stopping at exposure
+answers "how many got wet"; vulnerability answers "who needs help first".
 
-### 3.4 Windowing: the population grid, not the hazard raster
+- **Modes** (`src/exposure.py`): `fraction` (default) thresholds the hazard first and
+  then averages the 0/1 wet mask over each population cell; `binary` counts a whole
+  cell as soon as any part floods (an over-estimate). Threshold first, average second.
+- **`nodata_means_dry`**: JRC maps store depth only where there is water, so nodata is
+  dry (`True`, default). For an AOI-clipped layer (Copernicus EMS, Walloon 2021) nodata
+  is "not looked at" (`False`): the share is measured over the observed part and
+  extrapolated. Using `False` on a sparse layer silently turns `fraction` into `binary`.
+- **Four columns**: `exposed_pop` (extrapolated where the layer covers part of the
+  unit, `None` when nothing was measured), `exposed_pop_observed` (no extrapolation,
+  additive over windows), `cells_counted`, `hazard_coverage`. `None` is not `0.0`:
+  a unit the hazard raster does not cover must never read as a measured all-clear.
+  Report `hazard_coverage` next to the count. Zonal statistics use
+  `all_touched=False` so a boundary cell is counted once.
+- **Windowing**: the build cuts the population grid, never the hazard raster; a
+  population cell then belongs to exactly one window and the sums are additive whatever
+  the window count (`tests/test_stripes.py`). `--stripes` only sets memory.
+- **Masks**: permanent water bodies and the JRC's spurious-depth areas are removed;
+  `--min-depth-m` defaults to 0.5 m (pass 0 for the any-water upper bound and say so).
+- **Undefended and residual**: the JRC maps ignore dykes, so `exposure.parquet` is
+  undefended. `build_exposure.py --protection` reruns the pass behind the PESETA IV
+  protection standards (nearest neighbour; unknown standard counts as unprotected) into
+  `exposure_protected.parquet`, carried into `context.parquet` as
+  `residual_exposed_pop_rp*`. Quote it as "behind the design standards", never "after
+  protection". The parts of a run are parked in `data/processed/exposure_parts/`.
+- **Return periods are nested**: the 100-year extent contains the 10-year one, so
+  periods are never added. A 100-year flood has a 1 % chance each year and about 63 %
+  over a century; it is not "once a century". Quote the period with every headcount.
+  `/api/exposure` narrows to one period and says so in `defaulted_return_period`.
 
-A continental pass over one return period needs ~64 GiB if done in one go —
-51,992 x 110,162 cells is 21.3 GiB per float32 array, and the band plus its
-two derived masks are three of them. It is
-therefore cut into pieces — and **which raster gets cut is a correctness
-question, not a performance one.**
+## 4. Derived files and the API
 
-`scripts/build_exposure.py` takes row windows over the **population grid** and
-reads whatever hazard region covers each one, with a two-cell margin so the warp
-is never short of source. A population cell belongs to exactly one window by
-construction, so nothing is written twice and the per-unit sums are additive
-whatever the window count.
+- `exposure.parquet`: one row per region x return period (long on purpose). Nothing
+  numeric may be added to it that is not an exposure: `vulnerability_indicators` scans
+  its numeric columns into a weighted index.
+- `context.parquet`: one row per region, everything else (climate, basins, residual
+  exposure, hospitals and schools, 2010 epoch). A country a layer does not cover is NaN,
+  never 0. `build_context.py --only <layer>` rebuilds one layer and keeps the rest.
+- `regions.geojson`: simplified at 1 km in 3035, not committed (GISCO terms); the
+  property names are the join key (`nuts_id`, not GISCO's `NUTS_ID`) and all polygons are
+  kept so legend quantiles do not move.
+- Routes: `/api/{health,config,event2021,meta,exposure,context,geometry,vulnerability,
+  search,draft,languages,translate,approve,ask}`. `HOSTED=1` makes every model or write
+  route answer 403. `POST /api/approve` is the only writer: with `FLOOD_APPROVE_TOKEN`
+  set it needs `X-Approve-Token`; unset, only a loopback caller (or, inside Docker, the
+  bridge gateway) may approve. `/api/translate` answers 422 when a translation changes
+  a figure or moves a citation. `/api/ask` takes a question or a query spec, validated
+  against a whitelist by `src/nlquery.py`; the answer holds only table values.
+- The choropleth is SVG from GeoJSON: no tile provider, no API key, works offline.
 
-Cutting the hazard raster instead cannot have that property. A population cell
-lying across two hazard stripes is written by both, and `Resampling.average`
-renormalises over whatever source area each piece happens to hold — so both
-pieces report a coverage near 1 for the same cell instead of roughly a half each. Measured on two
-continental builds cut that way, summed coverage reached **1.08 at two stripes
-and 1.17 at three**, when it must be 1, and the continental RP100 total moved by **0.25% between 3 and 13 stripes**: 29,808,232
-against 29,732,746 people, with 215 of 1,345 regions disagreeing and the worst
-(PL514) by 14.7%. `tests/test_stripes.py` pins the invariant at 1, 2, 3, 5, 7 and
-13 windows. See `docs/decisions.md` for the dated record.
+## 5. Validation and the July 2021 chain
 
-Three running totals are accumulated, and which one is summed matters:
+`src/validate.py` scores the modelled hazard against the observed extent (hit rate,
+false alarm ratio, IoU) and returns `None`, never `0.0`, when a denominator is empty.
+The observed snapshot is not the flood peak, so the false alarm ratio bounds nothing.
+`scripts/event_2021.py` reads the organisers' bucket (27 Copernicus EMS products:
+EMSR517 DE, EMSR518 BE, EMSR520 NL) inside their areas of interest and writes
+`data/processed/event_2021_*.parquet`; the infrastructure, rainfall and web-JSON
+scripts read those tables. Event figures use GHS-POP E2020; Europe uses E2025 at 1 km,
+and the two never enter one sum. What each figure cannot say is in
+[limitations.md](limitations.md).
 
-- `exposed_pop_observed` — the figure with **no extrapolation in it**. Summing
-  `exposed_pop` instead would apply the extrapolation once per window.
-- `cells_counted` — summed, because the windows are disjoint.
-- `hazard_coverage × cells_counted` — so a unit's coverage is the cell-weighted
-  mean over its windows, not a mean of means that would weight a window holding
-  three cells like one holding three thousand.
+## 6. The LLM layer
 
-The extrapolation onto unobserved ground then happens **once**, over the whole
-unit. Under `nodata_means_dry` coverage is 1 everywhere but the layer's own edge,
-so for a pan-European run it is the identity.
+A LangGraph workflow (`src/workflow.py`), not an agent: retrieve passages from the
+policy corpus (`src/rag.py`, BM25 over `data/raw/`), draft with a model (Anthropic,
+Groq or a local Ollama), check the draft (numbers must exist in the sources, every
+sentence cites a passage, negations survive translation) and stop at a human approval
+gate. Details in [workflow.md](workflow.md). MCP access (`api/mcp_server.py`) exposes
+three question-shaped tools (`rank_regions`, `profile_regions`,
+`find_policy_evidence`); approval is deliberately not a tool.
 
-### 3.5 What is masked out, and why
+## 7. Tests
 
-Two companion rasters ship on the same grid as the depths, and both are applied
-by default:
+`python -m pytest -q` runs `tests/` and `team9/tests` (see `pytest.ini`), offline: the
+network is mocked, so `scripts/check_offline_readiness.py` is what tells whether the
+demo needs the network. Doc figures are held to the code by
+`scripts/docs_numbers.py`; docstring citations by `tests/test_docs_citations.py`.
 
-- **Permanent water bodies** — the river channel, the lakes and the sea, already
-  water before any flood. They are patched into the depth rasters at exactly
-  1.00 m, so they survive every threshold up to and including 0.5 m. Measured on
-  the Benelux at RP10 they are 21.3% of wet cells; masking them moves the RP100
-  figure by **−14.2%**.
-- **Spurious depth areas** — cells the JRC itself flags as modelling artefacts.
-
-`--min-depth-m` defaults to **0.5 m**, the usual threshold for damage to
-buildings. Pass `0` for the any-water upper bound, and say which you used.
-
-### 3.6 Undefended and residual: the dykes the maps leave out
-
-The JRC maps "do not account for the influence of local flood defences, in
-particular dyke systems" (Dottori et al. 2022, in the corpus as
-`jrc_hazard_maps_validation_essd_2022`). Every figure in `exposure.parquet` is
-therefore **undefended**: the people the water reaches if no defence holds.
-The JRC's own headline - about 160,000 people exposed each year in the EU+UK -
-is defended and probability-weighted, which is why the two differ by two
-orders of magnitude.
-
-`build_exposure.py --protection` reruns the same pass behind the PESETA IV
-flood protection standards (`jrc_flood_protection_standards`, 500 m, EPSG:3035,
-design return periods 2 to 10,000). In every hazard window, each cell whose
-standard is at least the scenario's return period is set to the hazard's
-nodata, which this layer reads as dry: observed, nobody exposed. Three choices
-decide what the residual figure means:
-
-- **Nearest neighbour, never an average.** A standard is a property of a
-  place; averaging a 1-in-50 cell with a 1-in-1,000 one invents a dyke nobody
-  built. `protected_cells` reprojects the 500 m standards onto the ~90 m hazard
-  window with `Resampling.nearest`.
-- **Unknown is unprotected.** A cell with no standard (nodata -1, or outside
-  the raster) is never masked, so where the standards are silent the residual
-  figure stays at the undefended one - an upper bound, not a guess.
-- **Never over the undefended table.** The parts are parked as
-  `rp*_..._m2_prot.parquet` and the table is written to
-  `exposure_protected.parquet`; `build_context.py` carries it into
-  `context.parquet` as `residual_exposed_pop_rp*`. A second headcount in
-  `exposure.parquet` would be scanned into the vulnerability index (§4.3).
-
-The value 10,000 is real, not a fill: all 22,572 such cells are in the
-Netherlands, whose coastal dyke rings are built for it. The standards date from
-2019 and were derived for an older generation of the hazard maps than v3.1.1;
-quote the residual figure as "behind the design standards", never as "after
-protection".
-
----
-
-## 4. The derived files, and the UI contract
-
-### 4.1 `exposure.parquet`
-
-One row per region × return period. Long rather than wide because every consumer
-wants it that way — plotting, the LLM prompt, and the expected-annual-damage
-integration, which needs the probability attached to each row.
-
-**Return-period extents are nested**: the 100-year zone contains the 10-year one.
-These rows must never be added together — RP10 + RP100 + RP500 triple-counts the
-core floodplain. Report each separately, or integrate over probability with
-`expected_annual_exposure`. `/api/exposure` enforces this by narrowing to one
-period server-side and saying so in `defaulted_return_period`.
-
-### 4.2 `regions.geojson`
-
-`scripts/build_geometry.py` simplifies the 1,345 GISCO NUTS3 polygons at
-**1 km** in EPSG:3035, converts to 4326, keeps two properties and rounds
-coordinates to four decimals. 25 MB becomes 2.8 MB. It is not committed (GISCO
-terms), so a hosted Streamlit app with no `data/raw/` calls `ensure()`, which
-downloads the layer from GISCO and builds the file on first use.
-
-Two choices are load-bearing and both fail silently if got wrong:
-
-- **The property names are the join key.** `Choropleth.jsx` reads
-  `feature.properties[idKey]`, where `idKey` is whatever `/api/exposure` reports —
-  `nuts_id` for a NUTS3 run, `lau_id` for a LAU zoom. GISCO's own spelling is
-  `NUTS_ID`. Shipping that draws all 1,345 regions in the "not measured" grey,
-  because the join finds nothing and nothing errors.
-- **All 1,345 polygons are kept**, EU-27 or not. Dropping regions changes the map
-  twice over: the missing regions, and the colour of every other one, because the
-  legend's classes are quantiles over whatever is present.
-
-### 4.3 `context.parquet`, and the layers that can be rebuilt alone
-
-One row per region, everything `exposure.parquet` must not hold: a numeric
-column there is picked up by `api/main.py::vulnerability_indicators` and enters
-a min-max-scaled weighted mean. Three of its layers need a word:
-
-- **Residual exposure** - `residual_exposed_pop_rp*`, read from
-  `exposure_protected.parquet` (§3.6). A region missing from that run reads
-  NaN, never 0: 0 would say the defences hold everyone there.
-- **Hospitals and schools** - `src/facilities.py` reads each GISCO point at its
-  own location in the RP10, RP100 and RP500 rasters, with the same 0.5 m
-  threshold and the same two masks as the people count, undefended and behind
-  the protection standards (`hospitals_flooded_rp100`,
-  `schools_flooded_residual_rp100`, ...). **A country the layer does not cover
-  is NaN, not 0**: GISCO holds no German hospital, and a 0 there read as a
-  measured all-clear for the most populous Member State. The same rule applies
-  to hospital beds, which most countries do not report, and down to the
-  hospital: a bed column is NaN in a region where any hospital it would sum
-  has no bed figure, and `hospitals_cap_beds_known` counts the hospitals that
-  carry one (3,600 of 13,988).
-- **The 2010 epoch** - `exposed_pop_2010_rp100` and
-  `exposed_built_m2_2010_rp100` with their totals: today's footprint over the
-  2010 GHSL grids, through the same `_exposure_one_period` as the 2025 figures,
-  so the difference is what moved into the floodplain, not how it was counted.
-
-`build_context.py --only <layer>` recomputes one of these (`residual`,
-`facilities`, `epoch2010`), or another of the layers in its `LAYERS` (`climate`,
-`sealing`, `imperviousness`, `pluvial`, `flood_recurrence`, `efas2021`,
-`hera_trend`, `landcover`), into the existing table and keeps every other column byte for byte. It refuses
-a table whose rows are not in boundary order, because the join is positional.
-
-### 4.4 The fourteen routes
-
-`/api/health`, `/api/config`, `/api/event2021`, `/api/meta`, `/api/exposure`,
-`/api/context`, `/api/geometry`, `/api/vulnerability`, `/api/search`,
-`/api/draft`, `/api/languages`, `/api/translate`, `/api/approve`, `/api/ask`.
-
-`/api/config` tells the UI what the deployment allows, so it greys out what the
-server would refuse: with `HOSTED=1` every route that calls a model or writes
-answers 403 before any provider is reached. `/api/event2021` serves the July
-2021 JSON written by `scripts/export_event_web.py` byte for byte; locally the
-`--full` build wins when present, the hosted demo always serves the public one.
-
-`/api/ask` takes either a `question` or a query `spec`. A question costs one
-model call that writes the spec and nothing else; `src/nlquery.py` validates it
-against a whitelist of defined columns and operators and pandas runs it, so the
-answer can hold no figure the frozen table does not. Exactly one return period
-per answer, rows and never aggregates, and the definition of every column used
-travels with the rows. A refused spec is **422** with the rule it broke; no
-reachable model is **502**, and the `spec` form keeps working without one.
-
-`/api/context` serves the second frozen table, and it is a separate route rather
-than extra columns on `/api/exposure` for a reason that is structural:
-`vulnerability_indicators` picks the composite index's inputs by scanning numeric
-columns, so a climate percentage or a basin share arriving on an exposure row
-would be one selection away from becoming a min-max-scaled term in a weighted
-mean — "this region's rivers rise faster, therefore its residents are more
-vulnerable". The two tables are loaded separately and never merged server-side.
-Its `climate_periods` block carries `single_member`, which is the field that
-separates "one model chain, so nothing was compared" from "the chains disagree":
-both read as zero regions agreeing on the sign. It reports both sign counts,
-`regions_robust_on_sign` (at least 80 % of members) and `regions_agreeing_on_sign`
-(all of them).
-It also carries `regions_size_uncertain`: regions whose members lie more than
-100 points apart — the full range at two members, the interquartile range above
-two — which neither UI ranks (see `docs/decisions.md`, 2026-10-25).
-
-`/api/approve` is the only route that writes. `/api/translate` is the only one
-that can refuse its own output: a translation that changed a figure or moved a
-citation comes back as **422**, not as 200 with a warning field, so no client can
-render it by ignoring a flag. The choropleth is drawn as **SVG
-from GeoJSON** — no tile provider, no API key — so the map still renders with the
-network unplugged. That is why there is no Google Maps layer here and never will
-be: a Static Maps call needs a billed key and its terms forbid redistributing the
-imagery in a document that circulates.
-
----
-
-## 5. Validation: the credibility half
-
-`src/validate.py` is the part that answers "why should we believe your map?". It
-scores the modelled hazard against the **observed** July 2021 flood extent and
-returns three numbers, every one of them `None` rather than `0.0` when its
-denominator is empty:
-
-| Metric | Reads as |
+| Fact | Where it comes from |
 |---|---|
-| `hit_rate` | of the water that really came, how much did the model find? |
-| `false_alarm_ratio` | of the water the model claims, how much was not there? |
-| `iou` | the two together, in one number |
+| <!-- numbers:tests_collected -->1,150<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
+| <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> verified, <!-- numbers:sources_licensed -->43<!-- /numbers --> licensed | `config/sources.yaml` entries |
 
-Everything is resampled onto **EPSG:3035 at 20 m**, the finer of the two inputs.
-Coarsening the observed layer to ~90 m instead would erase exactly the narrow
-urban strips the 2021 event is remembered for. `MIN_OBSERVED_CELLS = 25` is the
-floor below which a unit is not scored at all — 25 cells at 20 m is one hectare,
-and a hit rate computed on three pixels is noise with a decimal point.
+## 8. Repository layout
 
-On this laptop Belgium is the one place with observed extent from more than one
-source, so the kit's validation runs there. The case itself is the July 2021
-flood in Belgium, Germany and the Netherlands, and the organisers' bucket holds
-Copernicus EMS extents for all three (Annex 2: 4 Belgian, 22 German and 1 Dutch
-products); the EU-wide NUTS3 work is the context around that core.
-
-**What the ground truths on disk can and cannot score.** The EMSR517 package
-`config/sources.yaml` declares for the kit's own validation is AOI01, the
-Trier/Mosel area south of the Ahr, with about 0.28 km² observed, and the JRC
-observed-depth file, whose footprint does reach the Ahr, flags only about
-0.35 km² flooded there. So `scripts/validate_2021.py`, which reads those files,
-scores Belgium only. The event pipeline below closes that gap from the
-organisers' bucket: it measures all 27 EMS products (4 Belgian, 22 German,
-1 Dutch), with the hit rate, false alarm ratio and CSI per product and per
-return period in `event_2021_hazard.parquet`. The Ahr place the policy tool
-leads with is `EMSR517_AOI15`, Bad Neuenahr-Ahrweiler (AOI03, Hönningen, also
-covers the Ahr; country totals count the overlap once). Inside Wallonia the choice of truth
-moves the score on its own: the IDW depth raster (about 77 km² with depth > 0)
-and the extent layer (about 521 km², of which only about 53 km² carry a `SCENARIO` zone name) give hit rates about
-2.1× apart for the same *aléa* mask (0.728 against 0.343) and 3.3× apart for
-JRC RP100 (0.605 against 0.183), and the Walloon *aléa* map carries a fourth
-class, 101/201/301 *très faible*, that a class mask either includes or not. Each
-hit rate is quoted with the truth it was scored against and the classes in the
-mask (see `docs/datasets.md`).
-
-`scripts/validate_2021.py` is the run that does this, with windowed reads only:
-a 20 m EPSG:3035 grid over the Walloon depth raster's footprint (4.18–6.06 °E,
-50.10–50.75 °N) and one over the Ahr, where only the JRC observed layer reaches.
-It scores JRC RP10/RP100/RP500 and the *aléa* map (once with *très faible*, once
-without) against all four truths — JRC observed, Walloon depth, Walloon extent,
-EMSR518 inside its AOIs — and the truths against each other, each pair over the
-truth's domain and the map's coverage only, permanent water dropped. It writes
-`data/processed/validation_2021.parquet`, one row per (window, model, truth) with
-the matrix, hit rate, false alarm ratio and CSI, and
-`data/processed/validation_2021_population.parquet`: GHSL 2025 people (100 m
-tiles, summed onto 5 × 5 scoring cells) inside each observed extent and outside
-each map, in a conservative variant (a 100 m cell is inside the map when any
-20 m sub-cell is wet) and an upper one (only when its centre sub-cell is).
-
-`validate.py` derives no model domain from the hazard raster: its nodata is
-every dry cell, so "not nodata" is the wet footprint. `agreement_by_unit` takes
-`in_model_domain` only from an independent layer such as the EFAS upstream area.
-
-### The July 2021 pipeline
-
-The event is measured product by product, from the Copernicus EMS Rapid Mapping
-products in the organisers' bucket (EMSR518 Belgium, EMSR517 Germany, EMSR520
-Netherlands), each against the JRC hazard maps, GHS-POP E2020 and GHS-OBAT.
-
-| Step | Writes | What it does |
-|---|---|---|
-| `scripts/event_2021.py` with `src/event2021.py` | `data/processed/event_2021_{products,hazard,buildings,damage,countries}.parquet` | Per EMS product, inside its AOI only: observed flooded area, hit rate / false alarm ratio / CSI per return period (`validate.agreement` on the 20 m EPSG:3035 grid), residents in the water and outside each hazard map, buildings by use, epoch and height, damage grades; then per country on the union of products, deduplicated cell by cell and building by building |
-| `scripts/event_2021_infrastructure.py` | `data/processed/event_2021_infrastructure.parquet` | Roads and railways (km by class), power lines and dams (km), schools, hospitals, fire stations and power plants (counts), each in the whole AOI, inside the observed water and within 25 m of it; country rows merge lines and features so an overlap counts once |
-| `scripts/build_policy_tool.py` with `src/policy_tool.py` | `docs/perso/policy_tool_anna/policy_tool.html` and PNG snapshots (gitignored: the page carries GISCO geometry) | The challenge policy tool: one self-contained HTML file that opens offline and calls no AI service; story maps rasterised on the same 20 m grid the figures were counted on |
-| `scripts/export_event_web.py` | `data/processed/event_2021_web.json` and `web/public/event_2021_web.json` | The React "July 2021" view's data, built with `src/policy_tool.py`'s figures and the policy tool's maps; public borders from Natural Earth; `--full` draws GISCO borders and NUTS3 lines into the gitignored `event_2021_web.full.json` only |
-| `scripts/export_europe_web.py` | `web/public/europe/` (gitignored) | The static Europe view: the API's own answers to `/api/meta`, `/api/exposure`, `/api/context` and `/api/vulnerability`, frozen in-process; no geometry |
-
-Three rules carry the figures. **The unit is one EMS product**, one AOI at one
-date: a first delineation and its monitoring pass are separate rows, never
-merged, since neither is the peak. **Outside an AOI nothing was mapped**, so a
-cell there is unknown, not dry, and is never scored. **Residents are weighted by
-the flooded share of each cell**: a 1 km cell 30 % under water contributes 30 %
-of its people. The bucket is read once and cached under
-`data/raw/challenge_2021/`, so a re-run with `--offline` needs no network.
-
----
-
-## 6. The LLM layer: a workflow, not an agent
-
-`src/workflow.py` is a LangGraph graph with **five nodes** — retrieve, refuse,
-draft, verify, approve — and a human gate before anything is written.
-
-| Guard | Value | Prevents |
-|---|---|---|
-| `RECURSION_LIMIT` | 8 | a graph that loops |
-| `MAX_REDRAFTS` | 0 | more than one model call per run: a weak draft goes to the human flagged |
-| `MIN_GROUNDING` | 0.7 | a draft that cites nothing |
-
-**Verification is not an LLM call.** `src/rag.py` grounds every claim in the
-policy corpus and refuses rather than inventing; the grounding score is computed
-arithmetically over content words, not asked of a model. A model that marks its
-own homework is not a check.
-
-**Questions about the table are not answered by the model either.**
-`src/nlquery.py` asks it for a JSON query spec in one call, refuses any column
-or operator outside its whitelist, and lets pandas compute the rows. The model
-never writes SQL or code that runs, and a spec that breaks a rule is refused
-rather than retried.
-
-The distinction from an agent is the point, and it is the one `docs/workflow.md`
-argues at length: fixed nodes, fixed order, a bounded number of calls, and a
-human who approves. Nothing here decides to do something that was not written
-down in advance.
-
----
-
-## 7. The test suite
-
-**<!-- numbers:tests_collected -->1,148<!-- /numbers --> tests, offline**: no network, no model, no key. On 27 October 2026 the
-full suite passed on Windows and in WSL2, nothing deselected.
-
-Do not quote a Windows run as a property of the platform. Smart App Control
-has blocked and allowed `rasterio`'s unsigned DLLs several times with nothing
-reinstalled, leaving part of the suite uncollectable on Windows while WSL2 ran
-the lot (see [`limitations.md` §4](limitations.md#4-risks-accepted-for-a-ten-day-build)).
-**The policy moves both ways, so re-measure instead of citing either state**,
-and keep the WSL2 venv for the mornings it flips back — see the note in
-`requirements.txt`. The suite mocks the network
-away, which is exactly what hides a missing 300 MB raster — so
-`scripts/check_offline_readiness.py` answers the question `pytest` cannot, in
-byte counts, and exits 1 when the demo would still need a connection.
-
-The count above is not typed: it sits in a `<!-- numbers:tests_collected -->`
-block that `scripts/docs_numbers.py --write` fills from `pytest --collect-only`,
-and `tests/test_docs_numbers.py` fails the suite when any marked block in the
-docs disagrees with the repository. Edit the prose, never the digit.
-
-Per-file counts measured 31 October 2026 with
-`pytest --collect-only -q -p no:cacheprovider | grep '::' | cut -d: -f1 | sort | uniq -c`;
-they sum to the marked total above. Fifty-two files. Typed counts go stale, so
-re-measure the rows after any test change.
-
-| File | Tests | Guards |
-|---|---|---|
-| `test_nlquery.py` | 60 | natural-language questions over the table: the spec whitelist, unknown columns and operators refused, one period, nulls counted as not measured, one model call and no retry |
-| `test_offline_readiness.py` | 56 | the demo runs with the Wi-Fi off: the three verdicts, `--strict`, a rejected file is not present, the two caches `src.fetch` does not fill |
-| `test_validate.py` | 54 | the scoring grid, the three metrics, `None` vs `0.0`, no model domain read off the hazard raster's nodata |
-| `test_validate_2021.py` | 16 | the windowed 2021 validation script: a pair scored over truth domain and map coverage only, the très faible choice made at the call, cell-centre rasterisation, the two population variants in order, population resampling that keeps its total, `--epoch 2020` reading its own tiles and writing its own file |
-| `test_api.py` | 84 | the routes, the 404s that name their builder, the JSX guards (the GISCO map fallback among them), a table frozen before the units rename, the approve token and the bounds on `k` |
-| `test_streamlit_app.py` | 68 | the fallback UI, a ranked chart ordered by its value, the translation and ask-the-table tabs, the climate and coverage caveats, the density, income and Natura 2000 sections, a rebuilt table replacing the cached one, a table frozen before the units rename |
-| `test_fetch.py` | 62 | robots, idempotency, a single declared source for the hosted app, multi-file expansion, a stale rejection page is quarantined, colliding paths are refused, the cited policy sources are declared and every corpus file lands in a format the index reads |
-| `test_rag.py` | 80 | cite-or-refuse, and a fence no spelling of the closing tag escapes |
-| `test_losses.py` | 29 | the RDH euro vintages and the levelling |
-| `test_basins.py` | 31 | the shared-basin layer: the declared crosswalk, the sliver floor, the basin names, shares that stop at 1.0 |
-| `test_exposure.py` | 25 | the two modes, `nodata_means_dry`, the masks, the build checkpoint |
-| `test_workflow.py` | 27 | the five nodes, the guards, the human gate |
-| `test_climate.py` | 33 | the future layer: provenance, the median, the ensemble and its quartiles, a member per simulation, the fetcher against a mocked CDS |
-| `test_vulnerability.py` | 21 | the composite index, its sensitivity, and what one indicator cannot prove |
-| `test_rdh.py` | 16 | the paged client and its cache |
-| `test_toon_io.py` | 15 | the compact table encoding for prompts, and a tokenizer that cannot fetch its table says so |
-| `test_mcp_server.py` | 12 | the three intent-based MCP tools and their flat TOON answers |
-| `test_apsfr.py` | 13 | the two reporting cycles, the dissolve, the claim it must not make |
-| `test_svgmap.py` | 22 | the offline choropleth: quantile classes, signed classes anchored on zero, holes kept, the outermost regions out of the extent, a hatch whose label names the sign rule that drew it, a legend that names its sixths and stays inside the viewBox |
-| `test_demographics.py` | 21 | the sparse cube, the overlapping age buckets, the NUTS2 caveat, the unit in the name and the legacy names, a thinly published newest year, density and income pinned to their units |
-| `test_translate.py` | 37 | a translated figure never moves |
-| `test_events.py` | 11 | the coverage blind-spot probe |
-| `test_stripes.py` | 9 | the figure does not depend on the window count |
-| `test_environment.py` | 17 | Natura 2000 on flood-prone ground: the union not the sum, true cell areas, the masks, window-size invariance, not measured is not zero |
-| `test_assets.py` | 8 | the built-up surface: the archive, the unit, the share |
-| `test_docs_numbers.py` | 10 | a number typed in a doc that no longer matches the code fails the suite |
-| `test_legislation.py` | 7 | every legal citation has a CELEX and a URL, and `policy_answer.md` cites no article the registry lacks |
-| `test_build_context.py` | 7 | the context build does not fail after writing its table; residual columns per return period, NaN not 0; `--only` replaces one layer and keeps the rest; a reordered table is refused |
-| `test_protection.py` | 6 | the residual reading: held up to the design standard and not beyond, unknown is never protected, parked and written apart from the undefended table |
-| `test_facilities.py` | 7 | hospitals and schools: the 0.5 m threshold, the masks, unknown protection never holds, one region per facility, an uncovered country is not measured |
-| `test_build_geometry.py` | 9 | the join key, the projection, the simplification, the hosted app's download-and-build |
-| `test_export_bi.py` | 28 | the Power BI export and report: the EU-27 headline unchanged, the TMDL columns equal to the CSV, no sum across return periods, every field a PBIR file names exists in the model, every project JSON file valid against Microsoft's schema, the drill-down hierarchy and the drillthrough binding |
-| `test_hera.py` | 25 | the HERA peak-discharge trend: the streamed annual maximum, Sen's slope and Mann-Kendall, an incomplete year never cached, no river cells is NaN not 0, peak timing read on a circle (no jump where the year is cut, NaN when peaks fall in any season), a resumable download |
-| `test_pluvial.py` | 18 | the ECDE heavy-precipitation and flood-recurrence layers: a NUTS2 figure is not a NUTS3 one, unmatched is not "no change", no ensemble mean, the CDS key never printed |
-| `test_sealing.py` | 13 | sealed soil, HERA 1 arcmin and CLMS 100 m: true cell areas, off the grid is not unsealed, a percentage is not a fraction, tile-size invariance, 254 is unclassifiable |
-| `test_efas.py` | 13 | the July 2021 return levels: the exact level picked, the river-cell filter, NaN outside the box, a fetch without a key or licence fails clearly |
-| `test_cems_activations.py` | 5 | the CEMS activation summary: a wildfire is not a flood, a multi-country activation counted once, pagination, the cache |
-| `test_landcover.py` | 3 | CORINE in the flood footprint: the class groups, footprint cells only, masked water out, NaN not 0 |
-| `test_data_io.py` | 3 | the CRS engine is alive |
-| `test_sources_ground_truths.py` | 8 | the catalogue's July 2021 ground-truth claims: EMSR517 AOI01 is Trier/Mosel, not the Ahr; the cross-border claim stops at Belgium; the *très faible* class is declared; the two Walloon truths state their areas and disagreement |
-| `test_rainfall.py` | 8 | the July 2021 EMO-1 event rainfall: only the window is summed, a gap is refused, a cell missing a day is NaN not drier, a region holding no cell centre is NaN not 0 mm |
-| `test_docs_citations.py` | 6 | every docstring a doc cites by name exists in the cited module |
-| `test_climate_rules.py` | 5 | the two climate reading rules: the 80 % sign column when present, the interquartile spread at sixteen members and the full range at two, both sign counts in the period summary |
-| `test_event2021.py` | 18 | the July 2021 products on synthetic data: which bucket folders count as products, half a flooded cell is half its people, permanent water out of the score but not the headcount, an overlapping product counted once per country, one product end to end |
-| `test_event2021_infrastructure.py` | 13 | the July 2021 roads, networks and services: a class from the EMS `info` code, km on the ground and once per segment, a feature counted once with its most severe grade, nothing outside the AOI |
-| `test_export_event_web.py` | 18 | the React app's July 2021 JSON: the contract keys (incl. the Anna warn-order, cross-border and shelter-gap fields), every number the policy tool's, missing is null never zero, no GISCO line in the committed file, `--full` goes to an ignored file only |
-| `test_export_europe_web.py` | 11 | the static Europe view's frozen answers: the file names and subset keys the client looks up, no geometry written, every indicator subset ranked at the panel defaults |
-| `test_hosted.py` | 16 | the hosted-demo switch: every model or write route answers 403 before any provider is reached, the spec form still answers, `/api/config` reports the mode, `/api/event2021` serves the file as is and never the full build when hosted |
-| `test_groundsource_2021.py` | 15 | the Groundsource corroboration: the start-date rule, the pushed-down date and box filter, a place dry only when no touched RP100 cell is wet, the EMS area-of-interest flag, the representative-point join, the size classes, a failed fetch that says so |
-| `test_policy_tool.py` | 28 | the single-file policy tool: no network reference, no external script or AI call, hero and place numbers equal to the tables, NaN printed "n/a" never 0, honest rounding, no names beyond "Team 9", the EU-27 States absent from the risk-area layer read from the context table |
-| `test_export_interactive.py` | 2 | the interactive flood-layer export for the web view |
-| `test_frozen_numbers.py` | 1 | the frozen hackathon numbers still match the pipeline |
-
-**Screenshots are a script, not a chore.**
-`scripts/screenshots/take_screenshots.ps1` starts Streamlit, the API and the
-React dev server on their own ports (8599, 8099, 5199, so a demo already
-running is never touched), drives them with Playwright in headless Chromium and
-stops what it started - about two minutes. Headless because it is reproducible:
-re-run it after any change to the UI instead of re-taking screenshots by hand.
-The React shots follow the scope: the July 2021 view, one story map per named
-place (`react_story_*.png`: the Ahr, Liège on the Meuse and the Vesdre, ...) and
-the Europe exposure map for context. Run with `HOSTED=1` they match the public
-Space (Natural Earth borders). Only the React shots are kept in
-`docs/screenshots/`, credited at the end of the README; nothing it does calls a model.
-
-`test_data_io.py` earns its three tests: a dead `pyproj` is the silent failure in
-this stack. `geopandas` still imports, `GeoDataFrame(..., crs=...)` still returns
-an object, and only a `UserWarning` says the CRS was dropped — after which every
-zonal statistic is the right arithmetic on the wrong piece of Europe. Without
-these tests the whole suite would pass with `pyproj` stubbed out; with them it
-does not.
-
----
-
-## 8. Where the numbers in this file come from
-
-| Claim | Source |
+| Path | Holds |
 |---|---|
-| <!-- numbers:tests_collected -->1,148<!-- /numbers --> tests | `scripts/docs_numbers.py --write`, which runs `pytest --collect-only` and rewrites the marked blocks; the per-file counts are typed by hand |
-| 99 files | `src.fetch.expand()` over the mirrored entries of `config/sources.yaml` (61 geodata, 35 policy_corpus, 3 context), 31 October 2026 |
-| ≈6.96 GiB on disk | measured 25 October 2026; not re-measurable on a machine without the full download |
-| <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> with a verification date, <!-- numbers:sources_licensed -->43<!-- /numbers --> with an explicit `licence:` | `scripts/docs_numbers.py` over `config/sources.yaml`: entries with an `id`; `verified` not null; `licence` non-empty |
-| 1,345 NUTS3 polygons | the GISCO NUTS 2024 file itself |
-| the 0.25% stripe discrepancy | two continental RP100 builds that cut the hazard raster |
-| 4.85% of cells carry a value | a 1,468,800-cell window of Belgian land, RP100 |
-| the permanent-water figures | the Benelux at RP10 and RP100 |
+| `src/` | exposure, vulnerability, validation, climate, basins, rag, workflow, policy tool |
+| `scripts/` | `build_*` (frozen tables), `fetch_*`, `export_*` (BI, web), `event_2021*.py`, `check_offline_readiness.py`, `docs_numbers.py` |
+| `api/` | `main.py` (FastAPI), `mcp_server.py` |
+| `app/` | Streamlit app |
+| `web/` | React + Vite UI; `npm run build` copies `data/processed/event_2021_web.json` into `public/` |
+| `team9/` | Team 9's map tool (source of `web/public/team9/flood_map.html`, kept in Git LFS) |
+| `bi/` | Power BI project (PBIR); `bi/data/` is regenerated |
+| `config/` | `sources.yaml`, `legislation.yaml`, `international_basins.yaml` |
+| `tests/` | offline pytest suite |
+| `k8s/`, `.devcontainer/`, `docker-compose*.yml` | deployment and dev environments |
 
-**One caveat on the Benelux figures.** 5,065,526, 4,344,955, 13,771,935 and the
-ratios drawn from them were all measured on a build that cut the hazard
-raster, whose answer depended on its stripe count. They are
-kept because the comparisons they support — sparse-vs-AOI, masked-vs-unmasked —
-are ratios between two runs of the same code, and those survive. The absolute
-counts do not: re-derive any of them before putting it in a brief.
+## 9. Running it
 
-Re-derive rather than quoting this table. Every number above is a reading of the
-repository at a moment, and the repository moves.
+- **Why Docker on Windows**: an application-control policy (Smart App Control) can
+  block the native DLLs of rasterio, pyogrio, rasterstats and tiktoken, on some days and
+  not others. Re-measure before believing either state; the WSL2 venv or the image is
+  the route that does not depend on it. `pyogrio` and `pyproj` are capped for the same
+  reason (`.github/dependabot.yml` ignores them). CI runs Python 3.12 like the image;
+  the local venv is cp314.
+- **Targets** (`Dockerfile`): `app` (code, small data files), `test` (+ pytest),
+  `portable` (+ the whole `data/`, for an offline laptop).
+- **Memory**: the default `--stripes` is enough on a workstation; 72 peaks near 7.5 GB
+  in a 16 GB WSL VM. An interrupted build resumes from the parked return periods.
+- **Data `src.fetch` does not cover**: JRC Risk Data Hub (EU Login bearer token valid
+  10 h; responses cached), EEA river basin districts (slow REST, cached in
+  `data/processed/basins_cache/`), CDS hydrology projections
+  (`scripts/fetch_cds_member.py`). HERA, EFAS 2021 and C3S ECDE have their own scripts.
+  `scripts/check_offline_readiness.py` exits 1 when a file the demo needs is missing.
+- **Static demo** (Hugging Face Space): `python scripts/export_europe_web.py`, then in
+  `web/` `VITE_STATIC=1 VITE_BASE=/ npm run build` (prefix `MSYS_NO_PATHCONV=1` in Git
+  Bash) and upload `web/dist/` without `team9/`.
+- **Team 9 map**: `web/public/team9/flood_map.html` (37 MB) is built by `team9/map.py`
+  from Google Cloud Storage and OSM. Only the latest build is kept, in Git LFS
+  (`git lfs pull`); replace it when you rebuild.
+- **MCP**: `python -m api.mcp_server` (stdio), `claude mcp add flood-kit -- python -m
+  api.mcp_server`, or `docker compose --profile agent run --rm -T mcp`.
+- **Ask the table**: `curl -s localhost:8001/api/ask -H 'Content-Type: application/json'
+  -d '{"spec": {"columns": ["region","exposed_share"], "return_period": 100, "limit": 5}}'`
+  needs no model; a `question` field costs one model call that writes the spec.
 
-## 9. Repository layout, file by file
+## 10. What each figure means
 
-The full annotated tree.
+The dated reasons are in [decisions.md](decisions.md).
 
-```
-flood-to-policy/
-├── config/sources.yaml         # every dataset + document, with provenance
-├── config/legislation.yaml     # every legal instrument cited: CELEX, ELI URL, dates, articles relied on
-├── src/
-│   ├── data_io.py              # loading + CRS harmonisation, one entry point
-│   ├── exposure.py             # hazard × population, per admin unit
-│   ├── vulnerability.py        # composite index + sensitivity analysis
-│   ├── validate.py             # modelled hazard vs observed 2021 extent: hit rate, FAR, IoU
-│   ├── rdh.py                  # JRC Risk Data Hub client, responses cached to disk
-│   ├── losses.py               # RDH loss rows → a levelled, joinable table
-│   ├── events.py               # blind-spot probe over reported coverage (not evidence)
-│   ├── assets.py               # built-up surface exposed: the asset half of exposure
-│   ├── environment.py          # Natura 2000 area on flood-prone ground (context, not exposure)
-│   ├── climate.py              # future flood hazard per region, from the CDS projections
-│   ├── basins.py               # river basin districts: exposed in a basin you do not control
-│   ├── apsfr.py                # what the Member State declared at risk, vs what the model shows
-│   ├── demographics.py         # Eurostat indicators at NUTS3: the axes the index weighs
-│   ├── facilities.py           # hospitals and schools inside the flood footprint (GISCO)
-│   ├── landcover.py            # CORINE 2018 land cover inside the RP100 zone
-│   ├── sealing.py              # sealed soil per region: the runoff side the river maps leave out
-│   ├── hera.py                 # observed trend in annual peak discharge (HERA v2)
-│   ├── pluvial.py              # projected heavy rain and discharge by warming level (C3S ECDE)
-│   ├── efas.py                 # July 2021 as a return period: EFAS reanalysis peak vs EFAS levels
-│   ├── rainfall.py             # July 2021 event rainfall per NUTS3 region (EMO-1)
-│   ├── event2021.py            # July 2021, product by product: water, people and buildings per EMS map
-│   ├── policy_tool.py          # the challenge policy tool: one static, offline HTML page for July 2021
-│   ├── story_maps.py           # pure helpers behind the July 2021 story maps, shared by every renderer
-│   ├── activations.py          # CEMS rapid-mapping flood activations by country and year
-│   ├── toon_io.py              # compact table encoding for LLM prompts
-│   ├── legislation.py          # config/legislation.yaml -> citations with article and EUR-Lex URL
-│   ├── svgmap.py               # offline choropleth as inline SVG (no tile server)
-│   ├── translate.py            # translate an approved brief section, and check its figures survived
-│   ├── usage_log.py            # read/write the local AI log, the running note behind the Annex 7 AI sheet
-│   ├── fetch.py                # parallel, polite, idempotent collection
-│   ├── workflow.py             # LangGraph brief pipeline with an approval gate
-│   ├── rag.py                  # grounded "cite or refuse" over the policy corpus
-│   └── nlquery.py              # plain-words questions -> a whitelisted query spec, run by pandas
-├── scripts/
-│   ├── build_exposure.py            # freezes data/processed/exposure.parquet, one row per NUTS3 x RP
-│   ├── build_context.py             # freezes data/processed/context.parquet, what qualifies an exposure figure
-│   ├── fetch_cds_member.py          # CDS ensemble members, each verified against what was asked
-│   ├── fetch_hera.py                # the 30 HERA v2 discharge files (~69 GB), resumable, one at a time
-│   ├── fetch_efas_july2021.py       # EFAS reanalysis for July 2021 over the Meuse/Vesdre/Ahr box
-│   ├── fetch_c3s_ecde.py            # C3S ECDE heavy-precipitation and flood-recurrence indicators
-│   ├── cems_activations.py          # CEMS flood activations by country and year, cached
-│   ├── rainfall_jul2021.py          # freezes data/processed/rainfall_jul2021.parquet (EMO-1, 581 regions)
-│   ├── build_geometry.py            # freezes data/processed/regions.geojson, the choropleth's polygons
-│   ├── validate_2021.py             # JRC RP10/100/500 and Walloon aléa vs four July 2021 truths, Wallonia window
-│   ├── groundsource_2021.py         # news-reported July 2021 floods (Groundsource) against the JRC 1-in-100 map, corroboration only
-│   ├── event_2021.py                # water, residents and buildings for every July 2021 EMS product -> event_2021_*.parquet
-│   ├── event_2021_infrastructure.py # roads, railways and essential services in the July 2021 water, per EMS product
-│   ├── build_policy_tool.py         # the policy tool: one offline HTML file + PNG snapshots, in gitignored docs/perso/policy_tool_anna/
-│   ├── export_event_web.py          # the July 2021 story as one compact JSON for the React app (public build by default)
-│   ├── export_europe_web.py         # freezes the Europe view's API answers into web/public/europe/ for a static build
-│   ├── build_vesdre_3d.py           # a one-page 3D terrain view of the Meuse at Liège (MapLibre + the July 2021 water) -> web/public/vesdre_3d.html
-│   ├── export_bi.py                 # the frozen tables as CSV (+ TopoJSON) for the Power BI project in bi/
-│   ├── build_bi_report.py           # writes the Power BI report (PBIR): cover, eight story pages, theme, two drillthroughs, tooltip
-│   ├── validate_bi_report.py        # checks every bi/ JSON file against Microsoft's vendored schemas
-│   ├── docs_numbers.py              # measures the figures the docs quote and rewrites every marked copy
-│   └── check_offline_readiness.py   # is this laptop demo-ready with the Wi-Fi off?
-├── api/main.py                 # JSON API over src/, for the React UI
-├── api/mcp_server.py           # 3 intent-based MCP tools for agents, answered in flat TOON
-├── web/                        # React + Vite UI: choropleth, sensitivity, approval gate
-├── app/streamlit_app.py        # seven tabs, no build step: the React five, ask-the-table, the AI log
-├── team9/                      # Team 9's FARI tool: source of the interactive map under web/public/team9/
-├── Dockerfile                  # Linux image: the portability answer, not a requirement here
-├── docker-compose.yml          # Streamlit / API / tests / offline check / portable demo
-├── docs/                       # the written work, indexed in docs/README.md
-└── tests/                      # pytest, offline, no network
-```
-
----
-
-## 10. Running it: Windows, Docker and deployment
-
-The README keeps the commands. This section keeps the reasons behind them and
-the setups you only need once.
-
-### 10.1 Why Docker on this Windows machine
-
-`rasterio`, `pyogrio`, `rasterstats` and `tiktoken` could not load their native
-libraries on this Windows host. The `pyogrio`/`pyproj` caps in
-`requirements.txt` brought three of them back. Smart App Control then refused
-`rasterio`'s own GDAL build, which no pin fixed, on some days and not others
-with nothing reinstalled (details in `requirements.txt`). So check which state
-you're in each time rather than trusting the last run. On 2026-10-23 the Windows
-venv collected the whole suite, as the WSL2 venv does. The WSL2 venv stays: it
-is the only route that doesn't depend on the policy, and it is where a
-continental raster build belongs.
-
-The `app` image is the third route, and the one that doesn't care about the
-host. All four libraries import inside it. It also carries the four files committed
-under `data/processed/` (3.9 MB), so it runs with nothing mounted: the July 2021
-view, the Europe tables, and the Europe map, whose GISCO boundaries the browser
-fetches when the API has no `regions.geojson` (`has_geometry` is false), as the
-static build does. Without those files, an unmounted image gave 1,114 passed, 13
-skipped and 2 failed (the two tests that read them). Measured 2026-11-06 with
-them, 1,128 passed and 2 skipped, mounted or not. A stale local image
-can fail to import `rasterio` (`libexpat.so.1` missing) where a fresh build of
-the same Dockerfile works, so rebuild rather than trust an old one:
-`docker compose build`.
-
-The image carries `docs/`, `bi/`, `README.md` and `pytest.ini`, which the
-docs-number, Power BI and AI-log tests read, and the React UI built by a
-`node:22-slim` stage, so `web/dist/` always matches the sources in the commit.
-The `portable` stage copies `data/` in as well (83 GiB on 2026-11-05, 70 of it
-HERA discharge files); it has never been built and is never published. The same
-services also exist as Kubernetes manifests under `k8s/`, a learning port run on
-kind (`k8s/README.md`).
-
-**Two traps when running it.** `docker compose up` does not replace a running
-container whose image has changed: `docker compose pull` then `up -d` does. And
-`-v "${PWD}/data:/app/data"` mounts whatever folder you're standing in and hides
-the image's own `data/`, so from the wrong directory the app starts empty.
-
-**VS Code dev container.** `.devcontainer/` opens the editor inside that image
-(`Ctrl+Shift+P`, *Dev Containers: Reopen in Container*): a `dev` service with
-the checkout mounted at `/workspaces/flood-to-policy`, `data/` included, so
-tests and raster work run on Linux without the WSL venv. It leaves `app` and
-`api` alone and starts nothing; Streamlit and the API started from its terminal
-are forwarded on 8501 and 8001.
-
-**The published image.** `.github/workflows/publish.yml` builds the `app` stage
-on every push to `main` and on `v*` tags, checks out Git LFS files so the
-37 MB Team 9 map is real and not a pointer, starts the container and waits for
-the health check, then pushes to GitHub Container Registry and, when the
-`DOCKERHUB_*` secrets are set, to Docker Hub with `DOCKERHUB.md` as the page
-text. The health check accepts either Streamlit on 8501 or the API on 8001,
-since the same image runs both.
-
-Ubuntu and WSL ship no `python` on `PATH`, only `python3`. Calling
-`.venv/bin/...` directly instead of activating the venv keeps that out of the
-way, and removes the classic morning failure: running against system Python
-because the activation was forgotten.
-
-### 10.2 `--stripes` is memory, not meaning
-
-The windows are disjoint, so the figures don't depend on the stripe count, and
-`tests/test_stripes.py` holds that (§3.4). The default of 10 was enough on a
-workstation and not inside a 16 GB WSL VM: a nine-period run at 24 was killed by
-the OOM killer on the 100-year period, which floods more cells than the frequent
-ones. 72 peaks around 7.5 GB. The exposure build **parks each return period** in
-`data/processed/exposure_parts/` as it finishes and reuses what is there, so an
-interrupted run costs one period rather than all of them. `--return-period`
-narrows what is computed without shrinking the frozen table, and `--rebuild`
-recomputes a parked period.
-
-### 10.3 The data `src.fetch` does not cover
-
-`src.fetch` downloads what `config/sources.yaml` declares: 99 files (61
-geodata, 35 policy corpus, 3 context; counted 31 October), about 6.96 GiB
-measured 25 October. The run is idempotent, so an interrupted download costs
-only the missing files. HERA, the EFAS July 2021 reanalysis and the C3S ECDE
-indicators have their own fetch scripts. Three more sources need a step by
-hand, each for its own reason:
-
-- **JRC Risk Data Hub** wants an EU Login bearer token that expires after 10
-  hours. Responses are cached to disk, so the token only matters for a fresh
-  fetch.
-- **EEA river basin districts** is a REST service that takes about five minutes
-  over 8 pages and answers HTTP 500 to a page it dislikes. `src/basins.py`
-  caches it to `data/processed/basins_cache/` (288 MiB).
-- **Copernicus CDS hydrology projections** come from
-  `scripts/fetch_cds_member.py` (one member per request, under the form's 1000
-  cap; `--all-missing` for the rest of the ensemble; `CDSAPI_KEY` or
-  `~/.cdsapirc`), or by hand through the CDS form. The `.nc` files land in
-  `data/raw/download/cds_hydrology_projections/`.
-
-`scripts/check_offline_readiness.py` skips `access: api` and `folder` entries,
-so none of the three is in its per-file table, but each has its own check. The
-RDH cache is a **FAIL** when empty (it is the only offline route to a loss
-figure); the basins cache and the CDS folder are a **WARN** when missing (the map
-and the brief run without them, and the shared-basin and climate layers say
-so). The verdict is `READY`, `READY WITH CAVEATS` or `BLOCKED`. `--strict` turns
-every caveat into a block: an `ANTHROPIC_API_KEY` or `GROQ_API_KEY` left in
-`.env` is a caveat on an ordinary day, and was a block on the event day, when
-personal keys were not allowed (Annex 3).
-
-### 10.4 The static build behind the live demo
-
-A static build needs no API (§1). It shows the July 2021 view and the Europe
-view (Exposure with the return-period selector, Context and Vulnerability) from
-the API's own answers, frozen into `web/public/europe/`. The public demo is that
-build, served as a static Hugging Face Space:
-https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
-
-```bash
-.venv/bin/python scripts/export_event_web.py           # only after a new event_2021.py run: the committed JSON is already the public build
-.venv/bin/python scripts/export_europe_web.py          # Europe view: frozen API answers -> web/public/europe/ (gitignored, ~19 MB)
-cd web && npm ci                                        # once per fresh clone: node_modules is gitignored
-VITE_STATIC=1 VITE_BASE=/ npm run build                 # in web/ -> web/dist/
-```
-
-In Git Bash, prefix the build with `MSYS_NO_PATHCONV=1` so the base isn't
-rewritten into a Windows path; use `VITE_BASE=/flood-to-policy/` for a site
-served under a sub-path. To update the Space, upload the contents of
-`web/dist/` (`index.html`, `event_2021_web.json`, `assets/` and `europe/`)
-under *Files → Add file → Upload files*. Leave out `web/dist/team9/`: Team 9's
-map is ~37 MB, served separately on Surge. In the static build the region map
-comes from GISCO's 1:20 million NUTS file, fetched by the viewer's browser from
-GISCO itself, so no GISCO geometry is published here. The vulnerability ranking
-is precomputed at ±30 % and top 10 for every indicator set. Draft and
-Translation call a language model and stay local.
-
-`export_event_web.py --full` writes `event_2021_web.full.json` (GISCO borders
-and NUTS3), local only, which `GET /api/event2021` serves when present. The React
-app reads the public `web/public/event_2021_web.json` first and calls the API
-only when that file is missing, so the local React UI shows the public build
-even after a `--full` run.
-
-**Two API switches.** `HOSTED=1` turns the API into a public demo:
-`/api/draft`, `/api/translate`, free-text `/api/ask` and `/api/approve` answer
-403 before any model is called, and the React UI greys them out (it reads
-`GET /api/config`). `POST /api/approve` requires the `X-Approve-Token` header
-when `FLOOD_APPROVE_TOKEN` is set; unset, it relies on the API being published on
-127.0.0.1 only (`docker-compose.yml`).
-
-### 10.5 Agent access (MCP)
-
-`api/mcp_server.py` exposes the kit to an AI agent (Claude Desktop, Claude Code,
-any MCP client) as **three tools shaped around a question, not around a
-route**.
-
-| Tool | The question it answers |
-|---|---|
-| `rank_regions(top_n, return_period, country)` | where should we look first? |
-| `profile_regions(region_ids)` | tell me about / compare these regions |
-| `find_policy_evidence(question, k)` | what does the corpus say about X? (cite or refuse) |
-
-Each does its chaining on the server and answers with a small **flattened TOON**
-table, so the agent makes one call instead of chaining `/exposure`, `/context`
-and `/search` over raw JSON. `/approve` is deliberately not a tool: a human
-signs the brief. The return period travels in a `# return_period=...` header
-with every figure.
-
-```bash
-.venv/bin/python -m api.mcp_server                      # stdio, what desktop clients launch
-claude mcp add flood-kit -- .venv/bin/python -m api.mcp_server   # register in Claude Code
-.venv/bin/python -m api.mcp_server streamable-http      # over HTTP (e.g. a Render web service)
-docker compose --profile agent run --rm -T mcp          # same, inside the container
-```
-
-### 10.6 Asking the table in plain words
-
-The Streamlit tab **Ask the table** and `POST /api/ask` let someone who doesn't
-write pandas query `exposure.parquet` (§6 has the design). The model writes a
-small JSON query spec and nothing else; `src/nlquery.py` refuses any column or
-operator outside its whitelist and pandas runs the rest, so every figure in an
-answer is a value of the frozen table. Each answer names its return period and
-carries the definition and unit of every column it used.
-
-```bash
-curl -s localhost:8001/api/ask -H 'Content-Type: application/json' \
-  -d '{"question": "Which five Belgian regions have the largest share exposed at RP100?"}'
-# No key and no local model? Send the spec itself; no model is called.
-curl -s localhost:8001/api/ask -H 'Content-Type: application/json' -d '{"spec": {
-  "columns": ["region", "exposed_share"], "return_period": 100, "limit": 5,
-  "filters": [{"column": "country", "op": "==", "value": "BE"}],
-  "sort": {"column": "exposed_share", "descending": true}}}'
-```
+- Event numbers are inside the products' areas of interest only: outside is "not
+  mapped", not dry. Say "buildings graded destroyed", not "homes destroyed".
+- Europe numbers are NUTS3 zonal statistics over the JRC river hazard maps: a screening
+  view, never the statutory map (Member States' maps under Article 6).
+- Both UIs open on the 1-in-100-year flood and on the EU-27 (1,165 of the 1,345 NUTS3
+  polygons of the GISCO 2024 file; the rest are EFTA and candidate countries).
+- `poverty_rate_pct` is a percentage at NUTS2 applied to NUTS3; `share_over_65` is a
+  fraction. Older frozen tables still call the former `poverty_rate`.
+- Population grids: E2020 for the event, E2025 at 1 km for Europe.
+- Climate figures are medians and quartiles of 16 chains under one pathway (RCP 8.5);
+  "robust" means at least 80 % of members agree on the sign.
+- Hospitals or beds without a figure are unknown, not 0; grey on a map is "not
+  measured", never zero.

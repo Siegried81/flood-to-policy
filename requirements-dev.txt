@@ -1,4 +1,7 @@
-# Development-only tools: never installed in the published Docker image.
+# Local development: `pip install -r requirements-dev.txt`. Never in the published image.
+-r requirements-test.txt
+# cdsapi: only scripts/fetch_*.py (Copernicus downloads, one-off); the demo and tests never import it.
+cdsapi>=0.7.7
 # debugpy: VS Code debugger, used by docker-compose.debug.yml (and locally:
 #   pip install -r requirements-dev.txt)
 debugpy>=1.8.22,<2
@@ -6,7 +9,7 @@ debugpy>=1.8.22,<2
 #   installing, fetch its browser once: python -m playwright install chromium
 playwright>=1.65.2,<2
 # ipykernel: lets the project .venv be selected as the kernel for the notebooks
-#   in docs/perso/. Register it once: python -m ipykernel install --user
+#   in docs/hackathon/. Register it once: python -m ipykernel install --user
 #   --name flood-to-policy --display-name "Python (.venv flood-to-policy)"
 ipykernel>=7.4,<8
 # matplotlib: only docs/hackathon/case_notebook.ipynb plots with it; the shipped

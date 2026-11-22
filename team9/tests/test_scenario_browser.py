@@ -1,6 +1,5 @@
 """Planning scenario in the real page: complete save / restore (CSV and JSON), A/B comparison, demo view, layout.
 Needs a built flood_map.html and `playwright install chromium`; skipped otherwise. Loading the page takes ~30 s."""
-import json
 from pathlib import Path
 
 import pytest
@@ -167,7 +166,7 @@ def test_demo_view_does_not_touch_the_scenario(page, scenario):
     page.evaluate("zoomTo('NL')"); page.wait_for_timeout(600)
     before = state(page)
     page.click("#demo-go"); page.wait_for_timeout(600)
-    c = page.evaluate(f"(() => {{ var m = SHELTER_APP.map, c = m.getCenter(); return [c.lat, c.lng, m.getZoom()]; }})()")
+    c = page.evaluate("(() => { var m = SHELTER_APP.map, c = m.getCenter(); return [c.lat, c.lng, m.getZoom()]; })()")
     assert abs(c[0] - view["lat"]) < 1e-4 and abs(c[1] - view["lng"]) < 1e-4 and c[2] == view["zoom"]
     assert state(page) == before
 

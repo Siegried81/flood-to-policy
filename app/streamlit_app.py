@@ -310,7 +310,7 @@ if exposure is None:
         "(`docker compose up` from the repository). Rebuilding it with "
         "`python scripts/build_exposure.py` is the slow route: it needs the 5.5 GiB "
         "of rasters from `python -m src.fetch` and about 20 GB of RAM. "
-        "See docs/scope.md for the European setup."
+        "See docs/technical_deep_dive.md for the European setup."
     )
     st.stop()
 

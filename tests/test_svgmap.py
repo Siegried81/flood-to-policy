@@ -7,10 +7,8 @@ folium, whose basemap tiles come from a tile server the venue may block.
 
 from __future__ import annotations
 
-import math
 import re
 
-import pytest
 
 from src import svgmap
 

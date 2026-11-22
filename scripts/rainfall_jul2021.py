@@ -8,7 +8,7 @@ data/processed/rainfall_jul2021.parquet, one row per region. Only the event
 window and the five countries' bounding box are read, never the whole cube.
 
 A separate file on purpose: context.parquet is not touched and no
-build_context run is needed (docs/decisions.md, 2026-10-25). The logic is in
+build_context run is needed. The logic is in
 `src/rainfall.py`; this script only wires it to disk and the terminal.
 
 Run:

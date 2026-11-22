@@ -1,5 +1,6 @@
 """Shelter planning scenario: demand origins (Python) and the browser allocator planning/alloc.js (run with Node).
 The allocation optimum is checked independently with a linear program (scipy / HiGHS)."""
+import importlib.util
 import json
 import shutil
 import subprocess
@@ -100,6 +101,7 @@ def test_hand_example_shortage_and_recalculation():
 
 
 @node
+@pytest.mark.skipif(importlib.util.find_spec("scipy") is None, reason="scipy not installed (team9/requirements.txt)")
 @pytest.mark.parametrize("seed", range(12))
 def test_random_instances_match_lp_optimum(seed):
     rng = np.random.default_rng(seed)

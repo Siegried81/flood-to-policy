@@ -36,7 +36,7 @@ def client(tmp_path, monkeypatch) -> TestClient:
     monkeypatch.setattr(api.translate, "translate", _boom)
     monkeypatch.setattr(api.nlquery, "ask", _boom)
     monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
-    return TestClient(app)
+    return TestClient(app, client=("127.0.0.1", 50000))
 
 
 MODEL_CALLS = [

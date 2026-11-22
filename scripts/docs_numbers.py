@@ -30,7 +30,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "config" / "sources.yaml"
 EXPOSURE = ROOT / "data" / "processed" / "exposure.parquet"
-DEFAULT_FILES = ("README.md", "requirements.txt", "docs/technical_deep_dive.md",
+DEFAULT_FILES = ("README.md", "docs/technical_deep_dive.md",
                  "docs/policy_answer.md", "docs/limitations.md",
                  "docs/responsible_ai.md")
 BLOCK = re.compile(r"(<!-- numbers:(\w+) -->)(.*?)(<!-- /numbers -->)")
@@ -53,9 +53,11 @@ def tests_collected():
 
     sys.executable rather than 'python' because the ambient interpreter cannot
     import rasterio and would collect fewer tests - that is one of the ways a
-    doc figure went wrong before.
+    doc figure went wrong before. Only tests/ is counted: team9/tests skips whole
+    modules when scipy, playwright or GCS credentials are missing, so its count
+    changes from one machine to the next.
     """
-    proc = subprocess.run([sys.executable, "-m", "pytest", "--collect-only", "-q",
+    proc = subprocess.run([sys.executable, "-m", "pytest", "tests", "--collect-only", "-q",
                            "-p", "no:cacheprovider"],
                           cwd=ROOT, capture_output=True, text=True, timeout=300)
     return parse_collected(proc.stdout)
