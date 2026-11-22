@@ -4,7 +4,7 @@ import copy
 import geopandas as gpd
 import pandas as pd
 import pytest
-from shapely.geometry import Point, box
+from shapely.geometry import box
 
 from evidence import register as ev
 

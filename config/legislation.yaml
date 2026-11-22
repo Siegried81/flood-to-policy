@@ -2,7 +2,7 @@
 # shape the EU Data Law Observatory uses for its registry.
 #
 # Why a registry: the docs cite the Floods Directive by article in prose, and
-# a CELEX number or an ELI URL lived only in docs/policy_context.md. One
+# a CELEX number or an ELI URL lived only in a prose document. One
 # machine-readable record per instrument gives a brief its citation with the
 # URL attached, and `tests/test_legislation.py` holds docs/policy_answer.md to
 # it: an article cited there that is not listed here fails the suite.
@@ -163,7 +163,7 @@ instruments:
     status: in_force
     verified: 2026-10-28
     articles:
-      "22": Rights against a decision based solely on automated processing with legal or similarly significant effects; why the kit never decides an individual entitlement (docs/policy_craft.md).
+      "22": Rights against a decision based solely on automated processing with legal or similarly significant effects; why the kit never decides an individual entitlement.
 
   HD:
     short: Council Directive 92/43/EEC

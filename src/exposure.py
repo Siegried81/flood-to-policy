@@ -16,7 +16,7 @@ out. The induced error scales with perimeter/area, so it is around 1-3% for a
 commune (~5,000 cells) and 30-50% for a Belgian statistical sector (tens of
 cells). If the scenario asks for anything smaller than a commune, switch to
 `exactextract`, which weights each cell by the fraction actually covered. See
-docs/geospatial_crash_course.md.
+docs/technical_deep_dive.md.
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ def exposed_population(
       grid is coarser than the hazard - which is the whole European case, where
       1 km population cells each contain roughly 185 hazard cells at Belgian
       latitudes - 164 at 45 deg and 232 at 60 deg, because the cells are not
-      square (see `docs/geospatial_crash_course.md`).
+      square (see `docs/technical_deep_dive.md`).
     - **"binary"** streams the reprojection and takes `max`, so a cell counts as
       fully flooded if any part of it is. Conservative by construction and it
       never loads the hazard into memory, which is what you want on a continental

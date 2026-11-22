@@ -1,7 +1,6 @@
 """Candidate shelter selection, de-duplication, screening categories and checks on hand-made data (no network)."""
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 import pytest
 import shapely
 

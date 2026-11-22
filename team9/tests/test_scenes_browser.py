@@ -125,7 +125,7 @@ def test_scores_match_python_and_follow_the_scenario(page):
     assert top == after[:10] and len(set(top)) == 10
     after = after[:10]
     # distance and exploratory inclusion recalculate too
-    page.evaluate(f"() => {{ var s = ScenarioUI.get().state; s.km = 1; ScenarioUI.recalc(); }}")
+    page.evaluate("() => { var s = ScenarioUI.get().state; s.km = 1; ScenarioUI.recalc(); }")
     assert page.evaluate("Scenes.priority().order.slice(0, 10)") != after or page.evaluate("Scenes.priority().rows.some(r => r && r.G < 100)")
     for js, py in zip(page.evaluate("Scenes.priority().rows"), py_scores(page)):
         assert js["S"] == pytest.approx(py[2], abs=1e-6)

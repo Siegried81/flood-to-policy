@@ -1582,7 +1582,7 @@ policy_corpus:  # the "cite or refuse" RAG corpus
       the fetch stores the page and not the paper.
     verified: 2026-10-28 (landing page only)
 
-  # The documents docs/policy_context.md cites for its figures and that the
+  # The policy documents the brief cites for its figures and that the
   # retrieval layer could not cite back, because nothing here declared them.
   #
   # The six EU acts are fetched from the Publications Office's CELLAR
@@ -1661,7 +1661,7 @@ policy_corpus:  # the "cite or refuse" RAG corpus
     purpose: >
       SWD(2025) 24, the Commission's assessment of the second-cycle flood risk
       management plans for Spain, 4 February 2025 - the one member of the
-      SWD(2025) series docs/policy_context.md cites by number.
+      SWD(2025) series cited by number.
     caveat: >
       XHTML in English, HTTP 200 via CELLAR. ONE document
       of a series published one per Member State on the same day; the others,
@@ -1926,8 +1926,8 @@ context:  # know your jury
     access: scrape
     purpose: >
       EIOPA-BoS-24/474, the dashboard's input data per country and peril,
-      2022-2025: the table the windstorm and flood insured shares in
-      docs/policy_context.md were re-derived from.
+      2022-2025: the table the brief's windstorm and flood insured shares
+      were re-derived from.
     caveat: >
       XLSX (spreadsheetml), HTTP 200; no Content-Length is
       sent. Read it with pandas; it never enters the retrieval index.

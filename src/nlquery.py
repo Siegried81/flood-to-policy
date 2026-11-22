@@ -65,41 +65,41 @@ COLUMNS: dict[str, dict[str, str]] = {
     "nuts_id": {
         "unit": "code",
         "definition": "NUTS3 region code, GISCO NUTS 2024 vintage.",
-        "source": "docs/scope.md#the-unit-of-analysis-nuts3",
+        "source": "docs/technical_deep_dive.md#10-what-each-figure-means",
     },
     "region": {
         "unit": "text",
         "definition": "Region name as GISCO writes it, in the national language.",
-        "source": "docs/scope.md#the-unit-of-analysis-nuts3",
+        "source": "docs/technical_deep_dive.md#10-what-each-figure-means",
     },
     "country": {
         "unit": "code",
         "definition": "Two-letter country code as GISCO writes it (EL for Greece). "
                       "The file covers the EU-27, EFTA and candidate countries.",
-        "source": "docs/scope.md#the-unit-of-analysis-nuts3",
+        "source": "docs/technical_deep_dive.md#10-what-each-figure-means",
     },
     "country_name": {
         "unit": "text",
         "definition": "Country name.",
-        "source": "docs/scope.md#the-unit-of-analysis-nuts3",
+        "source": "docs/technical_deep_dive.md#10-what-each-figure-means",
     },
     "total_pop": {
         "unit": "persons",
         "definition": "Residents of the region on the GHS-POP grid, counting the "
                       "population cells whose centre falls in it.",
-        "source": "docs/technical_deep_dive.md#33-four-columns-and-why-none-is-not-00",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "cells_counted": {
         "unit": "cells",
         "definition": "Population cells whose centre falls in the region. Raster "
                       "bookkeeping, not a property of the people.",
-        "source": "docs/technical_deep_dive.md#33-four-columns-and-why-none-is-not-00",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "hazard_coverage": {
         "unit": "fraction 0-1",
         "definition": "Share of the region the hazard layer covers. Below 1.0, "
                       "exposed_pop is an extrapolation from the observed part.",
-        "source": "docs/technical_deep_dive.md#33-four-columns-and-why-none-is-not-00",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "exposed_pop": {
         "unit": "persons",
@@ -109,7 +109,7 @@ COLUMNS: dict[str, dict[str, str]] = {
                       "(x total / observed population) where the hazard layer "
                       "covers only part of it; null when nothing was measured. "
                       "River flooding only.",
-        "source": "docs/technical_deep_dive.md#33-four-columns-and-why-none-is-not-00",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "exposed_share": {
         "unit": "fraction 0-1",
@@ -122,12 +122,12 @@ COLUMNS: dict[str, dict[str, str]] = {
         "unit": "years",
         "definition": "Return period of the flood scenario. Extents are nested, so "
                       "a query covers exactly one period.",
-        "source": "docs/geospatial_crash_course.md#return-period-what-a-100-year-flood-is-not",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "annual_probability": {
         "unit": "probability per year",
         "definition": "1 / return_period: the chance of the scenario in any one year.",
-        "source": "docs/geospatial_crash_course.md#return-period-what-a-100-year-flood-is-not",
+        "source": "docs/technical_deep_dive.md#3-what-the-exposure-number-means",
     },
     "share_over_65": {
         "unit": "fraction 0-1",

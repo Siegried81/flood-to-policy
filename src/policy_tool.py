@@ -41,7 +41,7 @@ from __future__ import annotations
 import html
 import json
 import math
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
 
 import pandas as pd
 
@@ -910,7 +910,7 @@ HOW_WE_COUNTED: tuple[str, ...] = (
 #: Sources are cited IN TEXT (institution + date), never a link and never a
 #: personal name, under the same rules as SOURCES (the tool loads nothing and
 #: names no one but the team). Figures stated as plans are flagged as plans.
-#: Full fiches with URLs: docs/perso/q2_sources.md. Each item is (region, bullets).
+#: Full fiches with URLs: docs/hackathon/q2_sources.md. Each item is (region, bullets).
 SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Belgium — Wallonia and the Vesdre", (
         "Parliamentary inquiry: 161 recommendations (187 with sub-recommendations), adopted "

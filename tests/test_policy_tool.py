@@ -9,7 +9,6 @@ values, NaN printed as "n/a" and never 0, and no personal names (Annexes 3 and
 
 from __future__ import annotations
 
-import math
 import re
 from pathlib import Path
 

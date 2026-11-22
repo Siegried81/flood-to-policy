@@ -39,7 +39,6 @@ import threading
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 import requests
 
