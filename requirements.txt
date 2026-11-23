@@ -15,7 +15,7 @@ pyproj>=3.7,<3.8
 
 # Analysis
 pandas>=3.1.1
-numpy>=2.5.4
+numpy>=2.5.5
 xarray>=2026.9.0      # src/efas.py, src/hera.py: lazy NetCDF slices
 netCDF4>=1.7.5.1.post1
 
@@ -26,19 +26,19 @@ Pillow>=13.0.0        # src/story_maps.py composites the basemap PNGs
 # LLM layer
 tiktoken>=0.14.0
 requests>=2.34.2
-anthropic>=2.8.0      # asked first when ANTHROPIC_API_KEY is set
+anthropic>=2.12.0      # asked first when ANTHROPIC_API_KEY is set
 pyyaml>=6.0.3
 python-dotenv>=1.2.4
 
 # API for the React UI
-fastapi>=0.163.0
+fastapi>=0.165.0
 uvicorn>=0.54.0
-pypdf>=7.1.0          # the policy corpus includes PDFs
+pypdf>=7.1.1          # the policy corpus includes PDFs
 pyarrow>=26.0.1       # parquet keeps dtypes; CSV loses a NUTS code's leading zero
 
 # Workflow + optional tracing
-langgraph>=1.2.22
-langchain-core>=1.8.0
+langgraph>=1.2.24
+langchain-core>=1.8.4
 
 # Agent access: intent-based MCP tools (api/mcp_server.py)
 mcp>=2.3.0
