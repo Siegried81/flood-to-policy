@@ -396,3 +396,52 @@ def test_a_period_named_and_answered_adds_no_note(monkeypatch):
     answer = nlquery.ask("Exposed people at the 100-year flood over the next 10 years?", _table())
     assert not any("names the" in n for n in answer.notes)
     assert nlquery.named_periods("the 100-year flood over the next 10 years") == [100]
+
+
+# --- gaps between the question and the spec -------------------------------------
+
+def test_a_question_naming_a_country_with_no_country_filter_gets_a_note(monkeypatch):
+    """Reproduced: the model dropped "Belgium", the table answered for every
+    country and nothing said so."""
+    _model(monkeypatch, json.dumps(_spec(return_period=10)))
+    answer = nlquery.ask("Which regions in Belgium are most exposed?", _table())
+    assert any("BE" in n and "no filter restricts" in n for n in answer.notes)
+    code = nlquery.ask("Which BE regions are most exposed?", _table())
+    assert any("no filter restricts" in n for n in code.notes)
+
+
+def test_a_country_filter_silences_the_country_note(monkeypatch):
+    _model(monkeypatch, json.dumps(_spec(
+        filters=[{"column": "country", "op": "==", "value": "BE"}])))
+    answer = nlquery.ask("Which regions in Belgium are most exposed?", _table())
+    assert not any("no filter restricts" in n for n in answer.notes)
+
+
+def test_a_country_the_table_does_not_hold_or_a_plain_word_is_not_named(monkeypatch):
+    _model(monkeypatch, json.dumps(_spec()))
+    answer = nlquery.ask("Which regions in Norway will be flooded?", _table())
+    assert not any("no filter restricts" in n for n in answer.notes)
+
+
+def test_a_question_naming_two_return_periods_gets_a_note(monkeypatch):
+    _model(monkeypatch, json.dumps(_spec(return_period=10)))
+    answer = nlquery.ask("Compare the 10-year and the 100-year flood", _table())
+    assert any("several return periods" in n for n in answer.notes)
+
+
+def test_a_bug_in_the_service_is_not_reported_as_no_model_reachable(client, monkeypatch):
+    """Reproduced: any non-SpecError exception, a bug in pandas included, came
+    back as 502 "No model reachable"."""
+    def broken(prompt, system):
+        raise KeyError("a bug in this service")
+    monkeypatch.setattr(rag, "complete_with_provider", broken)
+    with pytest.raises(KeyError):
+        client.post("/api/ask", json={"question": "Most exposed region?"})
+
+
+def test_an_empty_completion_is_a_502_on_ask(client, monkeypatch):
+    def empty(prompt, system):
+        raise rag.EmptyCompletion("groq returned no text")
+    monkeypatch.setattr(rag, "complete_with_provider", empty)
+    response = client.post("/api/ask", json={"question": "Most exposed region?"})
+    assert response.status_code == 502

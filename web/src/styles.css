@@ -197,6 +197,15 @@ th.sortable-header {
 th.sortable-header:hover {
   text-decoration: underline;
 }
+.th-button {
+  all: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+.th-button:focus-visible {
+  outline: 2px solid var(--accent, #4b2a7b);
+}
 
 /* ---- App header and the views ------------------------------------------- */
 .shell { max-width: 1240px; }

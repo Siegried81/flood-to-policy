@@ -2,7 +2,7 @@
 
 A storytelling scene, not an analysis map: the Meuse valley through Liège and
 north toward the Dutch border, with the water Copernicus saw in July 2021 draped
-on it — the stretch where the flood spread widest. (Upstream the steep Vesdre
+on it, the stretch where the flood spread widest. (Upstream the steep Vesdre
 barely shows: EMS under-maps urban flooding, the water hiding between buildings.)
 Everything is keyless: MapLibre GL draws a terrarium DEM (AWS open elevation tiles) with Esri
 imagery as the texture, and the observed flood outline (EMSR518 AOI01, WGS84) is
@@ -55,7 +55,7 @@ def main() -> None:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Meuse at Liège in 3D — July 2021</title>
+<title>The Meuse at Liège in 3D, July 2021</title>
 <link href="https://unpkg.com/maplibre-gl@{MAPLIBRE}/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@{MAPLIBRE}/dist/maplibre-gl.js"></script>
 <style>
@@ -79,12 +79,12 @@ def main() -> None:
 <body>
 <div id="map"></div>
 <div class="card">
-  <h1>The Meuse at Liège, July 2021 — in 3D</h1>
+  <h1>The Meuse at Liège, July 2021, in 3D</h1>
   <p>The Meuse through Liège and north toward the Dutch border, with the water Copernicus
-  mapped in July 2021 draped on the valley — the stretch where the flood spread widest.
+  mapped in July 2021 draped on the valley, the stretch where the flood spread widest.
   Upstream, the steep Vesdre that tore through Verviers barely shows: the satellites miss
   urban flooding, the water hiding between buildings.</p>
-  <div class="legend"><span class="sw"></span> Observed flood — Copernicus EMS, July 2021</div>
+  <div class="legend"><span class="sw"></span> Observed flood, Copernicus EMS, July 2021</div>
   <p class="note">Illustrative, not an analysis map. Terrain: AWS open DEM (Terrarium). Imagery © Esri.
   Observed flood © European Union, Copernicus EMS (EMSR518). No modelled depth is extruded.
   Drag to orbit · scroll to zoom.</p>

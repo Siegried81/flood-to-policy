@@ -333,3 +333,54 @@ def test_an_uncited_sentence_reaches_the_gate_and_a_table_figure_does_not(graph)
 def test_a_grounded_cited_draft_still_reaches_the_gate_with_no_issue(graph):
     _, run, _, _ = graph([PASSAGE])
     assert run()["__interrupt__"][0].value["issues"] == []
+
+
+@pytest.mark.parametrize("reply", ["Approve.", "approved", "yes", "ok", "Yes, publish it", "LGTM"])
+def test_a_short_approval_is_an_approval_not_the_section(graph, reply):
+    """Reproduced: any of these was recorded as an edit and published verbatim,
+    so the brief section became the word "approved"."""
+    _, run, resume, _ = graph([PASSAGE])
+    run()
+    final = resume(reply)
+    assert final["decision"] == "approve"
+    assert final["final"] == GROUNDED_ANSWER
+
+
+@pytest.mark.parametrize("reply", ["Not approved", "do not publish this", "don't approve it",
+                                   "Not approved, the Meuse figures are wrong and need a check"])
+def test_a_negated_approval_is_a_rejection(graph, reply):
+    _, run, resume, _ = graph([PASSAGE])
+    run()
+    final = resume(reply)
+    assert (final["approved"], final["final"]) == (False, "")
+    assert final["rejection_reason"]
+
+
+@pytest.mark.parametrize("reply", ["maybe later", "hmm", "Approved flood plans must be published every six years"])
+def test_a_short_or_approval_led_reply_is_not_replacement_text(graph, reply):
+    """Replacement text needs the `edit:` form unless it is a real sentence that
+    does not open like a decision."""
+    _, run, resume, _ = graph([PASSAGE])
+    run()
+    final = resume(reply)
+    assert (final["approved"], final["final"]) == (False, "")
+    assert "edit:" in final["rejection_reason"]
+
+
+def test_a_short_text_can_still_be_edited_with_the_explicit_form(graph):
+    _, run, resume, _ = graph([PASSAGE])
+    run()
+    final = resume("edit: Approved.")
+    assert (final["decision"], final["final"]) == ("edit", "Approved.")
+
+
+@pytest.mark.parametrize("reply", ["approve", {"decision": "approve"}])
+def test_approving_a_refusal_does_not_write_the_refusal_text(graph, reply):
+    """Reproduced: approving a refused state returned `final` = the
+    "REFUSED: ..." notice, which a caller appends to the brief as a section."""
+    _, run, resume, _ = graph([])
+    run()
+    final = resume(reply)
+    assert final["approved"] is False
+    assert final["final"] == ""
+    assert "REFUSED" not in final["final"]

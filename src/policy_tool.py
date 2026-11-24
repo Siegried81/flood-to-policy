@@ -168,8 +168,8 @@ RASTER_CLASSES = story_maps.RASTER_CLASSES
 #: Europe map classes: share of residents in the undefended 1-in-100-year zone.
 EUROPE_CLASSES: tuple[tuple[float, str, str], ...] = (
     (0.02, "low: under 2 %", "#fde9c4"),
-    (0.05, "moderate: 2–5 %", "#f6b26b"),
-    (0.10, "high: 5–10 %", "#d9661f"),
+    (0.05, "moderate: 2 to 5 %", "#f6b26b"),
+    (0.10, "high: 5 to 10 %", "#d9661f"),
     (math.inf, "very high: 10 % or more", "#7f2704"),
 )
 EUROPE_HIGHLIGHT = (("DEB12", "Ahrweiler"), ("BE335", "Verviers"))
@@ -365,27 +365,27 @@ def country_strip(countries: pd.DataFrame) -> list[dict[str, Any]]:
 PLACE_ACTIONS = {
     "EMSR518_AOI01": {
         "priority": "Evacuate first (1 of 3): the farthest from a shelter (855 of 1,356 have none within 500 m), and the Vesdre rises fast.",
-        "shelter": "Only 37 % of the people the water reached are within 500 m of a public building on safe ground (median ~1.1 km) — shelter is far for many; and 45 schools and 2 hospitals or care homes sit inside the 1-in-100 zone themselves.",
-        "lever": "On the Meuse the defences hold — warn and open shelters, not a bigger dyke. On the Vesdre the water is outside the map (a small river): flash warning, local protection, managed retreat.",
-        "since": "Vesdre strategic scheme (2023), resilient bank works, Eupen dam flood reserve raised 2.8→7 M m³ — but only one Walloon reservoir dam has an emergency plan (2025).",
+        "shelter": "Only 37 % of the people the water reached are within 500 m of a public building on safe ground (median ~1.1 km), shelter is far for many; and 45 schools and 2 hospitals or care homes sit inside the 1-in-100 zone themselves.",
+        "lever": "On the Meuse the defences hold: warn and open shelters, not a bigger dyke. On the Vesdre the water is outside the map (a small river): flash warning, local protection, managed retreat.",
+        "since": "Vesdre strategic scheme (2023), resilient bank works, Eupen dam flood reserve raised 2.8→7 M m³, but only one Walloon reservoir dam has an emergency plan (2025).",
     },
     "EMSR517_AOI09": {
-        "priority": "Least warning time (2 of 3): nine in ten were outside the map and the Inde is a small, flashy river — fewer people than Liège, but the shortest lead time.",
-        "shelter": "91 % of the people the water reached are within 500 m of a public building on safe ground (median 416 m) — shelter is close here.",
+        "priority": "Least warning time (2 of 3): nine in ten were outside the map and the Inde is a small, flashy river, fewer people than Liège, but the shortest lead time.",
+        "shelter": "91 % of the people the water reached are within 500 m of a public building on safe ground (median 416 m), shelter is close here.",
         "lever": "The map misses this valley (the Inde, a small river), so a river dyke will not help: the levers are flash-flood warning, local protection, and managed retreat of the most exposed homes.",
         "since": "The Eifel-Rur water board applied in 2023 for two retention basins on the Vicht upstream of Stolberg (Roetgen-Rott and Mulartshütte); their approval status is not confirmed. German reconstruction aid is documented for North Rhine-Westphalia as a whole, not for the Aachen region.",
     },
     "EMSR520_AOI01": {
         "priority": "Lower (3 of 3): most people are inside the map, the defences hold, and the Maas gives more warning time.",
         "shelter": "60 % of the people the water reached are within 500 m of a public building on safe ground (median 722 m).",
-        "lever": "Mostly inside the map and the defences largely hold — the levers are warning, shelter, and the cross-border Meuse signal.",
-        "since": "Dutch Limburg programme (Waterveiligheid en Ruimte Limburg) and the Beleidstafel actions — 50 of 80 done by 2026.",
+        "lever": "Mostly inside the map and the defences largely hold: the levers are warning, shelter, and the cross-border Meuse signal.",
+        "since": "Dutch Limburg programme (Waterveiligheid en Ruimte Limburg) and the Beleidstafel actions: 50 of 80 done by 2026.",
     },
 }
 
 #: Shown on every card: the priority weighting is the team's call, never the AI's.
 PRIORITY_NOTE = ("Priority weighs people reached, how far outside the map, how far from a shelter and "
-                 "how fast the river rises — the weights are the team's choice, not the AI's; weight "
+                 "how fast the river rises, the weights are the team's choice, not the AI's; weight "
                  "surprise and flashiness higher and Eschweiler/the Vesdre come first.")
 
 #: Warn-order for Anna: who to alert first, shortest lead time first. This is an
@@ -410,7 +410,7 @@ WARN_ORDER = (
 #: reads, both from `outputs/shelter_access.csv`: `share_500m` counts any
 #: non-residential building on safe ground (the generous ceiling the brief
 #: quotes); `share_named` counts only named public buildings (schools, sports
-#: halls, civic halls, places of worship) — the stricter floor. The gap is a
+#: halls, civic halls, places of worship), the stricter floor. The gap is a
 #: floor either way: straight-line reach ignores the flooded river in between.
 SHELTER_GAP = {
     "EMSR518_AOI01": {"place": "Liège / Chaudfontaine", "reached": 1356, "without_500m": 855,
@@ -421,7 +421,7 @@ SHELTER_GAP = {
                       "share_500m": 0.604, "share_named": 0.022},
 }
 
-#: Who coordinates and who to call in each part of the border area — the whole
+#: Who coordinates and who to call in each part of the border area, the whole
 #: point of a cross-border role made concrete. Hand-set from the public emergency
 #: structures (not computed, no phone numbers): `area`, `who`, `role`.
 CROSS_BORDER = (
@@ -436,7 +436,7 @@ CROSS_BORDER = (
      "Civil-protection and the fire service at Kreis level; the district government steps in for the wider disaster."),
     ("Across the three (EMRIC)",
      "Euregio Meuse-Rhine Incident Control and Crisis Management",
-     "The standing cross-border body for exactly this area — the one table where Anna lines up the three warnings and shares aid."),
+     "The standing cross-border body for exactly this area, the one table where Anna lines up the three warnings and shares aid."),
 )
 
 
@@ -912,7 +912,7 @@ HOW_WE_COUNTED: tuple[str, ...] = (
 #: names no one but the team). Figures stated as plans are flagged as plans.
 #: Full fiches with URLs: docs/hackathon/q2_sources.md. Each item is (region, bullets).
 SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("Belgium — Wallonia and the Vesdre", (
+    ("Belgium: Wallonia and the Vesdre", (
         "Parliamentary inquiry: 161 recommendations (187 with sub-recommendations), adopted "
         "March 2022; the three-year follow-up splits them 126 for the Region, 20 partly, 37 "
         "federal, with 19 more completed since October 2024 and 58 of 88 still in progress "
@@ -920,11 +920,11 @@ SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
         "Reconstruction: repair cost about EUR 5.2 billion; emergency river-safety works on "
         "more than 1,000 bank sites, about 46 % done by mid-2022; resilient bank reconstruction "
         "funded (EUR 430 million recovery-plan axis 6, plus EUR 300 million of a EUR 1.1 billion "
-        "EIB loan), with about 880 km along the Vesdre planned — a plan, not yet built "
+        "EIB loan), with about 880 km along the Vesdre planned, a plan, not yet built "
         "(Commissariat à la Reconstruction, 1 July 2022; Walloon Government, 4 July 2022).",
         "Prevention and planning: a circular on building in flood zones in force since 1 April "
-        "2022; the 2022–2027 flood-risk management plan (PGRI) approved 19 January 2023 with 671 "
-        "local projects; EUR 71.2 million in resilience subsidies to communes (SPW, 2021–2023).",
+        "2022; the 2022 to 2027 flood-risk management plan (PGRI) approved 19 January 2023 with 671 "
+        "local projects; EUR 71.2 million in resilience subsidies to communes (SPW, 2021 to 2023).",
         "Dams and modelling: an independent review found the Vesdre valley floods from a "
         "1-in-25-year event even with the Eupen dam, and asked for a legal dam-safety framework "
         "and forecast-driven operation (Stucky review, 6 December 2021); a whole-basin Vesdre "
@@ -933,7 +933,7 @@ SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
         "and the Region 59 % of insured damage, and about 152,000 tonnes of flood waste were "
         "treated (Walloon Government, 4 July 2022).",
     )),
-    ("Germany — the Ahr (Rhineland-Palatinate)", (
+    ("Germany: the Ahr (Rhineland-Palatinate)", (
         "Reconstruction fund of up to EUR 30 billion; about EUR 5.84 billion paid out by 31 "
         "December 2025. The federal government will not fund new flood-protection works from it "
         "(a task of the Länder) and points to EUR 127 million a year in the federal-Länder joint "
@@ -941,11 +941,11 @@ SINCE_2021: tuple[tuple[str, tuple[str, ...]], ...] = (
         "Public warning: technical rules for Cell Broadcast / DE-Alert over mobile networks were "
         "published 23 February 2022, the legal basis in force since December 2021 "
         "(Bundesnetzagentur, 23 February 2022).",
-        "Prevention: the national flood-protection programme (NHWSP) for 2026–2035 is costed at "
+        "Prevention: the national flood-protection programme (NHWSP) for 2026 to 2035 is costed at "
         "about EUR 4 billion for the Länder, and the federal government is pursuing expanded "
         "mandatory natural-hazard insurance (German Bundestag, 27 February 2026).",
     )),
-    ("Netherlands — Limburg", (
+    ("Netherlands: Limburg", (
         "Policy table on flooding: 21 recommendations, all accepted (19 December 2022); the "
         "safety model was widened from three to five layers, adding water-awareness and recovery.",
         "Progress (final report, April 2026): of 80 actions, 50 done, 19 embedded in other "
@@ -998,7 +998,7 @@ NEXT_STEPS: tuple[tuple[str, str, str], ...] = (
      "not just a generic warning.",
      "Anna triggers it; national and regional civil-protection authorities send it, before the "
      "forecast rain arrives.",
-     "The European flood forecast warned national authorities from 10 July 2021, yet 29–35 % of "
+     "The European flood forecast warned national authorities from 10 July 2021, yet 29 to 35 % of "
      "residents got no warning and up to half of those warned did not know what to do "
      "(peer-reviewed survey of the July 2021 flood, 2023); the cell-broadcast basis exists since "
      "February 2022."),
@@ -1273,7 +1273,7 @@ def _combined_html(c: dict[str, Any]) -> str:
     """One line: the cross-border total the first maps reached, for the three countries at once."""
     return ('<p class="combined">Across the three countries the first maps reached '
             f'<b>{esc(c["buildings_shown"])}</b> buildings and <b>{esc(c["residents_shown"])}</b> '
-            f'residents — and <b>{esc(c["share_shown"])}</b> of those people lived outside the '
+            f'residents, and <b>{esc(c["share_shown"])}</b> of those people lived outside the '
             '1-in-100-year flood zone.</p>')
 
 
@@ -1397,7 +1397,7 @@ the 1-in-500-year map; what stays outside even the 1-in-500 map is water the map
 <h3 class="sub">Was the map right, by area?</h3>
 {_agreement_html(map_agreement(countries))}
 <p class="small">The share of the observed flood <b>area</b> (first maps) that fell inside the 1-in-100-year zone,
-in the 1-in-500 zone only, or outside both — the cell-weighted agreement with the JRC map. The chart above
+in the 1-in-500 zone only, or outside both, the cell-weighted agreement with the JRC map. The chart above
 counts people; this counts flooded ground, so a place with much water but few residents still shows how much
 the map missed. "Outside both" mixes flooding beyond the modelled hazard with rivers too small to be modelled
 (catchment below the ~150 km² floor).</p>

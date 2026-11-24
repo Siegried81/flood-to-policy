@@ -176,7 +176,7 @@
         '<tr class="hl"><td>S = ' + Math.round(100 * P.w.E) + ' % E + ' + Math.round(100 * P.w.G) + ' % G</td><td>' + (r.S == null ? '—' : r.S.toFixed(1)) + '</td></tr>' +
         '</table>' + (P.rank[i] ? '<div>Rank ' + P.rank[i] + ' of ' + fmt(P.order.length) + ' hexagons with exposed residents</div>' : '<div>No score: both weights are 0.</div>') +
         (why.length ? '<div class="muted" style="margin-top:4px"><b>Why residents remain unassigned:</b> ' +
-          why.map(function (k) { return approx(reasonU[i][k]) + ' — ' + GAP_TXT[k]; }).join('; ') + '.</div>' : '') +
+          why.map(function (k) { return approx(reasonU[i][k]) + ', ' + GAP_TXT[k]; }).join('; ') + '.</div>' : '') +
         notes(i).map(function (t) { return '<div class="muted">' + t + '</div>'; }).join('') + est;
     }
     L.popup({className: 'shel-pop', maxWidth: 330, autoPanPaddingTopLeft: L.point(340, 20)})

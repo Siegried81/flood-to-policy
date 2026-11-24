@@ -368,7 +368,7 @@ def choropleth_svg(
         if index is None:
             tip = "not measured"
         elif code in hatched:
-            tip = f"{show(value)} — {hatch_label}"
+            tip = f"{show(value)}, {hatch_label}"
         else:
             tip = show(value)
         shapes.append((path, fill, f"{code}: {tip}"))

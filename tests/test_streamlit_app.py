@@ -368,7 +368,7 @@ def test_the_map_and_the_ranking_read_the_same_period():
     said = _texts(app_test)
     # The choropleth and the ranking carry the period in their own headings, so
     # a screenshot of either one states which flood it is.
-    assert "Where the danger is — 1-in-100 year flood" in said
+    assert "Where the danger is: 1-in-100 year flood" in said
     assert "Ranked: share of residents exposed, 1-in-100 year flood" in said
     assert "Ranked on the **1-in-100 year** scenario" in said
 
@@ -704,7 +704,7 @@ def test_geometry_never_reaches_the_prompt(monkeypatch):
 
 
 def test_the_prompt_table_is_the_selected_scenario_only(monkeypatch):
-    """The defect: this tab sent `exposure.head(200)` — the whole nine-period
+    """The defect: this tab sent `exposure.head(200)`, the whole nine-period
     table in FILE order, so Albania through Germany at the 10-year period
     whatever the reader had selected above. The page's own contract is one
     scenario everywhere, and a brief drafted against a different flood from the
@@ -751,7 +751,7 @@ def test_the_prompt_stays_inside_the_provider_token_budget(monkeypatch):
     """The bug a jury would have seen: Groq caps `openai/gpt-oss-120b` at 8,000
     tokens per MINUTE on the on-demand tier and answers HTTP 413 above it, while
     the model's context is 131k. Measured on the real table, `head(200)` built a
-    29,718-character prompt — about 14,900 tokens — so the draft tab could never
+    29,718-character prompt, about 14,900 tokens, so the draft tab could never
     succeed on that tier. TOON runs about 2.05 characters per token."""
     table = _nested_table()
     with _frozen(table), _stubbed_model(monkeypatch, "A sentence [S1].") as seen:
@@ -860,7 +860,7 @@ def _approved_into(target: pathlib.Path):
 
 
 def _approve(app_test, text):
-    box = next(t for t in app_test.text_area if t.label == "Draft — edit freely")
+    box = next(t for t in app_test.text_area if t.label == "Draft: edit freely")
     box.set_value(text).run()
     next(b for b in app_test.button if b.label == "Approve for the brief").click().run()
     return app_test
@@ -1466,3 +1466,79 @@ def test_an_eu_only_table_offers_no_country_choice():
     app_test = _run(table[table["country"] == "BE"])
     assert app_test.exception == []
     assert not any(r.label == "Countries" for r in app_test.radio)
+
+
+# --- hosted demo, approval and translation pre-fill ------------------------------
+
+def test_the_hosted_demo_disables_draft_translate_approve_and_free_text_ask(monkeypatch):
+    """The API refuses all four under HOSTED=1; the Streamlit page used to
+    offer them. Nothing may call a model or write the brief."""
+    called = []
+    monkeypatch.setenv("HOSTED", "1")
+    monkeypatch.setattr(rag, "search", lambda q, k=5: called.append("search") or [])
+    monkeypatch.setattr(rag, "complete", lambda *a, **k: called.append("complete"))
+    with _frozen(_nested_table()):
+        app_test = AppTest.from_file(str(APP), default_timeout=60).run()
+        box = next(t for t in app_test.text_input if "decision-maker" in t.label)
+        box.set_value("flood risk plans?").run()
+    page = _texts(app_test)
+    assert app_test.exception == []
+    assert "Drafting is disabled in the hosted demo" in page
+    assert "Translation is disabled in the hosted demo" in page
+    assert "Asking in free text is disabled in the hosted demo" in page
+    assert next(b for b in app_test.button if b.label == "Translate").disabled
+    assert next(b for b in app_test.button if b.label == "Ask").disabled
+    assert not called
+
+
+def test_an_empty_approval_is_refused_with_a_warning(monkeypatch, tmp_path):
+    target = tmp_path / "approved.md"
+    table = _nested_table()
+    with (
+        _frozen(table), _approved_into(target),
+        _stubbed_model(monkeypatch, "Flood risk management plans [S1]."),
+    ):
+        app_test = _approve(_ask(table), "   \n ")
+
+    assert app_test.exception == []
+    assert "Nothing to approve" in _texts(app_test)
+    assert target.read_text(encoding="utf-8") == ""
+
+
+def test_the_translation_prefill_drops_the_approval_stamps(tmp_path):
+    """The `<!-- approved ... -->` stamps are the record's, not the section's:
+    they must not be counted as figures or sent to the model."""
+    target = tmp_path / "approved.md"
+    target.write_text(
+        "\n\n<!-- approved 2026-01-02 10:30; 1 number -->\nPlans cover 40% [S1].\n",
+        encoding="utf-8",
+    )
+    with _frozen(_nested_table()), _approved_into(target):
+        # `exists` is patched by `_frozen`; teach it the redirected file too.
+        frozen_exists = pathlib.Path.exists
+        with patch.object(
+            pathlib.Path, "exists",
+            lambda self, *a, **k: True if _key(self) == APPROVED_KEY else frozen_exists(self, *a, **k),
+        ):
+            app_test = AppTest.from_file(str(APP), default_timeout=60).run()
+    section = next(a for a in app_test.text_area if a.label == "English section")
+    assert section.value == "Plans cover 40% [S1]."
+
+
+def test_the_draft_shows_the_dont_know_count(monkeypatch):
+    table = _nested_table()
+    with _frozen(table), _stubbed_model(
+        monkeypatch,
+        "Flood risk management plans matter [S1]. " + rag.DONT_KNOW,
+    ):
+        app_test = _ask(table)
+    assert app_test.exception == []
+    shown = {m.label: m.value for m in app_test.metric}
+    assert shown["Answered I DON'T KNOW"] == "1"
+
+
+def test_the_approval_stamp_is_utc():
+    """The API stamps in UTC; a local clock would put the same approval at two
+    different times in one file."""
+    source = APP.read_text(encoding="utf-8")
+    assert "datetime.now(timezone.utc):%Y-%m-%d %H:%M" in source

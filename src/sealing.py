@@ -27,7 +27,7 @@ What "area" means differs between the two grids:
   0.01 km2, so the plain mean of the cells already IS the area-weighted mean.
 
 **Shares are in [0, 1], changes in percentage points.** The HERA file stores a
-fraction (measured 2026-10-24 on both epochs: `Band1`, min 0.0, max 0.99999);
+fraction (measured on both epochs: `Band1`, min 0.0, max 0.99999);
 the CLMS layer stores whole percent and is divided by 100 here, so the two
 sources share one unit and match every other `*_share_*` column of
 `context.parquet`. A change between two shares is reported in percentage
@@ -71,7 +71,7 @@ HERA_URL = (
 HERA_YEARS = (2010, 2020)
 
 #: The HERA files carry no CRS (GDAL reports `crs=None`), only `lat`/`lon`
-#: coordinate variables in degrees. Measured 2026-10-24 on both epochs. The
+#: coordinate variables in degrees. Measured on both epochs. The
 #: grid is the EFAS 1 arcmin grid, which config/sources.yaml declares as
 #: EPSG:4326; it is assigned only after the units confirm degrees.
 HERA_CRS = "EPSG:4326"

@@ -18,11 +18,15 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
   const [error, setError] = useState(null);
   const [approved, setApproved] = useState(null);
   const [token, setToken] = useState("");
+  // What /api/approve found in the text as written: findings that did not refuse
+  // it but are recorded beside it, so the person sees what was just stored.
+  const [verification, setVerification] = useState(null);
 
   const run = async () => {
     setState("working");
     setError(null);
     setApproved(null);
+    setVerification(null);
     try {
       const body = await requestDraft(question, returnPeriod);
       setResult(body);
@@ -35,6 +39,7 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
   };
 
   const send = async () => {
+    setError(null);
     try {
       // The edited text is sent exactly as the human left it. It is deliberately
       // never passed back through the model to polish, which would hand the last
@@ -42,6 +47,7 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
       // server checks the edit against the sources it was written from.
       const body = await approve(edited, token, result);
       setApproved(body.approved_at);
+      setVerification(body.verification ?? null);
     } catch (e) {
       setError(e.message);
     }
@@ -75,7 +81,7 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
 
       {result?.refused && (
         <div className="refusal" role="note">
-          <strong>Refused — the corpus is silent on this.</strong>
+          <strong>Refused: the corpus is silent on this.</strong>
           <p>
             No passage supports an answer, so nothing was generated. This is the
             designed behaviour, not a failure: rephrase using the documents’ own
@@ -98,7 +104,7 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
             {/* Keyed on `available`, not on the object. When tiktoken cannot be
                 loaded the server sends every count as null inside an object that
                 is still truthy, so testing the object alone rendered "−null%
-                tokens vs JSON" — a measurement the code never had. The
+                tokens vs JSON", a measurement the code never had. The
                 unmeasured case says so and carries the server's reason; it must
                 stay visually distinct from a measured 0%, which is the property
                 this whole kit argues for. */}
@@ -113,9 +119,17 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
 
           {result.tokens && !result.tokens.available && (
             <p className="caption warn-text">
-              Token saving NOT measured here — {result.tokens.reason}. Run the
+              Token saving NOT measured here, {result.tokens.reason}. Run the
               count where tiktoken loads (WSL, or the container) before quoting a
               figure in the brief.
+            </p>
+          )}
+
+          {result.unknown_claims?.length > 0 && (
+            <p className="caption warn-text">
+              The model answered I DON'T KNOW on {result.unknown_claims.length}{" "}
+              {result.unknown_claims.length === 1 ? "point" : "points"}:{" "}
+              {result.unknown_claims.join(" | ")}
             </p>
           )}
 
@@ -124,7 +138,7 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
               The model read {result.prompt_rows}{" "}
               {result.ranked ? "most exposed regions" : "regions, in file order,"}
               {result.return_period ? ` at the 1-in-${result.return_period} year flood` : ""}
-              {result.ranked ? ", ranked by share" : ""} — an extract, so any
+              {result.ranked ? ", ranked by share" : ""}, an extract, so any
               European total in the draft is not from the table.
             </p>
           )}
@@ -147,7 +161,12 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
 
           <textarea
             value={edited}
-            onChange={(e) => setEdited(e.target.value)}
+            onChange={(e) => {
+              setEdited(e.target.value);
+              // The appended text is no longer what is on screen.
+              setApproved(null);
+              setVerification(null);
+            }}
             rows={12}
             aria-label="Draft, editable"
           />
@@ -174,12 +193,25 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
             </button>
             {weak && (
               <span className="caption warn-text">
-                Weakly grounded or carrying a bad citation — read it against the
+                Weakly grounded or carrying a bad citation, read it against the
                 passages first.
               </span>
             )}
             {approved && <span className="chip ok">appended {approved}</span>}
           </div>
+
+          {approved && (verification?.unsupported_numbers?.length > 0
+            || verification?.uncited_sentences?.length > 0) && (
+            <div className="caption warn-text" role="note">
+              Appended, with findings recorded beside the text.
+              {verification.unsupported_numbers?.length > 0 && (
+                <> Numbers in no source: {verification.unsupported_numbers.join(", ")}.</>
+              )}
+              {verification.uncited_sentences?.length > 0 && (
+                <> Sentences citing no source: {verification.uncited_sentences.join(" | ")}</>
+              )}
+            </div>
+          )}
         </>
       )}
     </section>

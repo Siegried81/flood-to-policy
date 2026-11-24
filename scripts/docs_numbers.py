@@ -56,11 +56,23 @@ def tests_collected():
     doc figure went wrong before. Only tests/ is counted: team9/tests skips whole
     modules when scipy, playwright or GCS credentials are missing, so its count
     changes from one machine to the next.
+
+    A collection error is a failure, not a smaller number: pytest still prints
+    "N tests collected" for the modules that did import, and writing that N into
+    the docs would publish a count missing the broken ones.
     """
     proc = subprocess.run([sys.executable, "-m", "pytest", "tests", "--collect-only", "-q",
                            "-p", "no:cacheprovider"],
                           cwd=ROOT, capture_output=True, text=True, timeout=300)
+    check_collection(proc.returncode, proc.stdout)
     return parse_collected(proc.stdout)
+
+
+def check_collection(returncode, output):
+    """Raise unless pytest collected the whole suite cleanly (exit 0, no errors)."""
+    if returncode != 0 or re.search(r"\b\d+ errors?\b", output):
+        raise RuntimeError(f"pytest collection failed (exit {returncode}); "
+                           "refusing to publish a partial test count")
 
 
 def count_sources(doc):

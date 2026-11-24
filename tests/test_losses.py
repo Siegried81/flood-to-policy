@@ -505,3 +505,12 @@ def test_dates_are_assembled_from_the_day_month_year_triples(flood_2021):
     for reading an event's duration, never for the year filter."""
     assert flood_2021["event_start_date"].iloc[0] == pd.Timestamp("2021-07-13")
     assert flood_2021["event_end_date"].iloc[0] == pd.Timestamp("2021-07-16")
+
+
+def test_a_unit_whose_every_value_is_null_totals_to_null_not_zero():
+    """pandas sums an all-null group to 0.0, which reads as "no loss here"."""
+    rows = [_row("BE331", "BE33", "NUTS3", 3.0), _row("BE332", "BE33", "NUTS3", 1.0)]
+    rows[1]["value_event_src_average"] = rows[1]["value_2015_event_src_average"] = None
+    out = L.total_by_unit(L.to_frame(rows), "casualty_count", "NUTS3").set_index("admin_unit_code")
+    assert out.loc["BE331", L.VALUE_COLUMN] == 3.0
+    assert pd.isna(out.loc["BE332", L.VALUE_COLUMN])

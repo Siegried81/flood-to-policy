@@ -59,7 +59,7 @@ export default function TranslationPanel() {
     <section className="panel">
       <h2>The brief in the language the authority works in</h2>
       <p className="note">
-        The English section stays the record — it is the text whose figures were
+        The English section stays the record, it is the text whose figures were
         checked against the frozen table. A translation is a rendering of it, and
         one that moved a figure or a citation is refused rather than shown.
       </p>
@@ -95,7 +95,7 @@ export default function TranslationPanel() {
         </button>
       </div>
 
-      {error && <p className="error">Not shown — {error}</p>}
+      {error && <p className="error">Not shown: {error}</p>}
 
       {result && (
         <>
@@ -104,7 +104,7 @@ export default function TranslationPanel() {
             citations checked against the English, digit by digit.
           </p>
           <label htmlFor="translate-output">
-            {result.language_name} — edit freely
+            {result.language_name}: edit freely
           </label>
           <textarea
             id="translate-output"

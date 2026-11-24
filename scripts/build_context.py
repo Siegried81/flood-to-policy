@@ -279,8 +279,12 @@ def _facilities(admin: gpd.GeoDataFrame, min_depth_m: float):
             flags[f"flooded_rp{rp}"] = wet
             if protection is not None:
                 flags[f"flooded_residual_rp{rp}"] = wet & ~facilities.held(points, protection, rp)
-        frames.append(facilities.counts_by_region(points, admin, flags, prefix=prefix, weight=weight))
-        notes.append(f"{prefix}: {len(points):,} points")
+        counted = facilities.counts_by_region(points, admin, flags, prefix=prefix, weight=weight)
+        frames.append(counted)
+        notes.append(
+            f"{prefix}: {len(points):,} points, "
+            f"{counted.attrs['outside_regions']:,} in no region (counted nowhere)"
+        )
     if not frames:
         return None, "; ".join(notes)
     return pd.concat(frames, axis=1), "; ".join(notes)

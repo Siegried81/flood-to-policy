@@ -2,7 +2,7 @@
 
 What it does: loads the registry into one `Instrument` per abbreviation and
 renders a citation with the article and the EUR-Lex URL attached, e.g.
-`cite("FD", "14(3)")` -> "Directive 2007/60/EC, Art. 14(3) —
+`cite("FD", "14(3)")` -> "Directive 2007/60/EC, Art. 14(3):
 https://eur-lex.europa.eu/eli/dir/2007/60/oj".
 
 Why it exists: the brief's authority is a handful of articles, and without a
@@ -68,14 +68,14 @@ def load(path: Path = REGISTRY) -> dict[str, Instrument]:
 
 def cite(abbr: str, article: str | None = None,
          registry: dict[str, Instrument] | None = None) -> str:
-    """Render "<short>, Art. <article> — <eurlex_url>", or without the article.
+    """Render "<short>, Art. <article>: <eurlex_url>", or without the article.
 
     Raises `KeyError` for an instrument or an article the registry does not
     hold, rather than printing a citation nobody checked.
     """
     inst = (registry if registry is not None else load())[abbr]
     if article is None:
-        return f"{inst.short} — {inst.eurlex_url}"
+        return f"{inst.short}: {inst.eurlex_url}"
     if article not in inst.articles:
         raise KeyError(f"{abbr} Art. {article} is not in {REGISTRY.name}")
-    return f"{inst.short}, Art. {article} — {inst.eurlex_url}"
+    return f"{inst.short}, Art. {article}: {inst.eurlex_url}"

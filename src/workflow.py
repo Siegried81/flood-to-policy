@@ -1,6 +1,6 @@
 """The brief pipeline as a LangGraph workflow, with an approval gate.
 
-**Workflow, not agent — on purpose.** The course distinction applies directly
+**Workflow, not agent, on purpose.** The course distinction applies directly
 here: an agent decides its own next step, a workflow follows a path the author
 fixed. For a deliverable that a public authority might act on, the path must be
 inspectable before it runs, and every run must be explainable afterwards. Letting
@@ -263,11 +263,12 @@ def _approve(state: BriefState) -> BriefState:
                 )
                 + "Reply 'approve', or 'reject' (anything starting with no/reject/refuse "
                 "is a rejection and records the rest as the reason), or give the edited "
-                "text - prefix it 'edit: ' if it has to start with one of those words."
+                "text - prefix it 'edit: ' if it is shorter than four words or has to "
+                "start with an approval or refusal word."
             ),
         }
     )
-    return _record(decision, state["draft"])
+    return _record(decision, state["draft"], refused=refused)
 
 
 # The closed set of words that open a refusal. A bare string starting with one of
@@ -276,10 +277,21 @@ def _approve(state: BriefState) -> BriefState:
 # sentiment guess - and `{"decision": "edit", ...}` or an "edit: " prefix forces
 # an edit that legitimately starts with one of these words.
 _REFUSAL_WORDS = frozenset("no nope reject rejected deny denied refuse refused veto".split())
+#: The matching closed set for approval. A reply that opens with one of these is
+#: an approval, so "Approved." or "yes" never becomes the text of the brief.
+_APPROVAL_WORDS = frozenset(
+    "approve approved yes yep ok okay accept accepted lgtm publish".split())
 _FIRST_WORD = re.compile(r"[^\W_]+", re.UNICODE)
+#: A negated approval ("do not publish this", "don't approve") is a refusal even
+#: though its first word is not one.
+_NEGATED_APPROVAL = re.compile(
+    r"\b(?:do\s+not|don['’]?t|not|never)\s+(?:approve|approved|publish)", re.IGNORECASE)
+#: Replies this short are a decision, never replacement text: a real edit is a
+#: sentence with a citation, and one that has to be short uses the `edit:` form.
+_MAX_DECISION_WORDS = 3
 
 
-def _record(decision: object, draft: str) -> BriefState:
+def _record(decision: object, draft: str, refused: bool = False) -> BriefState:
     """Turn what the human sent into one of three recorded outcomes.
 
     Three, because two branches that both return `approved: True` make a
@@ -296,6 +308,18 @@ def _record(decision: object, draft: str) -> BriefState:
     were the section. The first is a visible annoyance, the second is the exact
     harm this kit is built against, so the tie goes to refusing.
 
+    A bare reply is only ever replacement text when it is long enough to be
+    prose and does not open like a decision: one to three words ("Approve.",
+    "yes", "Not approved") or a reply whose first word is an approval or refusal
+    word is read as a decision, and a negated approval ("do not publish this")
+    is a refusal. A decision that is not clearly one of the two fails closed
+    with a reason asking for `approve`, `reject` or the `edit:` form, so the
+    sentence the human typed to say yes is never published as the section.
+
+    Approving a refusal (`refused=True`) records nothing: the draft is the
+    "REFUSED: ..." notice, not brief text, so only an explicit edit can write
+    something under a refusal.
+
     `approved` now means "a human chose text for the brief" and is False on a
     rejection, where `final` is "" rather than the reason: a caller that appends
     `final` without checking `approved` then appends nothing instead of appending
@@ -305,7 +329,7 @@ def _record(decision: object, draft: str) -> BriefState:
         verdict = str(decision.get("decision", "")).strip().lower()
         why = str(decision.get("why") or decision.get("reason") or "").strip()
         if verdict == "approve":
-            return {"decision": "approve", "approved": True, "final": draft}
+            return _approved(draft, refused)
         if verdict == "edit":
             text = decision.get("text") or decision.get("final") or ""
             if isinstance(text, str) and text.strip():
@@ -316,16 +340,22 @@ def _record(decision: object, draft: str) -> BriefState:
     if isinstance(decision, str) and decision.strip():
         stripped = decision.strip()
         lowered = stripped.lower()
-        if lowered == "approve":
-            return {"decision": "approve", "approved": True, "final": draft}
+        match = _FIRST_WORD.match(lowered)
+        first = match.group(0) if match else ""
+        words = _FIRST_WORD.findall(lowered)
         if lowered.startswith("edit:"):
             text = stripped[len("edit:"):].strip()
             if text:
                 return {"decision": "edit", "approved": True, "final": text}
             return _rejected("an 'edit:' reply arrived with no replacement text")
-        match = _FIRST_WORD.match(lowered)
-        if match and match.group(0) in _REFUSAL_WORDS:
+        if first in _REFUSAL_WORDS or _NEGATED_APPROVAL.search(stripped):
             return _rejected(stripped)
+        if first in _APPROVAL_WORDS and len(words) <= _MAX_DECISION_WORDS:
+            return _approved(draft, refused)
+        if first in _APPROVAL_WORDS or len(words) <= _MAX_DECISION_WORDS:
+            return _rejected(
+                f"{stripped!r} is neither 'approve', 'reject' nor replacement text; "
+                "send the edited section as 'edit: <text>'")
         return {"decision": "edit", "approved": True, "final": decision}
 
     return _rejected(f"resumed with no usable decision ({decision!r})")
@@ -334,6 +364,17 @@ def _record(decision: object, draft: str) -> BriefState:
 def _rejected(reason: str) -> BriefState:
     """The one shape a rejection takes, so every caller reads it the same way."""
     return {"decision": "reject", "approved": False, "final": "", "rejection_reason": reason}
+
+
+def _approved(draft: str, refused: bool) -> BriefState:
+    """An approval of the draft, unless the draft is a refusal notice.
+
+    A refusal is a statement that the corpus had nothing, not a section, so
+    "approving" it must not write the notice into the brief.
+    """
+    if refused:
+        return _rejected("a refusal notice is not brief text; reject it, or send 'edit: <text>'")
+    return {"decision": "approve", "approved": True, "final": draft}
 
 
 def build_graph(checkpointer=None):

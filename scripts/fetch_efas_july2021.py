@@ -5,7 +5,7 @@ Two requests to the CEMS Early Warning Data Store (EWDS), dataset
 
 1. **River discharge, 1-31 July 2021**, every 6-hourly step, system
    `version_5_0`, box N52 W3 S49 E8, NetCDF. Cost measured on the costing
-   endpoint 2026-10-24: 124 fields of a 1,500 limit (31 days x 4 steps).
+   endpoint: 124 fields of a 1,500 limit (31 days x 4 steps).
 2. **The static `upstream_area` field**, which is what tells a river cell from a
    hillslope cell (every land cell carries a return-level threshold). Cost 1.
    It is requested for the whole domain because the form says "area
@@ -15,7 +15,7 @@ Two requests to the CEMS Early Warning Data Store (EWDS), dataset
 **The request is built from the live form, not from the how-to page.** Every
 key and value below was read off `form.json` and `constraints.json` linked from
 https://ewds.climate.copernicus.eu/api/catalogue/v1/collections/efas-historical
-on 2026-10-24: `hyear`/`hmonth`/`hday`, `time` in `HH:MM`, `model_levels` set
+reads: `hyear`/`hmonth`/`hday`, `time` in `HH:MM`, `model_levels` set
 to `surface_level`, `area` as [N, W, S, E]. The page's own example is rejected
 by the costing endpoint.
 

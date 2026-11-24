@@ -28,7 +28,7 @@ JULY_2021_EU = "FLEU202107120015"
 
 def _load(path):
     if not path.exists():
-        pytest.skip(f"{path.name} not cached; the quoted figures cannot be checked")
+        pytest.skip(f"dev-machine data: {path} (RDH cache, absent in CI)")
     return json.loads(path.read_text(encoding="utf-8"))
 
 

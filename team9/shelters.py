@@ -502,7 +502,7 @@ if __name__ == "__main__":
     for q in problems:
         print("  CHECK FAILED:", q)
     export(inv, meta)
-    print(f"  {meta['n_candidates']:,} candidates; OSM data {meta['osm_base_from']} – {meta['osm_base_to']}; "
+    print(f"  {meta['n_candidates']:,} candidates; OSM data {meta['osm_base_from']}, {meta['osm_base_to']}; "
           f"{meta['tiles_ok']}/{meta['tiles']} tiles ok, {len(meta['tiles_stale'])} stale")
     print(pd.DataFrame(meta["counts"]).T.to_string())
     print("  excluded:", meta["excluded"])

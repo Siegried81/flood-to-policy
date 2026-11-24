@@ -5,7 +5,7 @@ scoring.py - Normalisation, weights, priority scores, missing-data treatment, ev
 
 P, B, F in [0, 1] (normalised exposure), M in [0.5, 1] (facility or infrastructure factor; M = 1 for areas).
 A missing indicator (NaN) is excluded and the remaining weights are renormalised; the bounded range
-[missing = 0, missing = 1] is reported alongside. The browser (priority/map.js) implements the same formula.
+[missing = 0, missing = 1] is reported alongside. The browser (priority/assets.js) implements the same formula.
 """
 import itertools
 

@@ -19,8 +19,7 @@ region.
 years. NewsAPI supplements it when `NEWSAPI_KEY` is set, but its free tier only
 reaches back about a month and is English-biased - fine as a recency top-up,
 useless as the backbone. With neither available the signal degrades to
-"unavailable" rather than inventing a number, the same way
-`ing-usecase/reputation.py` handles a missing key.
+"unavailable" rather than inventing a number: a missing key is not a quiet week.
 
 **NEVER CALL THIS LIVE IN FRONT OF A JURY.** GDELT asks for one request every five
 seconds, and its rate limiting is per-IP and *sustained*: once tripped, it kept

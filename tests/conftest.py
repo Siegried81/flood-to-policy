@@ -17,6 +17,7 @@ from __future__ import annotations
 import pytest
 
 from src.rag import GROQ_KEY_VARS
+from tests.network_guard import offline_guard, register_marker  # noqa: F401  (autouse fixture)
 
 _CLEARED = (
     "ANTHROPIC_API_KEY",
@@ -33,3 +34,7 @@ _CLEARED = (
 def _no_real_provider_keys(monkeypatch):
     for name in _CLEARED:
         monkeypatch.delenv(name, raising=False)
+
+
+def pytest_configure(config):
+    register_marker(config)

@@ -12,7 +12,7 @@ and how many went past the 1-in-100 level.
 Four properties of the data decide the design.
 
 **Every land cell has a threshold, so "has a threshold" is not "is a river".**
-Measured 2026-10-24 on `flood_threshold_efas_v5.1_rl_2.0.nc`: 5,203,310 finite
+Measured on `flood_threshold_efas_v5.1_rl_2.0.nc`: 5,203,310 finite
 cells on the 4530 x 2970 grid, a median 2-year flow of 0.27 m3/s and 73% of cells
 under 1 m3/s - hillslopes and ditches, every one of which LISFLOOD routes. A
 region's count of "cells over RP100" would be dominated by them. River cells are
@@ -115,8 +115,8 @@ def _variable(ds, name: str | None = None):
 
     Picked by layout rather than by name, because the threshold files name it
     after the level (`rl_2.0`, `rl_100.0`: one float32 `(lat, lon)` variable per
-    file, NaN as nodata, no CRS attribute - degrees on the EFAS grid, measured
-    2026-10-24) and the EWDS conversion after the GRIB short name (`dis06`,
+    file, NaN as nodata, no CRS attribute - degrees on the EFAS grid, measured)
+    and the EWDS conversion after the GRIB short name (`dis06`,
     unverified until the first real download).
     """
     if name is not None:
@@ -220,7 +220,7 @@ def highest_level_exceeded(
     highest.
 
     Also NaN where the levels do not rise from one return period to the next.
-    Measured 2026-10-24 on the real files: thresholds never decrease with the
+    Measured on the real files: thresholds never decrease with the
     return period, but 3,825 cells carry the same discharge at two consecutive
     levels - fits on a flow of zero or nearly so. On such a cell any trickle
     "exceeds the 1-in-500 level", which says nothing about a flood.

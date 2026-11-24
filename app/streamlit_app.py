@@ -28,7 +28,8 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -49,7 +50,7 @@ from src.policy_tool import EU27  # noqa: E402
 # It costs this app an import of fastapi, which is pure Python and already a hard
 # requirement of the kit - unlike tiktoken, see the note in src/toon_io.py.
 from api.main import climate_periods, vulnerability_indicators  # noqa: E402
-from api.main import MODEL_SPREAD_PP, sign_column, with_size_uncertain  # noqa: E402
+from api.main import MODEL_SPREAD_PP, HOSTED_REFUSAL, hosted, sign_column, with_size_uncertain  # noqa: E402
 
 st.set_page_config(page_title="Flood exposure, Europe", layout="wide")
 
@@ -101,7 +102,7 @@ def load_context() -> pd.DataFrame | None:
     A separate table behind a separate loader, deliberately never merged into the
     exposure frame: `vulnerability_indicators` picks the composite index's inputs
     by scanning numeric columns, so a climate percentage or a basin share joined
-    onto `exposure` would become a min-max-scaled term in a weighted mean —
+    onto `exposure` would become a min-max-scaled term in a weighted mean,
     "this region's rivers rise faster, therefore its residents are more
     vulnerable". Context qualifies an exposure figure; it is not an ingredient of
     one.
@@ -234,14 +235,14 @@ def render_july2021(web: dict) -> None:
         table.append(f"| {row['name']} | {cells} |")
     st.markdown("\n".join(table))
 
-    st.subheader(f"What to recommend — by {web['recommendations']['review_date']}")
+    st.subheader(f"What to recommend: by {web['recommendations']['review_date']}")
     for i, row in enumerate(web["recommendations"]["rows"], 1):
         st.markdown(f"**{i}. {row['what']}**")
         st.caption(f"Who, by when: {row['who']} · Instrument: {row['how']}")
 
     st.subheader("Before the water")
     for step in web["decision"].get("before", []):
-        st.markdown(f"**{step['when']}** — {step['who']}: {step['what']}")
+        st.markdown(f"**{step['when']}**, {step['who']}: {step['what']}")
 
     st.subheader("What to do next")
     for step in web["next_steps"]:
@@ -272,24 +273,24 @@ def _directive_class(return_period: float) -> tuple[str, str]:
     one period the Directive itself places; everything else is this kit's
     reading and has to be labelled as such, or a brief quotes a threshold the
     law never wrote. The kit reads below 100 years as the high-probability
-    class and rarer than 100 years as the low/extreme one — while noting that
+    class and rarer than 100 years as the low/extreme one, while noting that
     by the letter of (b) every period of 100 years or more is "medium" too.
     """
     if return_period < 100:
         return (
             "high probability",
-            "Art. 6(3)(c) — the kit's reading: the Directive fixes no return "
+            "Art. 6(3)(c), the kit's reading: the Directive fixes no return "
             "period for this class",
         )
     if return_period == 100:
         return (
             "medium probability",
-            "Art. 6(3)(b), \"likely return period ≥ 100 years\" — the one class "
+            "Art. 6(3)(b), \"likely return period ≥ 100 years\", the one class "
             "the Directive puts a number on",
         )
     return (
         "low probability / extreme",
-        "Art. 6(3)(a) — the kit's reading: the Directive fixes no return period "
+        "Art. 6(3)(a), the kit's reading: the Directive fixes no return period "
         "for this class, and by the letter of 6(3)(b) a period ≥ 100 years is "
         "also \"medium probability\"",
     )
@@ -324,7 +325,7 @@ if not key_columns:
     # Every figure here is per region, so without the identifier there is nothing
     # to show. Said plainly rather than left to fail on the first lookup.
     st.error(
-        "No region identifier column in the frozen table — expected one of "
+        "No region identifier column in the frozen table, expected one of "
         f"`nuts_id`, `lau_id` or `id`, found `{'`, `'.join(map(str, exposure.columns))}`. "
         "Rebuild the table joined on the identifier the regions were fetched with."
     )
@@ -379,7 +380,7 @@ if chosen is not None:
         else ""
     )
     st.caption(
-        f"**RP{int(chosen)} is '{scenario}'** — {basis}. Directive 2007/60/EC, "
+        f"**RP{int(chosen)} is '{scenario}'**, {basis}. Directive 2007/60/EC, "
         "Article 6(3), names three scenarios for the flood hazard maps: (a) "
         "\"floods with a low probability, or extreme event scenarios\"; (b) "
         "\"floods with a medium probability (likely return period ≥ 100 "
@@ -465,7 +466,7 @@ with team_tab:
 with map_tab:
     st.info(
         "Return-period extents are **nested**: the 100-year zone contains the "
-        "10-year one. Never add these together — compare them, or integrate over "
+        "10-year one. Never add these together, compare them, or integrate over "
         "probability with `expected_annual_exposure`."
     )
 
@@ -479,7 +480,7 @@ with map_tab:
     )
 
     # --- the map, full width: a choropleth of Europe needs the room ------------
-    st.subheader(f"Where the danger is — 1-in-{chosen} year flood")
+    st.subheader(f"Where the danger is: 1-in-{chosen} year flood")
     features = load_geometry()
     if features is None:
         st.warning(
@@ -498,7 +499,7 @@ with map_tab:
         )
     elif "exposed_share" not in shares.columns:
         st.warning(
-            "No `exposed_share` to colour by — the frozen table is missing "
+            "No `exposed_share` to colour by, the frozen table is missing "
             "`exposed_pop` or `total_pop`."
         )
     else:
@@ -532,7 +533,7 @@ with map_tab:
             centre = None
             legend_note = (
                 "**Classes are quantiles of the regions present, printed in the "
-                "legend** — the distribution is far too skewed for a linear "
+                "legend**, the distribution is far too skewed for a linear "
                 "ramp, which would paint almost everything the palest colour."
             )
             label = f"share of residents exposed at RP{chosen}"
@@ -598,7 +599,7 @@ with map_tab:
                 f"Median of the per-region ensemble medians over **{horizon}**, "
                 f"from **{summary['members']} model chain(s)**, against the "
                 "1971-2000 reference. A **change in discharge, not in depth or "
-                "extent** — never a future headcount. Blues are decreases, reds "
+                "extent**, never a future headcount. Blues are decreases, reds "
                 "are increases; classes are quantiles within each side of zero. "
                 f"**{n_robust:,} regions** {passed} ({sign_rule} on the sign), "
                 f"**{n_hatched:,}** hatched (measured, {failed}), "
@@ -607,7 +608,7 @@ with map_tab:
             label = f"change in river discharge, {horizon}"
 
         # An iframe, not `st.html`: `st.html` sanitises its body with DOMPurify
-        # and the entire <svg> came back stripped — 1,345 paths enqueued, zero
+        # and the entire <svg> came back stripped, 1,345 paths enqueued, zero
         # `stHtml` nodes in the DOM, no console error, and a caption underneath
         # cheerfully reporting "1,338 regions coloured". Verified in the browser.
         # An iframe renders the markup as given.
@@ -647,7 +648,7 @@ with map_tab:
                 "in the table below, not on the map: French Guiana is in South "
                 "America, Reunion and Mayotte in the Indian Ocean, the Azores, "
                 "Madeira and the Canaries in the Atlantic, Svalbard and Jan "
-                f"Mayen in the Arctic — {', '.join(off_map)}. Framing Europe "
+                f"Mayen in the Arctic, {', '.join(off_map)}. Framing Europe "
                 "around them would shrink the continent to a seventh of the "
                 "picture (12,850 x 9,486 km against 4,680 x 4,029 km)."
             )
@@ -658,8 +659,8 @@ with map_tab:
         "**A screening view at NUTS3, never the statutory map.** The flood "
         "hazard and flood risk maps that bind under Directive 2007/60/EC are "
         "the Member States' own, reported to the Commission and served by the "
-        "EEA Flood Risk Areas Viewer — https://discomap.eea.europa.eu/floodsviewer/ "
-        "— and WISE-Freshwater. Use those for a statutory hazard or risk map; "
+        "EEA Flood Risk Areas Viewer: https://discomap.eea.europa.eu/floodsviewer/ "
+        "and WISE-Freshwater. Use those for a statutory hazard or risk map; "
         "use this page to decide where to look first."
     )
 
@@ -683,7 +684,7 @@ with map_tab:
             if ranked == "exposed_share":
                 st.caption("Share of residents exposed. Ranking by absolute count would just rank by size.")
         else:
-            st.warning("No `exposed_pop` column in the frozen table — nothing to chart.")
+            st.warning("No `exposed_pop` column in the frozen table, nothing to chart.")
     with right:
         st.metric("Regions covered", f"{view[key].nunique():,}")
         # "—" rather than 0 when the column is absent: a figure the table does not
@@ -697,7 +698,7 @@ with map_tab:
         st.metric(
             "Not measured",
             int(view["exposed_pop"].isna().sum()) if has_exposure else "—",
-            help="Regions with no raster coverage — not zeros.",
+            help="Regions with no raster coverage, not zeros.",
         )
 
     # Sorted on the chart's own measure, so the table under it does not rank
@@ -713,7 +714,7 @@ with context_tab:
     st.caption(
         "A second frozen table, built by `scripts/build_context.py`. Everything "
         "here describes the ground and the future around an exposure count "
-        "without being one — which is exactly why it is not merged into the "
+        "without being one, which is exactly why it is not merged into the "
         "exposure table: the vulnerability index is a weighted mean over whatever "
         "numeric columns it finds."
     )
@@ -721,7 +722,7 @@ with context_tab:
     if context is None:
         st.warning(
             "No context table yet. Build one with "
-            "`python scripts/build_context.py` — it writes "
+            "`python scripts/build_context.py`, it writes "
             "`data/processed/context.parquet` from the hazard rasters and the CDS "
             "NetCDFs. The map and the ranking do not need it, so the rest of this "
             "app works without it."
@@ -730,13 +731,13 @@ with context_tab:
         stamp = datetime.fromtimestamp(CONTEXT_CACHE.stat().st_mtime)
         st.caption(f"Context table · {len(context):,} regions · computed {stamp:%d %b %H:%M}")
 
-        st.markdown("#### River discharge, against the 1971–2000 reference")
+        st.markdown("#### River discharge, against the 1971 to 2000 reference")
         st.info(
             "The only forward-looking layer in the kit, and it is **discharge, "
             "not depth**: a future flow in m³/s cannot be layered onto the "
             "inundation maps the exposure figures come from. What is defensible "
             "is the direction and size of the change, read beside today's "
-            "exposure — never a future headcount quoted as if it had been "
+            "exposure, never a future headcount quoted as if it had been "
             "measured."
         )
 
@@ -746,7 +747,7 @@ with context_tab:
         summaries = {entry["period"]: entry for entry in climate_periods(context)}
         if not summaries:
             st.warning(
-                "The context table carries no climate columns — the build found "
+                "The context table carries no climate columns, the build found "
                 "no CDS NetCDF for any period."
             )
         else:
@@ -785,7 +786,7 @@ with context_tab:
 
             if summary["single_member"]:
                 # The one caveat that cannot be dropped. Zero agreeing regions
-                # from a single chain is not "the models disagree" — nothing was
+                # from a single chain is not "the models disagree", nothing was
                 # ever compared. Said here because the metric above reads
                 # identically in both cases.
                 st.error(
@@ -793,8 +794,8 @@ with context_tab:
                     "anything.** One member is one plausible world, not a "
                     "projection: the median above is a real measurement and still "
                     "licenses no sentence about the direction of the change. Add a "
-                    "second hydrological model for this period — the CDS archive "
-                    "offers `VIC-WUR-EUR-11` beside `E-HYPEgrid-EUR-11` — and the "
+                    "second hydrological model for this period, the CDS archive "
+                    "offers `VIC-WUR-EUR-11` beside `E-HYPEgrid-EUR-11`, and the "
                     "agreement count becomes readable."
                 )
             elif agrees_column in context.columns and median_column in context.columns:
@@ -902,7 +903,7 @@ with context_tab:
             st.markdown("#### Shared river basins")
             st.caption(
                 "The share of a region's area in a basin that crosses a national "
-                "border, off the 2016 River Basin Management Plans — a vintage, "
+                "border, off the 2016 River Basin Management Plans, a vintage, "
                 "like NUTS. Where this is high, a measure taken alone upstream is "
                 "a measure taken on someone else's territory."
             )
@@ -984,7 +985,7 @@ with vuln_tab:
     )
     if chosen is not None:
         st.info(
-            f"Ranked on the **1-in-{chosen} year** scenario — the return period "
+            f"Ranked on the **1-in-{chosen} year** scenario, the return period "
             "selected above the tabs, shared with the map. The ranking is not the "
             "same for every period: `exposed_pop` is one of the weighted "
             "indicators and it is rescaled within the rows being ranked, so the "
@@ -1000,7 +1001,7 @@ with vuln_tab:
             # period. drop_duplicates is a guard against a table that repeats a
             # region for some other reason; passing the whole table here instead
             # made it pick the first row per region, which is the rarest-last
-            # concatenation order — so the ranking was always the shortest period.
+            # concatenation order, so the ranking was always the shortest period.
             view.drop_duplicates(subset=[key]),
             {c: 1.0 for c in chosen_indicators},
             perturbation=perturbation,
@@ -1021,7 +1022,7 @@ with vuln_tab:
 with ask_tab:
     st.subheader("Ask the exposure table in plain words")
     st.caption(
-        "The model only turns the question into a query spec — columns, filters, "
+        "The model only turns the question into a query spec, columns, filters, "
         "one sort key, a row limit, one return period. The spec is checked against "
         "a whitelist and pandas answers it, so every figure below is a value of "
         "the frozen table. Nothing the model writes is executed."
@@ -1040,11 +1041,15 @@ with ask_tab:
             height=120,
         )
         ask_run_spec = st.button("Run this spec")
-    ask_run_question = st.button("Ask", disabled=not ask_question)
+    # The free-text route calls a model, which the hosted demo refuses; the spec
+    # route above needs none and stays available.
+    if hosted():
+        st.info(HOSTED_REFUSAL.format(what="Asking in free text") + " The spec route above still works.")
+    ask_run_question = st.button("Ask", disabled=not ask_question or hosted())
 
     ask_answer = None
     try:
-        if ask_run_question and ask_question:
+        if ask_run_question and ask_question and not hosted():
             # `chosen`, so a question that names no period is answered for the
             # flood on screen rather than for whichever one the module defaults to.
             ask_answer = nlquery.ask(ask_question, exposure, default_return_period=chosen)
@@ -1076,6 +1081,20 @@ with ask_tab:
                 + ". Log it in the AI usage tab if it reaches the brief."
             )
 
+def _table_header(rows, regions, period) -> str:
+    """The label put above the prompt table: what the rows are and are not.
+
+    One definition for the budget and the prompt, so the characters reserved for
+    it are the characters sent.
+    """
+    return (
+        f"TABLE: the {rows} most exposed of {regions} NUTS3 regions at the "
+        f"1-in-{period} year return period, ranked by the share of their own "
+        "population exposed. This is a ranked extract, not the whole table: do "
+        f"not state a European total or a count of regions from it.\n"
+    )
+
+
 # --- Draft ----------------------------------------------------------------------
 with draft_tab:
     st.subheader("Draft against the evidence")
@@ -1084,14 +1103,16 @@ with draft_tab:
         placeholder="Which regions should be prioritised for a flood warning system, and why?",
     )
 
-    if question:
+    if hosted():
+        st.info(HOSTED_REFUSAL.format(what="Drafting"))
+    elif question:
         passages = rag.search(question, k=5)
         if not passages:
             # The refusal path, shown as a result rather than an error: a corpus
             # that is silent is an answer, and it is the honest one.
             st.error(
                 "**Refused.** No passage in the policy corpus supports an answer to "
-                "this. That is the designed behaviour, not a failure — rephrase in "
+                "this. That is the designed behaviour, not a failure, rephrase in "
                 "the documents' own wording, or accept that the corpus is silent."
             )
         else:
@@ -1101,12 +1122,12 @@ with draft_tab:
                     st.caption(p["text"][:600])
 
             # flatten() first, because it is the only thing that drops `geometry`
-            # — and the frozen table is saved from a GeoDataFrame, so the column is
+            #, and the frozen table is saved from a GeoDataFrame, so the column is
             # there. A polygon is thousands of tokens of coordinates the model can
             # do nothing with, times every row, and it would dominate the prompt.
             #
             # `view`, not `exposure`: the whole table is nine nested scenarios, and
-            # `exposure.head(200)` would be file order — so
+            # `exposure.head(200)` would be file order, so
             # Albania through Germany at the 10-year period, whatever the reader
             # had selected above. The page's contract is one scenario everywhere.
             #
@@ -1123,9 +1144,13 @@ with draft_tab:
             # is a measured property of the provider and it has already moved
             # once, so the module that raises the 413 owns it.
             fenced = rag.fence(passages)
+            # The table block's header and draft_prompt's QUESTION line travel with
+            # the rows, so the budget leaves room for both, as the API's `head`
+            # does. The row count is a placeholder of the same width at most.
+            head = f"QUESTION: {question}\n\n" + _table_header("000", view[key].nunique(), chosen)
             budget = (
                 rag.PROMPT_CHAR_BUDGET
-                - len(fenced) - len(question) - len(rag.SYSTEM_PROMPT)
+                - len(fenced) - len(head) - len(rag.SYSTEM_PROMPT) - 2
             )
             prompt_table = fit_rows(flatten(ranked), "exposure", max(budget, 0))
             table = to_toon(prompt_table, "exposure")
@@ -1134,20 +1159,20 @@ with draft_tab:
                 f"Prompt table: the **{len(prompt_table)} most exposed of "
                 f"{view[key].nunique():,} regions** at the 1-in-{chosen} year "
                 "scenario, ranked by the share of their own population exposed. "
-                "A ranked extract, and the prompt says so — a model handed forty "
+                "A ranked extract, and the prompt says so, a model handed forty "
                 "rows with no label will quote a European total from them."
             )
             if report.get("available", True):
                 st.caption(
                     f"Table encoded as TOON: {report['toon_tokens']:,} tokens against "
-                    f"{report['json_tokens']:,} as JSON — {report['saving_pct']}% smaller. "
+                    f"{report['json_tokens']:,} as JSON, {report['saving_pct']}% smaller. "
                     "Worth saying in the responsible-AI section."
                 )
             else:
                 # Said out loud rather than estimated: an unmeasured saving must not
                 # reach the brief dressed as a measured one.
                 st.caption(
-                    "Table encoded as TOON. Token saving NOT measured here — "
+                    "Table encoded as TOON. Token saving NOT measured here, "
                     f"{report['reason']}. Run the count where tiktoken loads "
                     "(WSL, or the container) before quoting a figure."
                 )
@@ -1155,14 +1180,7 @@ with draft_tab:
             if st.button("Draft this section"):
                 # The table block on its own, because it is also what the
                 # numbers in the draft are checked against below.
-                table_block = (
-                    f"TABLE — the {len(prompt_table)} most exposed of "
-                    f"{view[key].nunique()} NUTS3 regions at the 1-in-{chosen} "
-                    "year return period, ranked by the share of their own "
-                    "population exposed. This is a ranked extract, not the whole "
-                    "table: do not state a European total or a count of regions "
-                    f"from it.\n{table}"
-                )
+                table_block = _table_header(len(prompt_table), view[key].nunique(), chosen) + table
                 prompt = rag.draft_prompt(question, table_block, fenced)
                 try:
                     completion = rag.complete(prompt)
@@ -1170,7 +1188,7 @@ with draft_tab:
                     # A dead provider, a rate limit, a 5xx from the model. Named as
                     # an upstream failure, because an unhandled traceback in front
                     # of a jury reads as a broken deliverable rather than a broken
-                    # network — and the retrieved passages above are still useful.
+                    # network, and the retrieved passages above are still useful.
                     completion = None
                     st.error(f"No model reachable: {exc}")
                 else:
@@ -1181,7 +1199,7 @@ with draft_tab:
                         # a TypeError out of grounding_score, lines from the cause.
                         st.error(
                             "The model returned an empty completion. Nothing was "
-                            "drafted, so there is nothing to verify — retry, or "
+                            "drafted, so there is nothing to verify, retry, or "
                             "check the provider."
                         )
                 if completion is not None:
@@ -1197,16 +1215,17 @@ with draft_tab:
         check = rag.verify(draft, passages, table_ref)
         bad = check["invalid_citations"]
 
-        verdict = st.columns(4)
+        verdict = st.columns(5)
         verdict[0].metric("Lexical grounding", f"{check['grounding']:.0%}")
         verdict[1].metric("Invalid citations", len(bad) or "none")
         verdict[2].metric("Numbers in no source", len(check["unsupported_numbers"]) or "none")
         verdict[3].metric("Uncited sentences", len(check["uncited_sentences"]) or "none")
+        verdict[4].metric("Answered I DON'T KNOW", len(check["unknown_claims"]) or "none")
         if bad:
             st.error(f"Citations pointing at no source: {', '.join(f'[S{n}]' for n in bad)}")
         if check["unsupported_numbers"]:
             st.warning(
-                "Numbers found in no passage and not in the table — check each one: "
+                "Numbers found in no passage and not in the table, check each one: "
                 + ", ".join(check["unsupported_numbers"])
             )
         if check["uncited_sentences"]:
@@ -1223,8 +1242,8 @@ with draft_tab:
             "before approving."
         )
 
-        edited = st.text_area("Draft — edit freely", draft, height=260)
-        if st.button("Approve for the brief", type="primary"):
+        edited = st.text_area("Draft: edit freely", draft, height=260)
+        if st.button("Approve for the brief", type="primary", disabled=hosted()):
             # The human edit wins as-is. It is deliberately not sent back to the
             # model to rewrite, because that hands the last word to the machine.
             # It is re-verified, though: what is written is the EDITED text, and
@@ -1232,7 +1251,9 @@ with draft_tab:
             # The same rule as /api/approve: an out-of-range marker refuses, the
             # rest is recorded beside the text.
             final = rag.verify(edited, passages, table_ref)
-            if final["invalid_citations"]:
+            if not edited.strip():
+                st.warning("Nothing to approve: the text is empty.")
+            elif final["invalid_citations"]:
                 markers = ", ".join(f"[S{n}]" for n in final["invalid_citations"])
                 st.error(
                     f"Not appended: {markers} cites no source ({len(passages)} "
@@ -1243,7 +1264,7 @@ with draft_tab:
                 approved.parent.mkdir(parents=True, exist_ok=True)
                 with approved.open("a", encoding="utf-8") as handle:
                     handle.write(
-                        f"\n\n<!-- approved {datetime.now():%Y-%m-%d %H:%M}; "
+                        f"\n\n<!-- approved {datetime.now(timezone.utc):%Y-%m-%d %H:%M}; "
                         f"{rag.verdict_line(final)} -->\n{edited}\n"
                     )
                 st.success(f"Appended to {approved.name}. Nothing reaches the brief any other way.")
@@ -1254,7 +1275,7 @@ with draft_tab:
 with translate_tab:
     st.subheader("The brief in the language the authority works in")
     st.caption(
-        "Everything in this kit is written in English — the corpus, the code, the "
+        "Everything in this kit is written in English, the corpus, the code, the "
         "interface and the draft. The authority that would act on it is Belgian, "
         "and a recommendation is read in French, Dutch or German. So the "
         "translation sits BESIDE the English section rather than replacing it: "
@@ -1269,11 +1290,16 @@ with translate_tab:
     # an unapproved draft would route text around the gate in the tab next door,
     # which is the one thing this workflow is built to prevent. It stays editable,
     # so a section can still be pasted in by hand.
-    default = approved_path.read_text(encoding="utf-8") if approved_path.exists() else ""
+    # The stamp comments are the record's, not the section's: left in, they
+    # would be counted as figures and sent to the model.
+    default = (
+        re.sub(r"<!--.*?-->", "", approved_path.read_text(encoding="utf-8"), flags=re.S).strip()
+        if approved_path.exists() else ""
+    )
     if not default.strip():
         st.info(
             "Nothing approved yet. Draft a section in the tab before this one and "
-            "approve it — then it appears here."
+            "approve it, then it appears here."
         )
     source = st.text_area(
         "English section", default, height=220,
@@ -1285,14 +1311,16 @@ with translate_tab:
         format_func=lambda code: translate.LANGUAGES[code],
         horizontal=True,
     )
-    if st.button("Translate", type="primary", disabled=not source.strip()):
+    if hosted():
+        st.info(HOSTED_REFUSAL.format(what="Translation"))
+    if st.button("Translate", type="primary", disabled=not source.strip() or hosted()):
         try:
             result = translate.translate(source, language)
         except translate.TranslationFailed as exc:
             # The failure this tab exists for. Shown as an error with the figure
             # named, never as a paragraph: a translation that moved a number reads
             # perfectly and is wrong, which is the worst thing a brief can be.
-            st.error(f"Not shown — {exc}")
+            st.error(f"Not shown: {exc}")
         except ValueError as exc:
             st.warning(str(exc))
         except Exception as exc:
@@ -1307,7 +1335,7 @@ with translate_tab:
             f"against the English, digit by digit."
         )
         st.text_area(
-            f"{translate.LANGUAGES[result.language]} — edit freely",
+            f"{translate.LANGUAGES[result.language]}: edit freely",
             result.text, height=220, key="translated_text",
         )
         st.caption(
@@ -1321,7 +1349,7 @@ with translate_tab:
 with log_tab:
     st.subheader("AI usage log")
     st.caption(
-        "The running note the Annex 7 AI sheet is compiled from. Written as you work, not reconstructed at 17:00 — "
+        "The running note the Annex 7 AI sheet is compiled from. Written as you work, not reconstructed at 17:00, "
         "and include at least one rejection, because a log without one reads as a "
         "log nobody kept."
     )

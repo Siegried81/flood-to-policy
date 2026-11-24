@@ -53,15 +53,21 @@ export default function SortableTable({ columns, rows, rowKey, rowClassName }) {
           {columns.map((column, index) => (
             <th
               key={column.label}
-              onClick={() => click(index)}
               className={column.sort ? "sortable-header" : undefined}
               aria-sort={
                 index === sortBy ? (ascending ? "ascending" : "descending") : undefined
               }
               title={column.sort ? "Click to sort" : undefined}
             >
-              {column.label}
-              {index === sortBy ? (ascending ? " ▲" : " ▼") : ""}
+              {/* A real button, so the sort is reachable and operable by keyboard. */}
+              {column.sort ? (
+                <button type="button" className="th-button" onClick={() => click(index)}>
+                  {column.label}
+                  {index === sortBy ? (ascending ? " ▲" : " ▼") : ""}
+                </button>
+              ) : (
+                column.label
+              )}
             </th>
           ))}
         </tr>

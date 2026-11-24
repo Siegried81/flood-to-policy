@@ -678,7 +678,7 @@ def downstream() -> tuple[dict, list]:
     x0 = M + 416
     cards = columns(3, TOP, 84, width=CW - 416, x0=x0)
     low = TOP + 100
-    visuals = header(p, "Nearly two in three of the EU's exposed live in a river basin shared with another country",
+    visuals = header(p, "Six in ten of the EU's exposed live in a river basin shared with another country",
                      "What to look at: which basins carry them. Open the tree basin by basin; the table names "
                      "the partner countries. A floor: Switzerland, Serbia, Ukraine and Belarus do not report "
                      "basins under EU law.")

@@ -62,7 +62,7 @@ MAX_BYTES = 3_000_000
 #: CLI default hero is a border place, so the committed artefact carries it, while
 #: `build_payload` called with the Ahr hero leaves it out.
 BORDER_DECISION = {
-    "actor": "Anna — crisis coordinator of the Liège–Limburg–Aachen border area",
+    "actor": "Anna, crisis coordinator of the Liège–Limburg–Aachen border area",
     "lead": "Warn before the water, tell every street where to go, one picture across the border.",
     # The first sentence of each recommendation: the block and the table never diverge.
     "points": [r[0].split(". ")[0] + "." for r in (P.RECOMMENDATION_1, *P.RECOMMENDATIONS)],

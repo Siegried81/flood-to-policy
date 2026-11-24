@@ -7,7 +7,7 @@ cut on the HAZARD raster, a population cell lying across two of them was written
 by both, and the answer moved with the window count.
 
 Measured on RP100 over all 1,345 NUTS3 regions on 2026-10-06, under that scheme:
-13 pieces gave 29,808,232 exposed and 3 gave 29,732,746 — 75,486 people apart,
+13 pieces gave 29,808,232 exposed and 3 gave 29,732,746, 75,486 people apart,
 with 215 regions disagreeing and the worst, PL514, by 14.7%. More pieces meant
 more internal boundaries and a larger over-count, which is the signature of
 double counting rather than of floating-point noise. The pieces are now cut on

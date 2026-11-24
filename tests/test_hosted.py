@@ -113,7 +113,10 @@ def test_event2021_is_served_in_the_hosted_demo(client, tmp_path, monkeypatch):
     path = tmp_path / "event_2021_web.json"
     path.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(api, "EVENT_WEB", path)
-    assert client.get("/api/event2021").status_code == 200
+    monkeypatch.setattr(api, "EVENT_WEB_FULL", tmp_path / "absent.full.json")
+    response = client.get("/api/event2021")
+    assert response.status_code == 200
+    assert response.json() == {}
 
 
 def _two_builds(tmp_path, monkeypatch):
@@ -134,3 +137,39 @@ def test_event2021_hosted_never_serves_the_full_build(client, tmp_path, monkeypa
     monkeypatch.setenv("HOSTED", "1")
     _two_builds(tmp_path, monkeypatch)
     assert client.get("/api/event2021").json() == {"build": "public"}
+
+
+def _builds(tmp_path, monkeypatch, public_built, full_built):
+    public, full = tmp_path / "event_2021_web.json", tmp_path / "event_2021_web.full.json"
+    public.write_text(json.dumps({"schema": 3, "built": public_built, "which": "public"}),
+                      encoding="utf-8")
+    full.write_text(json.dumps({"schema": 3, "built": full_built, "which": "full"}),
+                    encoding="utf-8")
+    monkeypatch.setattr(api, "EVENT_WEB", public)
+    monkeypatch.setattr(api, "EVENT_WEB_FULL", full)
+
+
+def test_event2021_ignores_a_full_build_older_than_the_public_one(client, tmp_path, monkeypatch):
+    """Reproduced: the gitignored full build was served whenever it existed, so a
+    stale one (built before warn_order and cross_border were added) hid them."""
+    monkeypatch.delenv("HOSTED", raising=False)
+    _builds(tmp_path, monkeypatch, public_built="2026-11-04", full_built="2026-10-30")
+    assert client.get("/api/event2021").json()["which"] == "public"
+
+
+@pytest.mark.parametrize("full_built", ["2026-11-04", "2026-11-20"])
+def test_event2021_serves_a_full_build_at_least_as_recent(client, tmp_path, monkeypatch, full_built):
+    monkeypatch.delenv("HOSTED", raising=False)
+    _builds(tmp_path, monkeypatch, public_built="2026-11-04", full_built=full_built)
+    assert client.get("/api/event2021").json()["which"] == "full"
+
+
+def test_search_stays_open_in_the_hosted_demo(client, monkeypatch):
+    """The React Sources tab stays on in the hosted demo because search calls no
+    model: if the route ever joins the hosted refusals, the tab must go too."""
+    monkeypatch.setenv("HOSTED", "1")
+    passage = {"source": "floods_directive.html", "score": 1.0, "text": "Article 8"}
+    monkeypatch.setattr(api.rag, "search", lambda q, k=5: [passage])
+    r = client.get("/api/search", params={"q": "shared basins"})
+    assert r.status_code == 200
+    assert r.json()["passages"] == [passage] and r.json()["refused"] is False

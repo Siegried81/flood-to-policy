@@ -21,8 +21,11 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Secrets
+# Secrets. `.env.*` also covers backup copies such as `.env.bak-<date>`, which hold
+# the same keys; the template is the one exception.
 .env
+.env.*
+!.env.example
 .streamlit/secrets.toml
 
 # OS

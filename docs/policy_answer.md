@@ -19,7 +19,16 @@ read by `src.policy_tool.hero()` from `event_2021_*.parquet`):
 - Germany: **375** buildings graded destroyed on the first maps (792 with the later
   maps); the water reached **32,562** residents, **12,238** outside the zone.
 - Belgium: 1,994 residents reached (12.4 % outside the zone); Netherlands: 2,449
-  (11.7 %). Neither has damage-grading products, so no destroyed count exists.
+  (11.7 %). Neither has damage-grading products, so no destroyed count exists. The
+  Belgian 12.4 % is a floor: radar maps stop at walls, and against the extent Wallonia
+  recorded on the ground 40 to 51 % of the residents reached were outside the zone
+  (`decisions.md`, 2026-10-25). The 1,994 covers both Belgian EMS maps; Liège alone
+  (EMSR518 AOI01) is the 1,356 the brief quotes.
+
+These are counts on a 1 km population grid spread evenly over each cell, so read
+Eschweiler as about 90 % of about 1,100 people. Eschweiler sits on a small river the
+European map does not model (it covers basins above 150 km²), so its 91 % says where the
+map stops, not how wrong it is inside its scope.
 
 > Being at risk of flooding and being unprepared for it are two different maps. Europe
 > governs the first one and reports the second one badly.
@@ -27,8 +36,10 @@ read by `src.policy_tool.hero()` from `event_2021_*.parquet`):
 ## 1. The measured base
 
 `exposure.parquet` holds every NUTS3 region at nine return periods; `context.parquet`
-one row per region. At the 1-in-100-year river flood (undefended): **25,737,004** EU-27
-residents exposed, **5.77 %** of the EU-27 population (29,727,887 over the 37 countries).
+one row per region. At the 1-in-100-year river flood (undefended): **about 25.7 million**
+EU-27 residents exposed (25,737,004 in the table), **5.8 %** of the EU-27 population
+(29,727,887 over the 37 countries). Quote it rounded: it is a modelled extent over a 1 km
+population grid, and the maps reproduce about two thirds of observed flood extents.
 EU-27 exposure grows with the period (RP10 16.7 million, RP100 25.7 million, RP500 30.7
 million); extents are nested, so quote the return period with every headcount.
 
@@ -36,7 +47,7 @@ The most exposed EU-27 regions by share are Dutch, Italian, German and Hungarian
 (Zuidoost-Zuid-Holland 70.8 %, Zuidwest-Gelderland 68.9 %, Rovigo 61.1 %), and all ten
 sit behind defences: behind the PESETA IV design standards (`residual_exposed_pop_rp100`)
 at most 1.1 % of their population remains exposed. Behind the standards the leaders are
-Pisa, Trier, Vidin, Firenze, Lucca. The standards date from 2019 and are design levels,
+Pisa, Trier, Vidin, Firenze, Frankenthal (Pfalz), Lucca. The standards date from 2019 and are design levels,
 not guarantees.
 
 ## 2. Four findings, with their caveats
@@ -61,8 +72,9 @@ gap in the published reporting, not in Irish policy.
 ### 2.3 Most exposed people are downstream of someone else
 
 Off the WFD river basin districts grouped by `config/international_basins.yaml`, about
-63 % of EU-27 exposed residents at RP100 (57 % over all 37 countries) live in regions
-inside a basin that crosses a national border. This is a floor: Switzerland, Belarus,
+60 % of EU-27 exposed residents at RP100 (52 % over all 37 countries) live in a basin that
+crosses a national border. Each region counts in proportion to the share of its area in
+such a basin, so a region that only touches one at its edge adds little. This is a floor: Switzerland, Belarus,
 Ukraine and Serbia do not report under the
 [Water Framework Directive](https://eur-lex.europa.eu/eli/dir/2000/60/oj), and districts
 the crosswalk cannot group stay national.
@@ -72,8 +84,9 @@ the crosswalk cannot group stay national.
 EURO-CORDEX under RCP 8.5: eight bias-adjusted simulations through two hydrological
 models, 16 members per horizon. Median regional change in reference discharge is about
 +10 % (2011-2040), +20 % (2041-2070) and +27 % (2071-2100); "robust" means at least 80 %
-of members agree on the sign (IPCC AR6), with unanimity reported beside it. About 70
-EU-27 regions are in the top exposure decile today and robustly rising by 2041-2070: a
+of members agree on the sign (IPCC AR6), with unanimity reported beside it. The 16
+members are 8 independent simulations, so 80 % means about 7 of 8. About 70 EU-27
+regions are in the top decile of exposure share today and robustly rising by 2041-2070: a
 planning list, not a ranking, to be read beside the residual-exposure list (only a few
 regions are on both). The observed record (HERA v2, 1991-2020) does not show the rise
 yet; a trend not significant over 30 years is not evidence of no change.
@@ -100,6 +113,14 @@ alone may be reported; the Commission shall respond within six months) and **8(3
 finding 2.3 in the law's words).
 
 ## 4. Three recommendations, none needing new legislation
+
+The regional brief in `docs/hackathon/` speaks to one crisis coordinator for
+Liège-Limburg-Aachen: share one risk picture, pair every warning with where to go, spend
+on the right lever. Its third action cites Article 8(2), coordination towards one plan
+per international district, and Article 14, the 2027 review. The three below take the
+same story to the EU level. R1 and R2 rest on the EU-wide layer (findings 2.1 and 2.2),
+not on July 2021. R3 carries the regional brief's cross-border point one step further:
+Article 8(5) is the route that makes the Commission answer when 8(2) coordination stalls.
 
 **R1. Make the Article 5 declaration comparable before the 2027 review.**
 *What:* reporting guidance fixing the geometry convention for APSFR (minimum mapping unit;

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getExposure, getGeometry, getMeta } from "./api.js";
+import { STATIC_BUILD, getExposure, getGeometry, getMeta } from "./api.js";
 import Choropleth from "./components/Choropleth.jsx";
 import ContextPanel from "./components/ContextPanel.jsx";
 import DraftPanel from "./components/DraftPanel.jsx";
+import SearchPanel from "./components/SearchPanel.jsx";
 import SortableTable from "./components/SortableTable.jsx";
 import TranslationPanel from "./components/TranslationPanel.jsx";
 import VulnerabilityPanel from "./components/VulnerabilityPanel.jsx";
@@ -12,7 +13,9 @@ import VulnerabilityPanel from "./components/VulnerabilityPanel.jsx";
 // brief. It is offered whether or not the table was built - the panel renders
 // the server's 404, which names the script, rather than the tab disappearing
 // and the second table going unmentioned.
-const TABS = ["Exposure", "Context", "Vulnerability", "Draft", "Translation"];
+// "Sources" sits before "Draft": read what the documents say before asking a
+// model to write from them.
+const TABS = ["Exposure", "Context", "Vulnerability", "Sources", "Draft", "Translation"];
 
 // Tabs whose every action calls a language model or writes the brief. In the
 // hosted demo the API refuses them with a 403, so they are greyed here and
@@ -25,20 +28,20 @@ const MODEL_TABS = new Set(["Draft", "Translation"]);
 // alike: the licences bind wherever the figures are shown. The Copernicus
 // Climate Change Service sentence and disclaimer are required verbatim.
 export const EUROPE_SOURCES = [
-  "Region codes, names and boundaries (NUTS 2024) — Source: Eurostat/GISCO. "
+  "Region codes, names and boundaries (NUTS 2024): Source: Eurostat/GISCO. "
     + "© EuroGeographics for the administrative boundaries.",
-  "Flood hazard — JRC / Copernicus Emergency Management Service, river flood hazard maps for "
+  "Flood hazard: JRC / Copernicus Emergency Management Service, river flood hazard maps for "
     + "Europe v3.1.1, doi:10.2905/1D128B6C-A4EE-4858-9E34-6210707F3C81. © European Union, CC BY 4.0.",
-  "Population and built-up surface — JRC Global Human Settlement Layer, GHS-POP and "
+  "Population and built-up surface: JRC Global Human Settlement Layer, GHS-POP and "
     + "GHS-BUILT-S R2023A, epoch 2025 at 1 km. © European Union, CC BY 4.0.",
-  "Share over 65 and poverty rate — Source: Eurostat (demo_r_pjangrp3, ilc_li41). "
+  "Share over 65 and poverty rate: Source: Eurostat (demo_r_pjangrp3, ilc_li41). "
     + "Values were reshaped, and NUTS2 figures applied to their NUTS3 children. "
     + "Eurostat bears no responsibility for these derived figures.",
-  "WFD river basin districts — © European Environment Agency, CC BY 4.0.",
-  "Floods Directive areas of potential significant flood risk (APSFR) — Source: European "
+  "WFD river basin districts: © European Environment Agency, CC BY 4.0.",
+  "Floods Directive areas of potential significant flood risk (APSFR): Source: European "
     + "Environment Agency, reported by the Member States. The service publishes no licence; the "
     + "EEA default (CC BY 4.0) is assumed.",
-  "Climate projections — Contains modified Copernicus Climate Change Service information 2026 "
+  "Climate projections: Contains modified Copernicus Climate Change Service information 2026 "
     + "(doi:10.24381/cds.73237ad6), CC BY 4.0. Neither the European Commission nor ECMWF is "
     + "responsible for any use that may be made of the Copernicus information or data it contains.",
 ];
@@ -82,6 +85,7 @@ export default function EuropeView({ config }) {
   const [returnPeriod, setReturnPeriod] = useState(null);
   const [exposure, setExposure] = useState(null);
   const [geometry, setGeometry] = useState(null);
+  const [geometryError, setGeometryError] = useState(null);
   // EU-27 first: the brief, the pitch and the Floods Directive speak of the
   // Member States. The other ten countries of the GISCO file stay one click away.
   const [scope, setScope] = useState("EU-27");
@@ -96,13 +100,14 @@ export default function EuropeView({ config }) {
         // says whether the server holds the polygons; without them (a static
         // build, the published Docker image) the browser fetches GISCO's own
         // file instead (api.js), and only a failed fetch leaves the map empty.
-        getGeometry(m.has_geometry).then(setGeometry).catch(() => {});
+        getGeometry(m.has_geometry).then(setGeometry).catch((e) => setGeometryError(e.message));
       })
       .catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {
     if (!meta) return;
+    setError(null);
     getExposure(returnPeriod).then(setExposure).catch((e) => setError(e.message));
   }, [meta, returnPeriod]);
 
@@ -167,7 +172,9 @@ export default function EuropeView({ config }) {
     [rows, metric]
   );
 
-  if (error) {
+  // Only a failure before the page has its meta replaces the view; a later one
+  // is shown in the exposure panel so the return-period selector stays usable.
+  if (error && !meta) {
     return (
       <div className="europe-view">
         <h2>Flood exposure across European regions</h2>
@@ -207,8 +214,19 @@ export default function EuropeView({ config }) {
         })}
       </nav>
 
+      {tab === "Exposure" && error && (
+        <section className="panel">
+          <div className="refusal"><strong>{error}</strong></div>
+        </section>
+      )}
+
       {tab === "Exposure" && exposure && (
         <section className="panel">
+          {geometryError && (
+            <p className="note">
+              Map unavailable: {geometryError}. The table below is unaffected.
+            </p>
+          )}
           <div className="row">
             {/* A bar from the most to the least frequent flood, one notch per
                 period in the table, so the nesting reads left to right. */}
@@ -257,12 +275,12 @@ export default function EuropeView({ config }) {
 
           <p className="note">
             Return-period extents are <b>nested</b>: the 100-year zone contains the
-            10-year one. Never add them together — compare them, or integrate over
+            10-year one. Never add them together, compare them, or integrate over
             probability. Every figure on this tab is for the single period selected
             above, which is why there is no “all periods” option.
           </p>
 
-          {/* The server picked the scenario because the request named none — only
+          {/* The server picked the scenario because the request named none, only
               reachable if meta arrived with no return periods, but if it ever
               happens the reader is told rather than left to assume they chose. */}
           {exposure.defaulted_return_period && (
@@ -316,7 +334,7 @@ export default function EuropeView({ config }) {
                   return share === null ? "—" : (
                     <>
                       <span className="bar" style={{ width: `${share * 100}%` }} />
-                      {(share * 100).toFixed(1)}%
+                      {sharePercent(share)}
                     </>
                   );
                 } },
@@ -359,6 +377,18 @@ export default function EuropeView({ config }) {
           </div>
         </section>
       )}
+
+      {/* Search calls no model, so the hosted demo keeps it; only a static build,
+          which has no API behind it, cannot run it. */}
+      {tab === "Sources" && (STATIC_BUILD ? (
+        <section className="panel">
+          <div className="refusal">
+            <strong>Sources needs the API.</strong> This static build ships the
+            figures as files but not the document index; run the API (or the hosted
+            demo) to search the corpus.
+          </div>
+        </section>
+      ) : <SearchPanel />)}
 
       {!modelsOff && tab === "Draft" && (
         <DraftPanel

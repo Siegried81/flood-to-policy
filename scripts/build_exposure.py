@@ -36,7 +36,7 @@ Three things to know before changing anything here:
 * **A unit outside the current window comes back as `None`, and one `None`
   poisons a running sum.** Every window's contribution is passed through
   `fillna(0.0)` before it is added, and a unit whose accumulated coverage is
-  still 0 across every window is restored to `None` at the end — "not measured"
+  still 0 across every window is restored to `None` at the end, "not measured"
   has to stay distinguishable from a measured dry zero.
 
 * **The CRS is checked, not assumed.** A `pyproj` that fails to load leaves
@@ -260,7 +260,7 @@ def total_population(pop_path: str, admin: gpd.GeoDataFrame) -> pd.Series:
 
     The cache is named after the raster it summed. One fixed
     `total_pop.parquet` lets the first caller to fill it answer for every
-    raster after it: measured 2026-10-24, the 2010 epoch run read the 2025
+    raster after it: measured, the 2010 epoch run read the 2025
     totals back and reported exactly 446,267,469 EU-27 residents for both
     years. The default 2025 grid keeps the plain `total_pop.parquet` name, so
     the parts already on disk are still found.
@@ -270,9 +270,13 @@ def total_population(pop_path: str, admin: gpd.GeoDataFrame) -> pd.Series:
     name = "total_pop.parquet" if stem == default_stem else f"total_pop_{stem}.parquet"
     cache = PARTS / name
     if cache.exists():
-        parked = pd.read_parquet(cache)["total_pop"]
-        if len(parked) == len(admin):
-            return pd.Series(parked.to_numpy(), index=admin.index, name="total_pop")
+        parked = pd.read_parquet(cache)
+        # Totals are matched to units by position, so the cache has to say which
+        # unit each row is: the same count of rows in another order (a re-sorted
+        # boundary file) would put every total on the wrong region. A cache
+        # written without `nuts_id` cannot be checked and is recomputed.
+        if "nuts_id" in parked.columns and parked["nuts_id"].tolist() == admin["nuts_id"].tolist():
+            return pd.Series(parked["total_pop"].to_numpy(), index=admin.index, name="total_pop")
 
     with rasterio.open(pop_path) as pop:
         polygons = admin.to_crs(pop.crs)
@@ -282,7 +286,7 @@ def total_population(pop_path: str, admin: gpd.GeoDataFrame) -> pd.Series:
         [s["sum"] or 0.0 for s in stats], index=admin.index, name="total_pop"
     )
     PARTS.mkdir(parents=True, exist_ok=True)
-    totals.to_frame().to_parquet(cache, index=False)
+    totals.to_frame().assign(nuts_id=admin["nuts_id"].to_numpy()).to_parquet(cache, index=False)
     return totals
 
 

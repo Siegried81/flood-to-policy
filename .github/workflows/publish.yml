@@ -1,7 +1,10 @@
 name: publish images
 
-# Builds every image listed in the matrix below, starts it, checks that its UI or
-# API actually answers, and only then pushes it to two registries:
+# Builds every image listed in the matrix below, starts it, checks that its UI and
+# API actually answer, and only then pushes it to two registries. A push to main
+# publishes only after the `tests` workflow has finished green for that commit
+# (workflow_run), so a red main never moves :latest. A v* tag publishes directly:
+# tag a commit that is already green on main.
 #
 #   - GitHub Container Registry: ghcr.io/siegried81/<image>
 #     Uses the built-in GITHUB_TOKEN, so it works with zero setup.
@@ -12,8 +15,11 @@ name: publish images
 # This file is the same in every project; only the `matrix.include` list changes.
 
 on:
-  push:
+  workflow_run:
+    workflows: [tests]    # the `name:` of ci.yml
+    types: [completed]
     branches: [main]
+  push:
     tags: ["v*"]          # `git tag v1.0.0 && git push --tags` -> :1.0.0 and :1
   workflow_dispatch:      # manual "Run workflow" button in the Actions tab
 
@@ -29,6 +35,8 @@ concurrency:
 
 jobs:
   publish:
+    # For workflow_run, go on only when the tests passed.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false    # one broken image must not block the others
@@ -45,9 +53,12 @@ jobs:
     steps:
       # lfs: the Team 9 map in web/public/team9/ is stored in Git LFS. Without
       # it the React build would ship a 130-byte pointer file instead of the map.
+      # workflow_run starts on the default branch's latest commit; build the exact
+      # commit whose tests passed.
       - uses: actions/checkout@v7
         with:
           lfs: true
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # Buildx is required for the GitHub Actions layer cache below.
       - uses: docker/setup-buildx-action@v4
@@ -103,6 +114,19 @@ jobs:
             sleep 2
           done
           echo "no answer on ${{ matrix.health }} after 60 s"; docker logs smoke; exit 1
+
+      # The API runs from the same image with its own command: it must answer too.
+      - name: smoke test (api)
+        run: |
+          docker rm -f smoke
+          docker run -d --name smoke -p 8001:8001 smoke:local python -m uvicorn api.main:app --host 0.0.0.0 --port 8001
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:8001/api/health"; then
+              echo; echo "api smoke test passed"; exit 0
+            fi
+            sleep 2
+          done
+          echo "no answer on /api/health after 60 s"; docker logs smoke; exit 1
 
       # Known HIGH/CRITICAL CVEs in the image, the way official images are
       # scanned on Docker Hub. Report only (exit-code 0): a CVE in the base

@@ -70,7 +70,7 @@ COORD_PRECISION = 1e-5     # degrees (~1 m) for flood coordinates written to the
 GRID_PRECISION = 1e-4      # degrees (~10 m) for hexagons and population cells
 
 ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_{}/MapServer/tile/{{z}}/{{y}}/{{x}}"
-ESRI_ATTR = "Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors"
+ESRI_ATTR = "Tiles © Esri, Esri, HERE, Garmin, © OpenStreetMap contributors"
 
 HERE = Path(__file__).resolve().parent
 CACHE = HERE / "cache"
@@ -401,7 +401,7 @@ BLDG_BREAKS = [1, 5, 20, 50, 100, 200, 400]          # buildings per 400 m hexag
 FLOOD_BLDG_BREAKS = [0, 1, 10, 50, 200, 1000]              # buildings per flood polygon
 FLOOD_RES_BREAKS = [0, 1, 25, 100, 500, 2000]              # est. residents per flood polygon
 EFAS_BREAKS = [0.1, 0.5, 1, 2, 4, 8]                       # modelled water depth, m (same for all return periods)
-EFAS_LABELS = ["0.1 – 0.5 m", "0.5 – 1 m", "1 – 2 m", "2 – 4 m", "4 – 8 m", "≥ 8 m (mostly river channels)"]
+EFAS_LABELS = ["0.1 to 0.5 m", "0.5 to 1 m", "1 to 2 m", "2 to 4 m", "4 to 8 m", "≥ 8 m (mostly river channels)"]
 
 # Three hue families that stay distinct when overlaid: warm (people), green (buildings), blue (water)
 POP_COLORS = ramp("magma_r", len(POP_BREAKS), 0.08, 0.85)
@@ -410,10 +410,10 @@ FLOOD_BLDG_COLORS = ramp("Blues", len(FLOOD_BLDG_BREAKS), 0.2, 0.75)  # stops at
 FLOOD_RES_COLORS = FLOOD_BLDG_COLORS
 EFAS_COLORS = ramp("Purples", len(EFAS_BREAKS), 0.3, 1.0)   # 4th hue family: purple = modelled
 EXPO_BREAKS = [0, 1, 10, 50, 150, 400]                     # estimated exposed residents per fixed 400 m hexagon
-EXPO_LABELS = ["< 1", "1 – 9", "10 – 49", "50 – 149", "150 – 399", "≥ 400"]
+EXPO_LABELS = ["< 1", "1 to 9", "10 to 49", "50 to 149", "150 to 399", "≥ 400"]
 EXPO_COLORS = ramp("magma_r", len(EXPO_BREAKS), 0.08, 0.8)  # warm = people, like the population layer
 PRIO_BREAKS = [0, 20, 35, 50, 65, 80]                      # area priority score S (0-100); also asset score classes
-PRIO_LABELS = ["0 – 19", "20 – 34", "35 – 49", "50 – 64", "65 – 79", "80 – 100"]
+PRIO_LABELS = ["0 to 19", "20 to 34", "35 to 49", "50 to 64", "65 to 79", "80 to 100"]
 PRIO_COLORS = ramp("OrRd", len(PRIO_BREAKS), 0.2, 0.95)
 ASSET_COLORS = {"people": ramp("RdPu", 6, 0.3, 0.95), "infra": ramp("YlGnBu", 6, 0.35, 1.0)}
 
@@ -431,7 +431,7 @@ def class_labels(breaks):
         elif breaks[i + 1] - lo == 1:
             labels.append(f"{lo:,}")
         else:
-            labels.append(f"{lo:,} – {breaks[i + 1] - 1:,}")
+            labels.append(f"{lo:,}, {breaks[i + 1] - 1:,}")
     return labels
 
 
@@ -580,7 +580,7 @@ LIMITS_HTML = """
       summed for the buildings inside the polygon (area share if a cell has none). An estimate, not a count.</li>
   <li><b>Modelled hazard (EFAS)</b> is a model, not an observation: water depth for floods with a 10 %, 1 % or 0.2 %
       chance per year. Small rivers (upstream catchment &lt; 500 km²) are not modelled, so <b>empty means "not modelled",
-      not "safe"</b>. The 500-year map is the ceiling and is built on 1990–2016 data: <b>the 2021 flood exceeded it in places</b>
+      not "safe"</b>. The 500-year map is the ceiling and is built on 1990 to 2016 data: <b>the 2021 flood exceeded it in places</b>
       (e.g. the Ahr). Depths include the river channel itself.</li>
   <li><b>Candidate shelters (OpenStreetMap)</b> are schools, sports halls and community centres that <i>could</i> be assessed
       as emergency accommodation. None is verified as operating today, designated as a shelter, or suitable, and no capacity
@@ -596,7 +596,7 @@ LIMITS_HTML = """
       not establish its occupancy or anyone's vulnerability.</li>
 </ul>
 <div class="note">Sources: Copernicus Emergency Management Service (© European Union, 2021), EMSR517/518/520;
-Copernicus EMS – European Flood Awareness System (EFAS) flood hazard maps; JRC Global Human Settlement Layer: GHS-OBAT R2024A, GHS-POP R2023A. Candidate shelters, facilities and infrastructure © OpenStreetMap contributors (ODbL). Basemaps: Esri Canvas, © OpenStreetMap contributors.</div>
+Copernicus EMS, European Flood Awareness System (EFAS) flood hazard maps; JRC Global Human Settlement Layer: GHS-OBAT R2024A, GHS-POP R2023A. Candidate shelters, facilities and infrastructure © OpenStreetMap contributors (ODbL). Basemaps: Esri Canvas, © OpenStreetMap contributors.</div>
 </div></details>
 """
 
@@ -616,7 +616,7 @@ def header_html():
     return f"""
 <div class="panel title-panel">
   <h1>July 2021 floods: from exposure to planning</h1>
-  <span class="date">Event: 13–16 July 2021</span> <span class="of">BE · DE · NL</span>
+  <span class="date">Event: 13 to 16 July 2021</span> <span class="of">BE · DE · NL</span>
   <div class="scenes">{scenes}</div>
   <div class="zoom-btns">{buttons}<span class="sep"></span><button id="demo-save" title="Remember the current map centre and zoom">Save demo view</button>
     <button id="demo-go" title="Return to the saved map centre and zoom (the scenario is not changed)" disabled>Go to demo</button></div>
@@ -950,7 +950,7 @@ def build_map(d, efas, hydro, shel=(None, None), assets=None):
   </div>
   <div id="leg-prio" hidden>
     <h3>Planning priority (areas) <span class="k k-res">Calculated</span></h3>
-    <div class="unit">scenario-based score S (0–100) per fixed hexagon; dots below zoom {HEX_ZOOM}</div>
+    <div class="unit">scenario-based score S (0 to 100) per fixed hexagon; dots below zoom {HEX_ZOOM}</div>
     {legend_rows(PRIO_COLORS, PRIO_LABELS, 0.85)}
     <div class="row"><span class="sw" style="background:#c9ced6"></span>no score (both weights 0)</div>
   </div>
@@ -1247,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', function() {{  // run after folium
     extra = "".join((HERE / f).read_text() for f in ["planning/ui.css", "planning/scenes.css", "priority/assets.css"])
     m.get_root().header.add_child(folium.Element(CSS.replace("</style>", extra + "</style>")))
     m.get_root().script.add_child(folium.Element(js))
-    m.get_root().title = "July 2021 floods – exposure and planning map"
+    m.get_root().title = "July 2021 floods, exposure and planning map"
     m.save(OUT_HTML)
     print(f"Saved {OUT_HTML} ({OUT_HTML.stat().st_size / 1e6:.1f} MB): "
           f"{len(flood_w['features']):,} flood polygons, {len(hex_w['features']):,} hexagons, "

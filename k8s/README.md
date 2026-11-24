@@ -12,6 +12,10 @@ exists to practise Deployment, Service, PersistentVolumeClaim, Secret and readin
 | volume `ollama_models` | PVC `flood-ollama-models` (starts empty) |
 | `healthcheck` | `readinessProbe` |
 
+The `flood-api` pod reads `FLOOD_APPROVE_TOKEN` from `flood-secrets` and does not start without
+it (the API refuses approvals without a token under Kubernetes); see `secret.example.yaml`. The
+secret is otherwise optional. The Ollama image stays on `:latest` (no tag could be verified offline).
+
 Service names replace Compose DNS (`http://flood-ollama:11434`). `flood-data` is
 ReadWriteOnce and mounted by two Deployments, which works only on a single node such as
 kind; on several nodes use ReadWriteMany or one PVC each.
@@ -22,7 +26,7 @@ kind; on several nodes use ReadWriteMany or one PVC each.
 kind create cluster --name flood
 docker build --target app -t siegried/flood-to-policy:latest ..    # `app` = code only
 kind load docker-image siegried/flood-to-policy:latest --name flood
-kubectl create secret generic flood-secrets --from-env-file=../.env   # optional
+kubectl create secret generic flood-secrets --from-env-file=../.env   # must hold FLOOD_APPROVE_TOKEN
 kubectl apply -f flood-to-policy.yaml
 # the data PVC is empty: copy ../data in (one copy serves both pods), or mount the host
 # folder into the kind node and use a hostPath volume instead of the PVC

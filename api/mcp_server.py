@@ -57,6 +57,9 @@ MAX_PASSAGES = rag.MAX_PASSAGES  # one cap, shared with the JSON API
 # A passage is trimmed, not dropped: the citation (source + ordinal) is what the
 # agent must quote, and 600 characters is enough to judge relevance.
 PASSAGE_CHARS = 600
+# A question longer than this is a pasted document, not a question; the JSON API
+# caps its own at the same length.
+MAX_QUESTION_CHARS = 2000
 
 # Columns shown in a ranking. Fewer columns = fewer tokens per row, and these are
 # the ones a decision-maker reads; the full row is one `profile_regions` call away.
@@ -86,6 +89,9 @@ def _tool(fn):
             return fn(*args, **kwargs)
         except HTTPException as exc:
             raise ToolError(exc.detail) from exc
+        except rag.CorpusUnavailable as exc:
+            # A missing corpus must not read as "the corpus does not cover this".
+            raise ToolError(str(exc)) from exc
 
     return wrapper
 
@@ -121,15 +127,17 @@ def rank_regions(top_n: int = 10, return_period: int | None = None,
     if country:
         prefix = country.strip().upper()
         ids = df[key].astype(str).str.upper()
-        matched = ids.str.startswith(prefix)
-        # A code the table never uses ("GR" for Greece, which NUTS writes "EL",
-        # or "UK") matches nothing. An empty ranking would read as "no region of
-        # that country is exposed", so it is refused with the codes that exist.
-        if not matched.any():
-            known = ", ".join(sorted(ids.str[:2].unique()))
-            raise ToolError(f"No region id starts with {prefix!r}. Country prefixes "
-                            f"in the table: {known}. Greece is EL in NUTS.")
-        df = df[matched]
+        known_codes = sorted(ids.str[:2].unique())
+        # Exactly a country prefix present in the table. A free prefix matched
+        # more than it said: "B" read as BE and BG together, and "GR" (Greece is
+        # "EL" in NUTS) or "UK" matches nothing, which an empty ranking would
+        # present as "no region of that country is exposed".
+        if prefix not in known_codes:
+            what = ("No region id starts with" if not ids.str.startswith(prefix).any()
+                    else "Not a 2-letter country prefix:")
+            raise ToolError(f"{what} {prefix!r}. Country prefixes in the table: "
+                            f"{', '.join(known_codes)}. Greece is EL in NUTS.")
+        df = df[ids.str.startswith(prefix)]
     df = _with_share(df)
     # Share when we have it, absolute count otherwise - and the header says which,
     # because the two rankings answer different questions.
@@ -152,15 +160,24 @@ def profile_regions(region_ids: list[str]) -> str:
     and, when it has been built, their context: future river discharge, exposed
     built-up surface, shared basins. Up to 10 region ids (NUTS3 codes).
     """
-    wanted = [r.strip().upper() for r in region_ids if r.strip()][:MAX_PROFILED]
+    wanted = [r.strip().upper() for r in region_ids if r.strip()]
     if not wanted:
         raise ToolError("Give at least one region id, e.g. ['BE332'].")
+    if len(wanted) > MAX_PROFILED:
+        # Refused, not truncated: the agent would read a comparison of ten
+        # regions as a comparison of the twelve it asked for.
+        raise ToolError(f"{len(wanted)} region ids given, at most {MAX_PROFILED} can be "
+                        "profiled at once. Narrow the list, or call rank_regions with a country.")
     df = main._table()
     key = main._region_key(df)
     exposure = _with_share(df[df[key].astype(str).str.upper().isin(wanted)])
     # Unknown ids are reported, not silently skipped: "no such region" and
     # "region with no exposure" must not look alike to the agent.
     missing = sorted(set(wanted) - set(exposure[key].astype(str).str.upper()))
+    if exposure.empty:
+        known = ", ".join(sorted(df[key].astype(str).str.upper().head(5)))
+        raise ToolError(f"No region id matches {', '.join(missing)}. Region ids look like "
+                        f"{known}; rank_regions lists real ones.")
     sort = [key, "return_period"] if "return_period" in exposure.columns else [key]
     parts = [
         _header(regions=len(wanted) - len(missing), unknown=",".join(missing) or None),
@@ -183,6 +200,9 @@ def find_policy_evidence(question: str, k: int = 3) -> str:
     Cite them as [S1], [S2]... by their row order. An empty result means the
     corpus does not cover the question: say so, do not answer from memory.
     """
+    if len(question) > MAX_QUESTION_CHARS:
+        raise ToolError(f"The question is {len(question)} characters long; "
+                        f"at most {MAX_QUESTION_CHARS} are accepted.")
     passages = rag.search(question, k=max(1, min(k, MAX_PASSAGES)))
     if not passages:
         return "# refused=true reason=the corpus does not cover this question"

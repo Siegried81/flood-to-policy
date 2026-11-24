@@ -36,7 +36,7 @@ cd web && npm ci && VITE_STATIC=1 npm run build      # output in web/dist
 | Figures, text, decision cards of the HTML tool and the web app | `src/policy_tool.py` (shared by both) |
 | React app | `web/src/` |
 | Builders | `scripts/build_policy_tool.py`, `scripts/export_event_web.py` |
-| The numbers | `data/processed/event_2021_*.parquet`, written by `src/event2021.py` |
+| The numbers | `data/processed/event_2021_*.parquet`, written by `scripts/event_2021.py` with the logic in `src/event2021.py` |
 
 ## Rules
 

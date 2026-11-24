@@ -13,7 +13,7 @@ give two things the kit lacks:
   "the models agree" becomes a statement about two models rather than one.
   `flood_recurrence_by_region`.
 
-**What the catalogue actually offers, measured 2026-10-24** on the public
+**What the catalogue actually offers, measured** on the public
 constraints file and the costing endpoint (`scripts/fetch_c3s_ecde.py`):
 
 * the three precipitation indicators exist as regional aggregates down to
@@ -60,7 +60,7 @@ from src.data_io import DATA
 ECDE_DIR = DATA / "raw" / "download" / "c3s_ecde_climate_indicators"
 
 #: The only reference period the ECDE flood-recurrence files carry (measured
-#: on the first download, 2026-10-24); the precipitation files carry 1981-2010
+#: on the first download); the precipitation files carry 1981-2010
 #: and 1991-2020, and DEFAULT_REF_PERIOD picks the latter for them.
 FLOOD_REF_PERIOD = "1971-2000"
 
@@ -111,7 +111,7 @@ def _period_label(value) -> str:
     """A reference period as "1991-2020", whatever form the file gives it.
 
     The real ECDE files carry it as the period's START date (1991-01-01), not
-    as a "1991-2020" string - measured on the first download, 2026-10-24 - and
+    as a "1991-2020" string - measured on the first download - and
     a 30-year climate normal is the convention the product names in its
     metadata. A string with two years is taken as it stands.
     """
@@ -344,7 +344,7 @@ def _gridded_slices(path: Path, ref_period: str, quantiles) -> tuple[int, list]:
                 raise ValueError(f"{path.name}: no reference period {ref_period}")
             array = array.sel(ref_period=wanted[0])
         # The real files carry a one-value `month` dimension (month 12 for a
-        # yearly indicator, measured 2026-10-24) that the user guide does not
+        # yearly indicator, measured) that the user guide does not
         # mention; any dimension of length one carries no choice, so it goes.
         single = [d for d in array.dims if array.sizes[d] == 1
                   and d not in (lat_name, lon_name, "gwl", "quantile")]
@@ -378,7 +378,7 @@ def flood_recurrence_by_region(
     """The two-model flood-discharge columns of `context.parquet`, or `(None, reason)`.
 
     Against 1971-2000, not the 1991-2020 of the precipitation indicators:
-    measured on the real files (2026-10-24), flood recurrence is published
+    measured on the real files, flood recurrence is published
     against that single reference period, at three warming levels (+1.5, +2,
     +3 C). The two are therefore never compared in one sentence.
 

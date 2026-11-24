@@ -67,7 +67,8 @@ answers "how many got wet"; vulnerability answers "who needs help first".
   unit, `None` when nothing was measured), `exposed_pop_observed` (no extrapolation,
   additive over windows), `cells_counted`, `hazard_coverage`. `None` is not `0.0`:
   a unit the hazard raster does not cover must never read as a measured all-clear.
-  Report `hazard_coverage` next to the count. Zonal statistics use
+  Report `hazard_coverage` next to the count. The frozen `exposure.parquet` in git
+  predates `exposed_pop_observed` and does not carry it; a rebuild writes it. Zonal statistics use
   `all_touched=False` so a boundary cell is counted once.
 - **Windowing**: the build cuts the population grid, never the hazard raster; a
   population cell then belongs to exactly one window and the sums are additive whatever
@@ -136,7 +137,7 @@ demo needs the network. Doc figures are held to the code by
 
 | Fact | Where it comes from |
 |---|---|
-| <!-- numbers:tests_collected -->1,150<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
+| <!-- numbers:tests_collected -->1,223<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> verified, <!-- numbers:sources_licensed -->43<!-- /numbers --> licensed | `config/sources.yaml` entries |
 
 ## 8. Repository layout
@@ -164,8 +165,9 @@ demo needs the network. Doc figures are held to the code by
   the local venv is cp314.
 - **Targets** (`Dockerfile`): `app` (code, small data files), `test` (+ pytest),
   `portable` (+ the whole `data/`, for an offline laptop).
-- **Memory**: the default `--stripes` is enough on a workstation; 72 peaks near 7.5 GB
-  in a 16 GB WSL VM. An interrupted build resumes from the parked return periods.
+- **Memory**: the default `--stripes 10` reached 15.7 GB resident during RP100 against a
+  16 GB WSL cap, and a continental pass can peak around 20 GB, so never run two at once.
+  Raise `--stripes` on a smaller machine: totals do not depend on the stripe count. An interrupted build resumes from the parked return periods.
 - **Data `src.fetch` does not cover**: JRC Risk Data Hub (EU Login bearer token valid
   10 h; responses cached), EEA river basin districts (slow REST, cached in
   `data/processed/basins_cache/`), CDS hydrology projections
