@@ -50,7 +50,7 @@ GROUPS = {
 }
 
 #: The 44 CLC codes in the order the 100 m raster numbers them. The raster does
-#: NOT hold the codes: measured on the real file (2026-10-25), it is int8 with
+#: NOT hold the codes: measured on the real file, it is int8 with
 #: values 1..44 and 48 for no data, and its attribute table (`.tif.vat.dbf`,
 #: columns Value / CODE_18) maps Value 1 -> 111 ... Value 44 -> 523. The first
 #: version read the values as codes and measured 0 regions.

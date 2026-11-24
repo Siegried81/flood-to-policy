@@ -42,12 +42,12 @@ OUT_DIR = ROOT / "web" / "public" / "interactive"
 #: The three border places open the story, so they get the interactive map first.
 BORDER_AOIS = ("EMSR517_AOI09", "EMSR518_AOI01", "EMSR520_AOI01")
 
-#: EFAS depth classes (metres), lower bounds, and a purple ramp — the fourth hue
+#: EFAS depth classes (metres), lower bounds, and a purple ramp, the fourth hue
 #: family of the shared map (people warm, buildings green, observed blue, modelled
 #: purple), colourblind-safe and perceptually ordered. The channel is purely for
 #: display; the click reads the class back by matching the colour.
 DEPTH_BREAKS = (0.1, 0.5, 1.0, 2.0, 4.0, 8.0)
-DEPTH_LABELS = ("0.1–0.5 m", "0.5–1 m", "1–2 m", "2–4 m", "4–8 m", "≥ 8 m")
+DEPTH_LABELS = ("0.1 to 0.5 m", "0.5 to 1 m", "1 to 2 m", "2 to 4 m", "4 to 8 m", "≥ 8 m")
 DEPTH_COLOURS = ((243, 237, 247), (218, 205, 232), (188, 162, 212), (158, 118, 191),
                  (122, 73, 165), (74, 20, 110))
 #: Keep each overlay image at most this many pixels on its long side, so a place's

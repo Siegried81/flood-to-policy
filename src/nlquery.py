@@ -470,6 +470,49 @@ def named_periods(question: str) -> list[int]:
     return found
 
 
+def _country_codes(question: str, df: pd.DataFrame) -> list[str]:
+    """The countries of the table that the question names, by code or by English name.
+
+    Codes are matched in capitals only ("BE", not the English word "be"); names
+    in any case. Only a country the table holds counts, so a question about
+    Norway names none. Names come from the EU-27 list the kit already carries.
+    """
+    from src.policy_tool import EU27_NAMES
+
+    held = (set(df["country"].dropna().astype(str)) if "country" in df.columns
+            else {str(v)[:2].upper() for v in df[region_key(df)].dropna()})
+    found = [code for code in sorted(held)
+             if re.search(rf"\b{re.escape(code)}\b", question)
+             or (code in EU27_NAMES
+                 and re.search(rf"\b{re.escape(EU27_NAMES[code])}\b", question, re.IGNORECASE))]
+    return found
+
+
+def _question_notes(question: str, df: pd.DataFrame, answer: "Answer") -> list[str]:
+    """What the spec silently left out of the question, said beside the rows.
+
+    A model may drop the country the question named, and the table then answers
+    for all of Europe with nothing to say so; or the question may name several
+    return periods when one answer holds exactly one. Both are notes rather than
+    refusals: reading the question is the human's job, but they must see the gap.
+    """
+    notes = []
+    countries = _country_codes(question, df)
+    touched = {f["column"] for f in answer.spec["filters"]}
+    if countries and not touched & {"country", region_key(df)}:
+        notes.append(
+            f"The question names {', '.join(countries)}, but no filter restricts the "
+            "answer by country or region id: the rows may cover other countries. "
+            "Ask again, or send the spec yourself.")
+    named = named_periods(question)
+    if len(named) > 1:
+        notes.append(
+            f"The question names several return periods ({', '.join(map(str, named))}); "
+            "an answer holds exactly one. Ask once per period, never add them: the "
+            "extents are nested.")
+    return notes
+
+
 def execute(df: pd.DataFrame, spec: dict, *, default_return_period: int | None = None) -> Answer:
     """Validate `spec` and run it on `df` with pandas.
 
@@ -601,6 +644,7 @@ def ask(question: str, df: pd.DataFrame, *, default_return_period: int | None = 
             f"The question names the 1-in-{' / 1-in-'.join(map(str, named))} year "
             f"flood, but the answer is for the 1-in-{answer.return_period} year "
             "scenario. Ask again naming the period, or send the spec yourself.")
+    answer.notes += _question_notes(question, df, answer)
     answer.provider = completion.provider
     answer.fallback_reason = completion.fallback_reason
     return answer

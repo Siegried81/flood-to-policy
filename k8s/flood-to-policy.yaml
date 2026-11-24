@@ -5,8 +5,9 @@
 # the objects (Deployment, Service, PVC, Secret). See README.md.
 #
 # Secrets (API keys etc., formerly the .env file) come from a Secret named
-# "flood-secrets" (see secret.example.yaml). It is optional, like .env in Compose:
-# without it the pods still start and the kit runs key-less.
+# "flood-secrets" (see secret.example.yaml). It is optional for the app, like .env
+# in Compose: without it the app still starts and runs key-less. The api
+# Deployment is the exception: it needs the FLOOD_APPROVE_TOKEN key in it.
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -76,12 +77,32 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
           readinessProbe:
             httpGet:
               path: /_stcore/health
               port: 8501
             initialDelaySeconds: 30
             periodSeconds: 30
+          # Restarts a hung Streamlit process; slow to start, so the first check waits.
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            failureThreshold: 3
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -140,6 +161,14 @@ spec:
           env:
             - name: OLLAMA_URL
               value: "http://flood-ollama:11434"
+            # Required here: the API refuses POST /api/approve without a token
+            # under Kubernetes. Not optional, so a Secret without the key keeps
+            # the pod from starting instead of leaving approve open.
+            - name: FLOOD_APPROVE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flood-secrets
+                  key: FLOOD_APPROVE_TOKEN
           envFrom:
             - secretRef:
                 name: flood-secrets
@@ -147,12 +176,31 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
           readinessProbe:
             httpGet:
               path: /api/health
               port: 8001
             initialDelaySeconds: 20
             periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
       volumes:
         - name: data
           persistentVolumeClaim:

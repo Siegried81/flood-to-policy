@@ -284,7 +284,8 @@ def total_by_unit(
         .agg(
             admin_unit_name=("admin_unit_name", "first"),
             admin_unit_parent_code=("admin_unit_parent_code", "first"),
-            **{VALUE_COLUMN: (VALUE_COLUMN, "sum")},
+            # min_count=1: a unit whose every value is null totals to NaN, not 0.0.
+            **{VALUE_COLUMN: (VALUE_COLUMN, lambda s: s.sum(min_count=1))},
             n_events=("event_code", "nunique"),
             hazards=("hazard", lambda s: ",".join(sorted(set(s)))),
             data_source_list=("data_source_list", _union_of_source_lists),
@@ -351,7 +352,7 @@ def level_coverage(
 
     rolled_up = (
         children.groupby("admin_unit_parent_code")
-        .agg(child_total=(VALUE_COLUMN, "sum"), n_children=("admin_unit_code", "size"))
+        .agg(child_total=(VALUE_COLUMN, lambda s: s.sum(min_count=1)), n_children=("admin_unit_code", "size"))
         .reset_index()
         .rename(columns={"admin_unit_parent_code": "parent_code"})
     )

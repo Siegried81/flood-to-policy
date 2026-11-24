@@ -540,3 +540,34 @@ def test_a_targeted_rebuild_does_not_shrink_the_frozen_table():
     assert other.split("_", 1)[1] not in suffixes, (
         "a different measurement must not be swept into the same assembly"
     )
+
+
+def test_total_pop_cache_is_not_reused_for_reordered_regions(tmp_path, monkeypatch):
+    """Same row count, different order: the cached totals would land on the
+    wrong regions, so the cache must be recomputed rather than trusted."""
+    import geopandas as gpd
+    import rasterio
+    from rasterio.transform import from_origin
+    from shapely.geometry import box
+
+    from scripts import build_exposure
+
+    monkeypatch.setattr(build_exposure, "PARTS", tmp_path / "parts")
+    monkeypatch.setattr(build_exposure, "POP_ZIP", tmp_path / "absent.zip")
+    # Region A sits on 1.0 cells, region B on 3.0 cells.
+    path = tmp_path / "pop.tif"
+    data = np.ones((20, 20), dtype="float32")
+    data[:, 10:] = 3.0
+    with rasterio.open(path, "w", driver="GTiff", height=20, width=20, count=1,
+                       dtype="float32", crs="EPSG:3035", nodata=-200.0,
+                       transform=from_origin(4_000_000, 3_010_000, 500, 500)) as dst:
+        dst.write(data, 1)
+    west = box(4_000_000, 3_000_000, 4_005_000, 3_010_000)
+    east = box(4_005_000, 3_000_000, 4_010_000, 3_010_000)
+    ab = gpd.GeoDataFrame({"nuts_id": ["A", "B"]}, geometry=[west, east], crs="EPSG:3035")
+    ba = gpd.GeoDataFrame({"nuts_id": ["B", "A"]}, geometry=[east, west], crs="EPSG:3035")
+
+    first = build_exposure.total_population(str(path), ab)
+    assert first.iloc[1] == pytest.approx(3 * first.iloc[0])
+    second = build_exposure.total_population(str(path), ba)
+    assert second.iloc[0] == pytest.approx(3 * second.iloc[1]), "B first now, and B is the big one"

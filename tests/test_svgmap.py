@@ -319,7 +319,7 @@ def test_hatch_label_reaches_legend_and_tooltip():
     svg = svgmap.choropleth_svg(features, values, hatch=("R3",), extent_excludes=(),
                                 hatch_label=label)
     assert f">{label}</text>" in svg
-    assert f"— {label}</title>" in svg
+    assert f", {label}</title>" in svg
     assert "models disagree on the direction" not in svg
 
     default = svgmap.choropleth_svg(features, values, hatch=("R3",), extent_excludes=())

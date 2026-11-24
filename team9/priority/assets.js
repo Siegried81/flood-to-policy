@@ -119,7 +119,7 @@
       '<div class="big">' + (r.s == null ? '—' : Math.round(r.s)) + '<span>/100</span></div>' +
       '<div class="muted"><b>Asset screening score</b> (' + GROUP[o.group].name.toLowerCase() + '; not the area planning priority, not comparable with it)' +
       (o.rank ? ' · rank ' + o.rank + ' of ' + GROUP[o.group].nRanked + ' in this group' : ' · <b>not ranked: insufficient historical evidence</b>') + '</div>' +
-      (r.missing.length ? '<div class="muted">Range if the missing data were 0 or maximal: <b>' + Math.round(r.lo) + '–' + Math.round(r.hi) + '</b></div>' : '') +
+      (r.missing.length ? '<div class="muted">Range if the missing data were 0 or maximal: <b>' + Math.round(r.lo) + ' to ' + Math.round(r.hi) + '</b></div>' : '') +
       bd + '<div class="note">' + factor + '</div>' +
       (isP ? '<div class="note">Presence of a facility does not establish its occupancy today or the vulnerability of individual people.</div>' : '') +
       '<div class="ql">Evidence quality: <span class="qd ' + QDOT[o.q] + '"></span> <b>' + o.q + '</b> (separate from the score)</div>' + flags +
@@ -141,7 +141,7 @@
         '<span class="qd ' + QDOT[o.q] + '" title="Evidence quality: ' + o.q + '"></span></li>';
     }).join('') + '</ol><div class="note" style="max-width:none">Top 15 of ' + GROUP[g].nRanked.toLocaleString('en') + ' ranked ' +
       (g === 'people' ? 'vulnerable facilities' : 'infrastructure assets') + ' (all countries, assets outside EMS coverage not ranked). ' +
-      'Asset scores (0–100) compare assets within this list only.</div>';
+      'Asset scores (0 to 100) compare assets within this list only.</div>';
   }
   function renderLists() {
     var w = weights();

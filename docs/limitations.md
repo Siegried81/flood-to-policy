@@ -63,8 +63,10 @@ changes to what a figure means in [decisions.md](decisions.md).
 - **Medians and quartiles, never a mean or a maximum**: a relative change against a
   near-zero discharge is unbounded ([`src/climate.py`](../src/climate.py) module
   docstring).
-- **Sixteen chains, one pathway (RCP 8.5)**: eight simulations the dataset offers, not
-  a designed sample, and the dataset is no longer maintained. Regions without a robust
+- **Sixteen chains, one pathway (RCP 8.5)**: eight simulations the dataset offers, each
+  run through two hydrological models, so the 16 members are 8 independent simulations
+  and the 80 % agreement rule means about 7 of 8. Not a designed sample, and the dataset
+  is no longer maintained. Regions without a robust
   sign are hatched on the map, "measured, direction unsupported"
   ([`src/climate.py`](../src/climate.py) `ensemble_change_by_region` docstring,
   [`src/svgmap.py`](../src/svgmap.py) `choropleth_svg` docstring).
@@ -78,7 +80,19 @@ changes to what a figure means in [decisions.md](decisions.md).
 - **The index is a value judgement wearing a number**: equal weights by default, never
   reported without its sensitivity ([`src/vulnerability.py`](../src/vulnerability.py)
   module docstring).
+- **The sensitivity test moves the weights, nothing else.** The top ten hold up to a
+  ±20 % change in weights (9 of 10 stay at RP100), but not to a change of scaling or of
+  indicators: with percentile ranks instead of min-max only 1 of 10 stays, and dropping
+  one indicator keeps 4 to 6. Under min-max, `exposed_pop` (median about 14,000, maximum
+  610,216) barely moves the score, so a region with 15 exposed people can rank in the
+  top ten. Read a "robust" label as "robust to the weights".
+- **Rows scored on fewer indicators rank beside complete ones.** The index averages
+  over the indicators a region has: at RP100 the French outermost regions (FRY10 to
+  FRY40) rank 1, 3, 4 and 5 on age and poverty alone, with no exposure figure. Read
+  `indicator_coverage` next to every rank.
 - **Poverty is NUTS2 applied to NUTS3**, a percentage; `share_over_65` is a fraction.
+  The Eurostat at-risk-of-poverty threshold is relative to each country's median, so
+  the rate compares regions within a country, not across countries.
 - **Who is not in the data**: undocumented residents, temporary housing and seasonal
   workers are absent from a residential grid. The gap is stated, not estimated.
 
@@ -89,9 +103,19 @@ changes to what a figure means in [decisions.md](decisions.md).
   ([`src/losses.py`](../src/losses.py) module docstring).
 - **Validation is one event, extent only**: `src/validate.py` and
   `scripts/event_2021.py` score the model against the 27 EMS products inside their areas
-  of interest. A depth-against-depth check against the Walloon layer is not built, and
-  nothing validates the model for any other event. The false alarm ratio is high
-  because a snapshot is not the peak.
+  of interest, and `scripts/validate_2021.py` against four truths in Wallonia and the
+  Ahr. Every truth is read as wet or dry, the Walloon depth layer included, so modelled
+  depth is never compared with observed depth, and nothing validates the model for any
+  other event.
+  - It checks the footprint, not the headline: the model counts as wet any depth above
+    0, while the 25.7 million counts people under more than 0.5 m.
+  - The truth decides the score: the RP100 hit rate in Wallonia is 0.18, 0.44, 0.61 or
+    0.87 depending on the observed map (`decisions.md`, 2026-10-25). Quote the range.
+  - Hit rate alone rewards a bigger map, and it barely moves from RP10 (0.84) to RP500
+    (0.88) against the JRC observed layer, so it does not show July 2021 was a
+    100-year event. Report it with the false alarm ratio and the CSI.
+  - The false alarm ratio is high (0.90 to 0.98) partly because a snapshot is not the
+    peak.
 - **Reported events are a probe, never evidence**: news coverage is biased by attention
   and language; nothing from `src/events.py` enters a ranking.
 
@@ -107,7 +131,8 @@ changes to what a figure means in [decisions.md](decisions.md).
 ## 2. Designed and not built
 
 - Cultural heritage (no source declared; Natura 2000 and CORINE are built).
-- Depth-against-depth validation; a model-versus-observation map for other events.
+- Depth-against-depth validation (modelled against observed depth values, not two
+  wet/dry masks); a model-versus-observation map for other events.
 - Three further components of "unpreparedness": insurance protection gap (EIOPA),
   Solidarity Fund allocation against modelled risk, the uncounted population.
 - Monetised exposure (needs damage curves).

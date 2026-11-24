@@ -7,12 +7,12 @@ the finest the catalogue accepts:
 * `precipitation` - maximum consecutive five-day precipitation, extreme
   precipitation total and frequency of extreme precipitation, yearly, product
   `gwl_relative_change_quantiles`, at the finest regional layer the
-  constraints accept. NUTS3 is tried first and NUTS2 is the fallback; on
-  2026-10-24 the constraints and the costing endpoint accept only NUTS2 for
+  constraints accept. NUTS3 is tried first and NUTS2 is the fallback; the constraints and the costing endpoint
+  currently accept only NUTS2 for
   these three variables.
 * `flood_recurrence` - the 5 and 50-year return values of annual maximum
   discharge (the two the kit's discharge members cover), for BOTH E-HYPE and
-  VIC-WUR, same product. Gridded: on 2026-10-24 this variable has no regional
+  VIC-WUR, same product. Gridded: this variable has no regional
   layer at all.
 
 **Every request is checked against the live public constraints file before it
@@ -55,7 +55,7 @@ CATALOGUE = f"https://cds.climate.copernicus.eu/api/catalogue/v1/collections/{DA
 DATASET_PAGE = f"https://cds.climate.copernicus.eu/datasets/{DATASET}?tab=download"
 DEFAULT_URL = "https://cds.climate.copernicus.eu/api"
 
-#: Finest first. Read off the form's `regional_layer` widget, 2026-10-24.
+#: Finest first. Read off the form's `regional_layer` widget.
 REGIONAL_LAYERS = ("nuts_level_3", "nuts_level_2")
 #: The return periods the kit's discharge members already cover.
 FLOOD_RETURN_PERIODS = ("1_in_5_year", "1_in_50_year")

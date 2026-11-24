@@ -31,7 +31,7 @@ REPORT = ROOT / "bi" / "FloodToPolicy.Report"
 # report tests read only the project files and never need it.
 needs_frozen = pytest.mark.skipif(
     not (PROCESSED / "exposure.parquet").exists(),
-    reason="the export is checked against the frozen exposure table",
+    reason=f"dev-machine data: {PROCESSED / 'exposure.parquet'}",
 )
 
 
@@ -367,7 +367,7 @@ def test_the_residual_never_exceeds_the_undefended_figure() -> None:
     _, exposure = export_bi.tables(PROCESSED)
     paired = exposure.dropna(subset=["residual_exposed_pop", "exposed_pop"])
     if paired.empty:
-        pytest.skip("no local residual run (exposure_protected.parquet) on this checkout")
+        pytest.skip(f"dev-machine data: {PROCESSED / 'exposure_protected.parquet'}")
     # Relative tolerance: the two runs sum the same cells in a different order, and
     # one Turkish row (TR832, RP75) reads 2e-5 more people out of 35,674.
     slack = 1e-9 * paired["exposed_pop"] + 1e-6

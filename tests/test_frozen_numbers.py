@@ -28,7 +28,7 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 
 @pytest.mark.skipif(not (FROZEN.exists() and HAZARD.exists()),
-                    reason="frozen_numbers.csv or event_2021_hazard.csv not built here")
+                    reason=f"dev-machine data: {FROZEN} and {HAZARD}")
 def test_notebook_frozen_numbers_match_the_pipeline():
     """Every frozen row must equal the pipeline's row for the same product and return period."""
     frozen = _rows(FROZEN)

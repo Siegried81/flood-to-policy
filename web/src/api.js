@@ -168,7 +168,7 @@ export async function getInteractiveIndex() {
 }
 
 // Per-place data for the interactive (Leaflet) map, loaded on demand. Returns
-// null when the files are not there or the network is down — the caller then
+// null when the files are not there or the network is down, the caller then
 // keeps the baked satellite image, so the app still works offline.
 export async function getInteractive(key) {
   const base = `${import.meta.env.BASE_URL}interactive/${key}/`;

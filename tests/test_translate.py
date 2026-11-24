@@ -209,3 +209,50 @@ def test_a_pair_reading_does_not_hide_a_dropped_not(monkeypatch):
     monkeypatch.setattr(translate, "complete", _model("Ni nouvel organe, ni nouvel argent ; il faut agir [S1]."))
     with pytest.raises(translate.TranslationFailed, match="negations"):
         translate.translate("No new body, no new money; it should not act [S1].", "fr")
+
+
+# --- approval stamps, refusals, and size ----------------------------------------
+
+STAMPED = ("<!-- approved 2026-11-24 10:12; verified: citations ok; 0 uncited sentences; "
+           "grounding 0.91 -->\nMember States must assess flood risk in every river basin [S1].")
+
+
+def test_an_approval_stamp_is_not_translated_nor_counted_as_figures(monkeypatch):
+    """Reproduced: the stamp's date and counts were sent to the model and then
+    compared as figures, so every approved.md section failed the digits check."""
+    seen = []
+
+    def model(text, system):
+        seen.append(text)
+        return "Les États membres doivent évaluer le risque d'inondation dans chaque bassin [S1]."
+
+    monkeypatch.setattr(translate, "complete", model)
+    result = translate.translate(STAMPED, "fr")
+    assert "approved" not in seen[0] and "<!--" not in seen[0]
+    assert result.numbers == 0
+
+
+def test_a_section_that_is_only_a_stamp_has_nothing_to_translate():
+    with pytest.raises(ValueError):
+        translate.translate("<!-- approved 2026-11-24 -->", "fr")
+
+
+@pytest.mark.parametrize("answer", [
+    "I cannot translate this.",
+    "I'm sorry, but I can't help with that request.",
+    "Je ne peux pas traduire ce texte, désolé pour la gêne occasionnée.",
+])
+def test_a_refusal_is_not_returned_as_the_translation(monkeypatch, answer):
+    """Reproduced: a source with no figure and no citation has nothing for the
+    checks to compare, so a refusal passed every one of them."""
+    monkeypatch.setattr(translate, "complete", _model(answer))
+    with pytest.raises(translate.TranslationFailed):
+        translate.translate("Member States must assess the flood risk in every river basin.", "fr")
+
+
+def test_a_translation_of_the_wrong_size_is_refused(monkeypatch):
+    long_source = ("Member States must assess the flood risk in every river basin and "
+                   "report the result to the Commission within the deadline set by the Directive.")
+    monkeypatch.setattr(translate, "complete", _model("Voir ci-dessus."))
+    with pytest.raises(translate.TranslationFailed, match="times the length"):
+        translate.translate(long_source, "fr")

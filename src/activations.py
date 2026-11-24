@@ -6,7 +6,7 @@ every activation the dashboard lists - EMSR656 onwards, so from March 2023;
 older activations such as EMSR517/518 (July 2021) are not in it, and the
 summary says so rather than reading as "no flood before 2023".
 
-Measured 2026-10-24: 268 activations, 90 with `category == "Flood"`, each with
+Measured: 268 activations, 90 with `category == "Flood"`, each with
 a `countries` list of English short names ("Czechia", "Viet Nam").
 
 **An activation that spans several countries counts once for EACH of them.**

@@ -68,6 +68,11 @@ def frozen(tmp_path, monkeypatch):
         df.to_parquet(path)
         monkeypatch.setattr(api, "EXPOSURE", path)
 
+    # The context table and the geometry are optional files that a dev machine
+    # holds and CI does not: point both at absent paths so no test reads them by
+    # accident. The tests that need either patch it themselves.
+    monkeypatch.setattr(api, "CONTEXT", tmp_path / "absent_context.parquet")
+    monkeypatch.setattr(api, "GEOMETRY", tmp_path / "absent_regions.geojson")
     write(_nested_table())
     return write
 
@@ -442,10 +447,10 @@ def test_an_empty_completion_is_a_502_not_a_500(client, monkeypatch):
     verification below it then raised TypeError from inside a regex, so the
     provider's empty turn reached the client as a 500 - our bug, not theirs.
 
-    `rag.py` belongs to another agent; this is the call site refusing to pass None
-    on to the verification.
+    `rag.complete` now raises `EmptyCompletion` for that turn; the route maps it
+    to the same 502 instead of the generic "No model reachable".
     """
-    _stub_model(monkeypatch, reply=None)
+    _stub_model(monkeypatch, reply=api.rag.EmptyCompletion("groq returned no text"))
     response = client.post("/api/draft", json={"question": "flood risk plans?"})
     assert response.status_code == 502
     assert "empty completion" in response.json()["detail"]
@@ -1177,3 +1182,112 @@ def test_the_europe_view_picks_the_return_period_on_a_bar():
     assert 'type="range"' in source and 'aria-label="Return period"' in source
     assert "max={meta.return_periods.length - 1}" in source
     assert "meta.return_periods.indexOf(returnPeriod)" in source
+
+
+# --- the approver in Kubernetes ----------------------------------------------------
+
+def test_a_private_address_cannot_approve_tokenless_inside_kubernetes(tmp_path, monkeypatch, frozen):
+    """Reproduced: with no token, any private address was local inside a
+    container, so any other pod on a cluster network could POST /api/approve."""
+    monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
+    monkeypatch.delenv("HOSTED", raising=False)
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    monkeypatch.setattr(api, "_in_container", lambda: True)
+    monkeypatch.setenv("KUBERNETES_SERVICE_HOST", "10.96.0.1")
+    pod = TestClient(app, client=("10.244.1.7", 50000))
+    assert pod.post("/api/approve", json={"text": "x"}).status_code == 403
+    assert not (tmp_path / "approved.md").exists()
+    sidecar = TestClient(app, client=("127.0.0.1", 50000))
+    assert sidecar.post("/api/approve", json={"text": "x"}).status_code == 200
+    monkeypatch.setenv("FLOOD_APPROVE_TOKEN", "s3cret-test-value")
+    headers = {"X-Approve-Token": "s3cret-test-value"}
+    assert pod.post("/api/approve", json={"text": "y"}, headers=headers).status_code == 200
+
+
+# --- request size caps ---------------------------------------------------------------
+
+def test_translate_caps_the_text_length(client, monkeypatch):
+    """Reproduced: a 2 MB text was accepted and sent to the model."""
+    monkeypatch.setattr(api.translate, "translate",
+                        lambda *a, **k: pytest.fail("an oversized text reached the model"))
+    too_long = "a" * (api.MAX_APPROVED_CHARS + 1)
+    assert client.post("/api/translate", json={"text": too_long, "language": "fr"}).status_code == 422
+
+
+def test_search_caps_the_question_length(monkeypatch, client):
+    monkeypatch.setattr(api.rag, "search", lambda q, k=5: [])
+    assert client.get("/api/search", params={"q": "x" * 2001}).status_code == 422
+    assert client.get("/api/search", params={"q": "x" * 2000}).status_code == 200
+
+
+def test_approve_caps_the_size_of_the_sources_it_is_sent(tmp_path, monkeypatch, client):
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    huge = [{"text": "a " * api.MAX_PASSAGE_CHARS}]
+    response = client.post("/api/approve", json={"text": "A claim [S1].", "passages": huge})
+    assert response.status_code == 422
+    many = [{"text": "a" * api.MAX_PASSAGE_CHARS}] * api.rag.MAX_PASSAGES
+    assert client.post("/api/approve", json={"text": "A claim [S1].", "passages": many}).status_code == 422
+
+
+@pytest.mark.parametrize("blank", ["   ", "\n\t ", " \n"])
+def test_approve_refuses_a_blank_text(tmp_path, monkeypatch, client, blank):
+    """Reproduced: `{"text": "   "}` returned 200 and appended an empty section."""
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    response = client.post("/api/approve", json={"text": blank})
+    assert response.status_code == 422
+    assert not (tmp_path / "approved.md").exists()
+
+
+# --- a missing corpus is a 503, not "the corpus is silent" ---------------------------
+
+def _no_corpus(*args, **kwargs):
+    raise api.rag.CorpusUnavailable("No policy corpus could be loaded (searched: x)")
+
+
+def test_search_and_draft_report_a_missing_corpus_as_503(client, monkeypatch):
+    monkeypatch.setattr(api.rag, "search", _no_corpus)
+    search = client.get("/api/search", params={"q": "flood"})
+    assert search.status_code == 503 and "corpus" in search.json()["detail"]
+    draft = client.post("/api/draft", json={"question": "flood risk plans?"})
+    assert draft.status_code == 503
+
+
+def test_meta_still_answers_without_a_corpus(client, monkeypatch):
+    monkeypatch.setattr(api.rag, "load_index", _no_corpus)
+    assert client.get("/api/meta").json()["corpus_passages"] == 0
+
+
+# --- unknown claims reach the draft response -------------------------------------------
+
+def test_the_draft_response_carries_the_unknown_claims(client, monkeypatch):
+    _stub_model(monkeypatch, reply=api.rag.DONT_KNOW)
+    body = client.post("/api/draft", json={"question": "flood risk plans?"}).json()
+    assert body["unknown_claims"] == [api.rag.DONT_KNOW]
+
+
+# --- the approval stamp ------------------------------------------------------------------
+
+def test_the_stamp_says_the_sources_were_supplied_by_the_client(tmp_path, monkeypatch, client):
+    monkeypatch.delenv("FLOOD_APPROVE_TOKEN", raising=False)
+    monkeypatch.delenv("HOSTED", raising=False)
+    monkeypatch.setattr(api, "APPROVED", tmp_path / "approved.md")
+    client.post("/api/approve", json={
+        "text": "Flood plans exist [S1].", "passages": [{"text": "Flood plans exist."}]})
+    assert "supplied by the client" in (tmp_path / "approved.md").read_text(encoding="utf-8")
+
+
+def test_the_react_app_wires_passage_search_before_the_draft():
+    """`api.js::search` had no caller. The Sources tab uses it, sits before Draft
+    (read the documents before a model writes from them), and is not a model tab,
+    so the hosted demo keeps it; a static build has no API and says so."""
+    view = (ROOT / "web" / "src" / "EuropeView.jsx").read_text(encoding="utf-8")
+    panel = (ROOT / "web" / "src" / "components" / "SearchPanel.jsx").read_text(encoding="utf-8")
+    tabs = view.split("const TABS = [", 1)[1].split("]", 1)[0]
+    names = [part.strip().strip('"') for part in tabs.split(",")]
+    assert names.index("Sources") == names.index("Draft") - 1
+    model_tabs = view.split("const MODEL_TABS = new Set([", 1)[1].split("]", 1)[0]
+    assert "Sources" not in model_tabs
+    assert "<SearchPanel />" in view and "STATIC_BUILD ?" in view
+    assert 'import { search } from "../api.js";' in panel
+    assert "await search(question, 5)" in panel
+    assert "result?.refused" in panel

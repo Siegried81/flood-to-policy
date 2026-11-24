@@ -23,8 +23,9 @@ keep "flooded" meaning the same thing as in the population figures:
   5.7-billion-cell file.
 
 A facility is assigned to the NUTS3 region its point falls in. A point in no
-region (offshore by a geocoding error) is counted nowhere and reported, never
-snapped to the nearest region.
+region (offshore by a geocoding error) is counted nowhere and reported (the
+count is left in `out.attrs["outside_regions"]`), never snapped to the nearest
+region.
 """
 
 from __future__ import annotations
@@ -132,12 +133,18 @@ def counts_by_region(
     where one of its flagged facilities does. `_known` says how far the
     figure reaches.
 
-    **A country the layer does not cover is NaN, not 0.** Measured 2026-10-24:
+    **A country the layer does not cover is NaN, not 0.** Measured:
     the GISCO hospital layer holds no German facility at all, so every German
     region read "0 hospitals, 0 flooded" - a measured all-clear for the most
     populous Member State. A region reads 0 only when its country has at least
     one facility in the layer; `country`, when given, is the admin column that
     says which country a region is in.
+
+    "Has a facility" is read from the layer's own `cntr_id`, not from where the
+    points fall: GISCO education holds no German school, yet one Swiss or Dutch
+    point lands in a German region, and judging coverage by region made all of
+    Germany read 0 instead of NaN. Without a `cntr_id` column the points' regions
+    are used instead.
     """
     where = region_of(points, admin, key)
     frame = pd.DataFrame({key: where.to_numpy()})
@@ -155,9 +162,11 @@ def counts_by_region(
             frame[f"{prefix}_{weight}_{suffix}"] = values * np.asarray(flag)
             # Scratch column: flagged facilities without the weight, dropped below.
             frame[f"_unknown_{suffix}"] = (unknown & np.asarray(flag, dtype=bool)).astype("int64")
-    summed = frame.dropna(subset=[key]).groupby(key).sum(numeric_only=True)
+    placed = frame[key].notna()
+    summed = frame[placed].groupby(key).sum(numeric_only=True)
     out = summed.reindex(admin[key]).fillna(0)
     out.index = admin.index
+    out.attrs["outside_regions"] = int((~placed).sum())
     if weighted:
         partial = out[f"{prefix}_{weight}_known"] < out[f"{prefix}_total"]
         out.loc[partial, f"{prefix}_{weight}_total"] = np.nan
@@ -165,7 +174,11 @@ def counts_by_region(
             out.loc[out[f"_unknown_{suffix}"] > 0, f"{prefix}_{weight}_{suffix}"] = np.nan
         out = out.drop(columns=[f"_unknown_{suffix}" for suffix in flags])
     if country is not None and country in admin.columns:
-        covered = set(admin.loc[out[f"{prefix}_total"].to_numpy() > 0, country])
+        own = points["cntr_id"].astype("string") if "cntr_id" in points.columns else None
+        if own is not None:
+            covered = set(own.dropna())
+        else:
+            covered = set(admin.loc[out[f"{prefix}_total"].to_numpy() > 0, country])
         out.loc[~admin[country].isin(covered).to_numpy()] = np.nan
         # The same rule for the weight: a country whose facilities report no
         # beds at all did not report beds, it did not report empty hospitals.
@@ -173,6 +186,9 @@ def counts_by_region(
             # `_known` stays: 0 hospitals with a bed figure is a measured count.
             weight_columns = [c for c in out.columns if c.startswith(f"{prefix}_{weight}_")
                               and c != f"{prefix}_{weight}_known"]
-            reported = set(admin.loc[out[f"{prefix}_{weight}_known"].fillna(0).to_numpy() > 0, country])
+            if own is not None:
+                reported = set(own[~unknown].dropna())
+            else:
+                reported = set(admin.loc[out[f"{prefix}_{weight}_known"].fillna(0).to_numpy() > 0, country])
             out.loc[~admin[country].isin(reported).to_numpy(), weight_columns] = np.nan
     return out

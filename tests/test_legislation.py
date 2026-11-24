@@ -104,10 +104,10 @@ def test_the_article_14_deadlines_are_the_directive_s_own_words(registry):
 
 def test_cite_renders_the_short_name_the_article_and_the_eli_url(registry):
     assert cite("FD", "14(3)", registry) == (
-        "Directive 2007/60/EC, Art. 14(3) — https://eur-lex.europa.eu/eli/dir/2007/60/oj"
+        "Directive 2007/60/EC, Art. 14(3): https://eur-lex.europa.eu/eli/dir/2007/60/oj"
     )
     assert cite("FD", registry=registry) == (
-        "Directive 2007/60/EC — https://eur-lex.europa.eu/eli/dir/2007/60/oj"
+        "Directive 2007/60/EC: https://eur-lex.europa.eu/eli/dir/2007/60/oj"
     )
 
 

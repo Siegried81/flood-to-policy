@@ -16,8 +16,8 @@ table Exposure
 		formatString: 0.00%
 		lineageTag: 860e1af2-5030-5631-8620-c5af90f6a63f
 
-	/// Exposed population of regions with any area in a basin that crosses a national border. A floor: non-EU states do not report basins.
-	measure 'Exposed in shared basins' = CALCULATE([Exposed population], Regions[shared_basin_share] > 0)
+	/// Exposed population in a basin that crosses a national border, each region weighted by the share of its area in such a basin. Counting a region whole as soon as any sliver of it is shared overstates the figure (63.3% instead of 59.9% of EU-27 exposed residents at RP100). The weighting assumes the exposed residents are spread over the region like its area. A floor: non-EU states do not report basins.
+	measure 'Exposed in shared basins' = SUMX(Regions, [Exposed population] * Regions[shared_basin_share])
 		formatString: #,0
 		lineageTag: 5c773aed-120a-51ee-aed4-64e12121d9d5
 

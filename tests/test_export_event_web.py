@@ -137,7 +137,11 @@ def test_png_palette_is_the_raster_classes():
 @pytest.mark.parametrize("path", [X.OUT, X.WEB_OUT], ids=["data", "web-public"])
 def test_the_committed_artefact_carries_no_gisco_line(path):
     if not path.exists():
-        pytest.skip(f"{path.name} not built here")
+        # data/processed/ is committed, so a missing file there is a real failure;
+        # web/public/ is a build output (prebuild copies it) and may be absent.
+        if path == X.OUT:
+            pytest.fail(f"{path} is committed but missing")
+        pytest.skip(f"build output not present: {path}")
     data = json.loads(path.read_text(encoding="utf-8"))
     assert not data["locator"]["nuts_d"]
     assert all(not (p["map"] or {}).get("nuts_d") for p in data["places"])
@@ -148,7 +152,11 @@ def test_the_committed_artefact_carries_no_gisco_line(path):
 @pytest.mark.parametrize("path", [X.OUT, X.WEB_OUT], ids=["data", "web-public"])
 def test_the_built_artefact_is_compact_and_well_formed(path):
     if not path.exists():
-        pytest.skip(f"{path.name} not built here")
+        # data/processed/ is committed, so a missing file there is a real failure;
+        # web/public/ is a build output (prebuild copies it) and may be absent.
+        if path == X.OUT:
+            pytest.fail(f"{path} is committed but missing")
+        pytest.skip(f"build output not present: {path}")
     assert path.stat().st_size <= X.MAX_BYTES
     data = json.loads(path.read_text(encoding="utf-8"))
     assert TOP_KEYS <= set(data)

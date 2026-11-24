@@ -21,7 +21,9 @@ The graph is not what the two UIs run. `POST /api/draft` and the Streamlit draft
 `rag.complete` directly, run the same offline checks (`rag.verify`) and show them beside
 the answer. Their gate is a separate human action ("Approve for the brief", or
 `POST /api/approve`), which re-verifies the text it is given and is the only writer of
-`data/processed/approved.md`. The guards below apply when `src/workflow.py` runs (its
+`data/processed/approved.md`. Blank text is refused, and the verdict stamped next to the
+text says its numbers were checked against the sources the client sent, because the
+server does not keep the draft's passages. The guards below apply when `src/workflow.py` runs (its
 tests, or the snippet at the end). Wiring the graph into the routes is an open decision.
 
 ## The four guards, and what each prevents
@@ -34,7 +36,13 @@ tests, or the snippet at the end). Wiring the graph into the routes is an open d
 | `interrupt()` | - | anything reaching the brief without a human reading it |
 
 When the human edits rather than approves, the edit is used as-is; it is never sent back
-to the model, which would hand the last word to the machine.
+to the model, which would hand the last word to the machine. A reply only counts as an
+edit when it reads like brief text. One to three words ("Approve.", "yes", "Not
+approved"), or a reply that opens with an approval or refusal word, is read as a
+decision; a decision that is neither a plain `approve` nor `reject` is rejected with a
+reason, so nothing is published by accident. To replace a short section, use the
+`edit:` form. Approving a refused draft writes nothing: the refusal notice is not brief
+text.
 
 ## Verification is not a model call
 

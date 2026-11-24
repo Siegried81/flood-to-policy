@@ -482,23 +482,38 @@ def test_a_published_crawl_delay_is_honoured(workspace):
         assert robots.crawl_delay("https://example.org/doc") == 10.0
 
 
-def test_the_larger_of_the_two_delays_wins(workspace):
-    """A published limit is a request we honour, not a ceiling we negotiate."""
+class _FakeClock:
+    """Stands in for the `time` module inside src.fetch: sleeping advances the clock."""
+
+    def __init__(self) -> None:
+        self.now = 1000.0
+
+    def monotonic(self) -> float:
+        return self.now
+
+    def sleep(self, seconds: float) -> None:
+        self.now += seconds
+
+
+def test_the_larger_of_the_two_delays_wins(workspace, monkeypatch):
+    """A published limit is a request we honour, not a ceiling we negotiate.
+    Runs on a fake clock so no real second is slept."""
+    clock = _FakeClock()
+    monkeypatch.setattr(F, "time", clock)
     throttle = F._HostThrottle(1.0)
-    start = time.monotonic()
+    start = clock.monotonic()
     throttle.wait("https://example.org/a")          # first call never sleeps
     throttle.wait("https://example.org/b", 0.2)     # ours (1.0) is larger
-    waited_default = time.monotonic() - start
-    assert waited_default >= 1.0
+    assert clock.monotonic() - start >= 1.0
 
     # The delay a call applies is the one it RESERVES for the next call, so the
     # host's own delay has to be passed on the first request too - which is what
     # `_fetch_one` does, since it reads the Crawl-delay before every scrape.
     throttle2 = F._HostThrottle(0.0)
-    start = time.monotonic()
+    start = clock.monotonic()
     throttle2.wait("https://other.example.org/a", 0.3)   # theirs is larger
     throttle2.wait("https://other.example.org/b", 0.3)
-    assert time.monotonic() - start >= 0.3
+    assert clock.monotonic() - start >= 0.3 - 1e-9   # float clock
 
 
 def test_no_robots_request_is_made_for_a_download(workspace):

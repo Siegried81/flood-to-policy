@@ -123,3 +123,27 @@ def test_only_climate_replaces_the_climate_columns_in_place(tmp_path, monkeypatc
     back = pd.read_parquet(out)
     assert list(back.columns) == ["nuts_id", "change_pct_ensemble_median_2041_2070", "shared_with"]
     assert back["change_pct_ensemble_median_2041_2070"].tolist() == [12.0, -3.0]
+
+
+def test_facilities_note_reports_points_that_fall_in_no_region(tmp_path, monkeypatch):
+    """A facility outside every region is counted nowhere; the note must say how many."""
+    import geopandas as gpd
+    import numpy as np
+    from shapely.geometry import Point, box
+
+    points = gpd.GeoDataFrame(
+        {"cntr_id": ["AA", "AA", "AA"]},
+        geometry=[Point(0.5, 0.5), Point(0.6, 0.5), Point(50, 50)], crs="EPSG:3035",
+    )
+    admin = gpd.GeoDataFrame({"nuts_id": ["R1"], "country": ["AA"]},
+                             geometry=[box(0, 0, 1, 1)], crs="EPSG:3035")
+    (tmp_path / "gisco_education.gpkg").write_bytes(b"")
+    monkeypatch.setattr(build_context, "DOWNLOAD", tmp_path)
+    monkeypatch.setattr(build_context, "hazard_paths", lambda: {100: "rp100.tif"})
+    monkeypatch.setattr(build_context, "protection_path", lambda: (_ for _ in ()).throw(SystemExit))
+    monkeypatch.setattr(build_context.facilities, "load", lambda path: points)
+    monkeypatch.setattr(build_context.facilities, "flooded",
+                        lambda pts, hazard, **kw: np.ones(len(pts), bool))
+    frame, note = build_context._facilities(admin, 0.5)
+    assert frame["schools_total"].tolist() == [2]
+    assert "1 in no region" in note

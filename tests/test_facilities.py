@@ -132,3 +132,28 @@ def test_a_country_reporting_no_beds_has_known_zero_and_beds_nan(points):
     assert out["hospitals_cap_beds_known"].tolist() == [0]
     assert np.isnan(out["hospitals_cap_beds_total"].iloc[0])
     assert np.isnan(out["hospitals_cap_beds_flooded_rp100"].iloc[0])
+
+
+def test_a_stray_foreign_point_does_not_make_a_country_covered(points):
+    """GISCO education has no German school, but one Dutch point lands in a
+    German region: Germany must still read NaN, not 0."""
+    points = points.copy()
+    points["cntr_id"] = ["NL", "NL", "NL", "NL", "NL"]
+    admin = gpd.GeoDataFrame(
+        {"nuts_id": ["NL1", "DE1", "NL2"], "country": ["NL", "DE", "NL"]},
+        geometry=[box(0, 46, 1, 50), box(1, 46, 4, 50), box(20, 20, 21, 21)],
+        crs="EPSG:4326",
+    )
+    out = facilities.counts_by_region(points, admin, {"flooded_rp100": np.ones(5, bool)},
+                                      prefix="schools")
+    assert out["schools_total"].iloc[0] == 1
+    assert out["schools_total"].iloc[2] == 0, "covered country, no school there: a real 0"
+    assert out.iloc[1].isna().all(), "uncovered country: not measured, whatever lands in it"
+
+
+def test_points_outside_every_region_are_reported(points):
+    admin = gpd.GeoDataFrame({"nuts_id": ["W"], "country": ["AA"]},
+                             geometry=[box(0, 46, 4, 50)], crs="EPSG:4326")
+    out = facilities.counts_by_region(points, admin, {"flooded_rp100": np.ones(5, bool)},
+                                      prefix="hospitals")
+    assert out.attrs["outside_regions"] == 1

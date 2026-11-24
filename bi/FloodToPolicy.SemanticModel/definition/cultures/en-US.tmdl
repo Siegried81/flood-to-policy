@@ -1106,7 +1106,7 @@ cultureInfo en-US
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "people a year behind the defences, weighted by probability": {
+			          "people a year behind the defences, weighted by probability - a lower bound": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -1116,7 +1116,7 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "A year behind the defences (JRC: ~160,000)": {
+			          "A year behind the defences, lower bound (JRC: ~160,000)": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

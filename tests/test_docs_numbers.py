@@ -127,3 +127,13 @@ def test_check_passes_on_the_real_docs_without_the_frozen_table(monkeypatch, tmp
     err = capsys.readouterr().err
     assert "nuts3_regions not measurable here" in err
     assert "numbers: clean" in err
+
+
+def test_a_collection_error_is_a_failure_not_a_smaller_count(monkeypatch):
+    """pytest still prints 'N tests collected' when a module fails to import."""
+    broken = "tests/a.py::t\n1 test collected, 1 error in 0.1s\n"
+    with pytest.raises(RuntimeError, match="collection failed"):
+        dn.check_collection(2, broken)
+    with pytest.raises(RuntimeError, match="collection failed"):
+        dn.check_collection(0, broken)
+    dn.check_collection(0, "tests/a.py::t\n1 test collected in 0.01s\n")

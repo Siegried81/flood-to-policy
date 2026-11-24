@@ -1,7 +1,12 @@
 name: tests
 
 # Offline by design: the suite must pass with no network.
-on: [push, pull_request]
+# push is limited to main: a branch with an open PR is already checked by the
+# pull_request run, so pushing to it must not start the same suite twice.
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 permissions:
   contents: read
@@ -17,14 +22,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      # lfs: the Team 9 browser tests open web/public/team9/flood_map.html, which is
+      # stored in Git LFS (a pointer file is skipped, not tested).
       - uses: actions/checkout@v7
+        with:
+          lfs: true
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements*.txt
       - run: pip install -r requirements-test.txt
-      - run: python -m pytest -q   # tests/ and team9/tests (see pytest.ini)
+      # The browser tests of team9/tests drive Chromium through Playwright.
+      - run: python -m playwright install --with-deps chromium
+      # -rs prints every skip with its reason, so a silently skipped test shows up.
+      - run: python -m pytest -q -rs   # tests/ and team9/tests (see pytest.ini)
 
   # The React UI: install, build (prebuild copies data/processed/event_2021_web.json).
   # web/ has no lint script, so there is no lint step.

@@ -1,14 +1,29 @@
 """Asset screening scores in flood_map.html (context layers ported from the retired priority_map.html): the browser
 recomputes them like scoring.py and reacts to the asset sliders (needs a built flood_map.html and
 `playwright install chromium`; skipped otherwise)."""
+from pathlib import Path
+
 import numpy as np
 import pytest
 
 from priority import scoring as sc
 
-HTML = __import__("pathlib").Path(__file__).resolve().parents[1] / "flood_map.html"
+
+
+def _find_map() -> Path:
+    """Built map: team9/flood_map.html (map.py output) first, else the committed web/public copy. A Git LFS
+    pointer counts as absent: it is a ~130-byte stub, not a page."""
+    here = Path(__file__).resolve().parents[1]
+    for p in (here / "flood_map.html", here.parent / "web" / "public" / "team9" / "flood_map.html"):
+        if p.exists() and p.stat().st_size > 1024:
+            return p
+    return here / "flood_map.html"
+
+
+HTML = _find_map()
 playwright = pytest.importorskip("playwright.sync_api")
-pytestmark = pytest.mark.skipif(not HTML.exists(), reason="run map.py first")
+pytestmark = pytest.mark.skipif(not HTML.exists() or HTML.stat().st_size <= 1024,
+                                reason=f"map missing or a Git LFS pointer: {HTML} (run map.py or `git lfs pull`)")
 
 
 @pytest.fixture(scope="module")

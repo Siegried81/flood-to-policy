@@ -404,7 +404,7 @@
       if (j.version !== VERSION) { p.errors.push('unsupported version ' + j.version + ' (this map reads version ' + VERSION + ')'); return p; }
       var s = j.settings || {};
       var k = km(s.max_distance_m);
-      if (k == null) p.errors.push('settings: max_distance_m must be 1000–25000 in steps of 1000 (got ' + JSON.stringify(s.max_distance_m) + ')'); else p.km = k;
+      if (k == null) p.errors.push('settings: max_distance_m must be 1000 to 25000 in steps of 1000 (got ' + JSON.stringify(s.max_distance_m) + ')'); else p.km = k;
       if (typeof s.exploratory_outside_ems !== 'boolean') p.errors.push('settings: exploratory_outside_ems must be true or false'); else p.exploratory = s.exploratory_outside_ems;
       if (j.data_build !== D.build) p.warnings.push('saved with data build ' + j.data_build + ', this map is ' + D.build + ': the demand or inventory differ, so results may not match');
       else if (j.demand_total != null && Math.abs(j.demand_total - demandTotal) > 0.01) p.warnings.push('saved demand total differs from this map');

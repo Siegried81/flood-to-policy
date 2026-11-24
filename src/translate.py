@@ -71,6 +71,27 @@ _CITATION = re.compile(r"\[S\d+\]")
 _NUMBER = re.compile(r"\d+(?:[ .,  ](?=\d)\d+)*")
 
 
+#: An HTML comment. `approved.md` stamps each section with one ("approved 2026-11-24
+#: 10:12; verified: ..."), and its date, counts and grounding score are figures
+#: that belong to the record, not to the prose being translated.
+_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+
+#: How a model declines or apologises instead of translating, in the four
+#: languages involved. Matched at the start of the answer only: a faithful
+#: translation does not open by talking about itself.
+_REFUSAL_OPENING = re.compile(
+    r"^\W*(?:i\s+(?:cannot|can['’]?t|am\s+(?:sorry|unable)|apologi[sz]e)|i['’]m\s+(?:sorry|unable)|"
+    r"sorry\b|as\s+an\s+ai\b|je\s+(?:ne\s+peux|suis\s+désolé|m['’]excuse)|désolé\b|"
+    r"ik\s+(?:kan\s+(?:dit\s+)?niet|ben\s+niet\s+in\s+staat)|sorry\b|"
+    r"ich\s+(?:kann\s+(?:dies\s+|das\s+)?nicht|bedauere|entschuldige)|leider\b)",
+    re.IGNORECASE)
+#: A translation is 0.7 to 1.5 times its source in length for these languages;
+#: outside this wide band it is a refusal, a summary or a runaway, not a translation.
+_LENGTH_RATIO = (0.4, 3.0)
+#: Below this many characters the ratio is noise ("Yes." -> "Oui.").
+_RATIO_MIN_SOURCE = 40
+
+
 class TranslationFailed(RuntimeError):
     """The translation came back, and it is not safe to show.
 
@@ -227,6 +248,28 @@ def citations(text: str) -> list[str]:
     return _CITATION.findall(text)
 
 
+def _check_looks_like_a_translation(source: str, translated: str) -> None:
+    """Raise when the answer is a refusal or has the wrong size for a translation.
+
+    The figure checks pass vacuously on a source with no number: "I cannot
+    translate this." holds no figure and no citation either, so it would be
+    returned as the French section. Two cheap guards close that: the answer may
+    not open like a refusal (unless the source does too), and its length must
+    stay within a wide band of the source.
+    """
+    if _REFUSAL_OPENING.match(translated.strip()) and not _REFUSAL_OPENING.match(source.strip()):
+        raise TranslationFailed(
+            "The model declined or apologised instead of translating. Nothing is "
+            "shown; the English section is unchanged.")
+    if len(source.strip()) >= _RATIO_MIN_SOURCE:
+        ratio = len(translated.strip()) / len(source.strip())
+        if not _LENGTH_RATIO[0] <= ratio <= _LENGTH_RATIO[1]:
+            raise TranslationFailed(
+                f"The translation is {ratio:.2f} times the length of the source, which "
+                "is not a translation (a refusal, a summary or a runaway answer). "
+                "Nothing is shown.")
+
+
 def check(source: str, translated: str, language: str | None = None) -> None:
     """Raise unless every figure and every citation survived, in order.
 
@@ -240,6 +283,7 @@ def check(source: str, translated: str, language: str | None = None) -> None:
     become "doit être priorisé". The source is English. Without `language` only
     the figures and the citations are checked, as before.
     """
+    source, translated = _COMMENT.sub("", source), _COMMENT.sub("", translated)
     want, got = digits(source), digits(translated)
     if want != got:
         lost = [d for d in want if d not in got]
@@ -274,6 +318,7 @@ def check(source: str, translated: str, language: str | None = None) -> None:
             f"is cited to a numbered passage, so a reordered marker points the "
             f"reader at the wrong source."
         )
+    _check_looks_like_a_translation(source, translated)
     if language is None:
         return
     want, got = scales(source, "en"), scales(translated, language)
@@ -307,7 +352,10 @@ def translate(text: str, language: str) -> Translation:
             f"`{language}` is not a target language. Choose one of "
             f"{sorted(LANGUAGES)} - English is the source and is not a target."
         )
-    if not text or not text.strip():
+    # The approval stamp is a comment, not prose: it would be translated, and its
+    # date and counts are figures the translation is checked against.
+    text = _COMMENT.sub("", text or "").strip()
+    if not text:
         raise ValueError("There is nothing to translate; draft the section first.")
 
     name = LANGUAGES[language]

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 /**
- * An SVG choropleth drawn straight from GeoJSON — no tile provider, no API key.
+ * An SVG choropleth drawn straight from GeoJSON, no tile provider, no API key.
  *
  * The usual reflex is Leaflet over OpenStreetMap tiles, which means the map stops
  * working the moment the venue Wi-Fi does. Projecting the polygons ourselves and
@@ -69,8 +69,8 @@ function projectedRingsOf(geometry) {
 
 /** Quantile breaks, so the classes carry roughly equal counts.
  *
- * Equal-interval breaks on a long-tailed distribution — which exposure always is,
- * a few regions carrying most of it — put 95% of regions in the first class and
+ * Equal-interval breaks on a long-tailed distribution, which exposure always is,
+ * a few regions carrying most of it, put 95% of regions in the first class and
  * produce a map that looks uniformly empty. Quantiles show the ranking the brief
  * is actually about. Say which you used: the choice changes what the reader sees.
  */
@@ -137,7 +137,7 @@ export default function Choropleth({ geojson, values, valueKey, idKey, label, fo
         .map((ring) =>
           ring
             // y is negated because SVG's y axis grows downward while northing
-            // grows upward — without this the map is upside down. Whole metres
+            // grows upward, without this the map is upside down. Whole metres
             // are ample: one unit is a millionth of the frame.
             .map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(0)} ${(-y).toFixed(0)}`)
             .join(" ") + " Z"
@@ -180,7 +180,7 @@ export default function Choropleth({ geojson, values, valueKey, idKey, label, fo
           </span>
         </span>
         {label} · quantile classes, so the map shows the ranking rather than a long
-        tail. “Not measured” is a region the hazard raster does not cover — not a
+        tail. “Not measured” is a region the hazard raster does not cover, not a
         region with nobody exposed.
         {offFrame > 0 && (
           <>

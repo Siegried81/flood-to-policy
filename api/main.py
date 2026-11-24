@@ -3,11 +3,11 @@
 It serialises what `src/` already computes and decides nothing of its own: the
 exposure figures, the vulnerability ranking with its sensitivity, and the
 grounded retrieval. Keeping the decisions in `src/` means the Streamlit app and
-this API cannot drift into disagreeing about a number — which matters, because
+this API cannot drift into disagreeing about a number, which matters, because
 both are shown to the same jury. The three presentation decisions `src/` has no
-opinion on — which columns may be weighted into the vulnerability index, which
+opinion on, which columns may be weighted into the vulnerability index, which
 return period a figure belongs to, and what a climate period's figures are
-allowed to claim — live here as `vulnerability_indicators`, `_one_return_period`
+allowed to claim, live here as `vulnerability_indicators`, `_one_return_period`
 and `climate_periods`, and `app/streamlit_app.py` imports the first and the
 third rather than restating them.
 
@@ -22,7 +22,7 @@ Two things it deliberately does NOT do:
   `src/workflow.py`, with its `interrupt` gate, is not on this path.
 - **It does not fetch map tiles.** The choropleth is served as GeoJSON and drawn
   as SVG in the browser. No tile provider, no API key, nothing to fail on a
-  hackathon network — and the map still works with the Wi-Fi unplugged.
+  hackathon network, and the map still works with the Wi-Fi unplugged.
 
 With `HOSTED=1` (the public demo) every route that would call a model or write
 the brief answers 403 before touching a provider; `GET /api/config` tells the UI.
@@ -36,6 +36,7 @@ import ipaddress
 import json
 import logging
 import os
+import re
 import secrets
 import sys
 from datetime import datetime, timezone
@@ -45,7 +46,7 @@ import pandas as pd
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -228,16 +229,33 @@ def config() -> dict:
             "event2021_available": EVENT_WEB.exists() or (on and EVENT_WEB_FULL.exists())}
 
 
+def _built(path: Path) -> str:
+    """The `built` date (ISO, so it sorts as text) of an event file, or "" when unreadable.
+
+    Read from the head of the file rather than by parsing it: the full build is
+    several MB and `built` is among its first keys, written by the exporter.
+    """
+    try:
+        head = path.read_bytes()[:4096].decode("utf-8", errors="ignore")
+    except OSError:
+        return ""
+    match = re.search(r'"built"\s*:\s*"([^"]*)"', head)
+    return match.group(1) if match else ""
+
+
 @app.get("/api/event2021")
 def event2021() -> Response:
     """The precomputed July 2021 story (`scripts/export_event_web.py`), as is.
 
     Served byte for byte: the file is already compact JSON, and re-parsing a
     few hundred kB of map data on every request would only cost time. Locally
-    the `--full` build wins when present; the hosted demo always serves the
-    public one, whose geometry may be redistributed.
+    the `--full` build wins when present AND at least as recent as the public
+    file: it is gitignored, so a stale one keeps living on a dev machine and
+    would hide every field added to the committed build since. The hosted demo
+    always serves the public one, whose geometry may be redistributed.
     """
-    if not hosted() and EVENT_WEB_FULL.exists():
+    if (not hosted() and EVENT_WEB_FULL.exists()
+            and (not EVENT_WEB.exists() or _built(EVENT_WEB_FULL) >= _built(EVENT_WEB))):
         return Response(content=EVENT_WEB_FULL.read_bytes(), media_type="application/json")
     if not EVENT_WEB.exists():
         raise HTTPException(
@@ -247,6 +265,23 @@ def event2021() -> Response:
                    "and hazard rasters).",
         )
     return Response(content=EVENT_WEB.read_bytes(), media_type="application/json")
+
+
+def _corpus_passages() -> int:
+    """How many passages the corpus holds; 0 when it is missing, so `meta` still answers."""
+    try:
+        return len(rag.load_index().passages)
+    except rag.CorpusUnavailable:
+        return 0
+
+
+def _corpus_unavailable(exc: rag.CorpusUnavailable) -> HTTPException:
+    """503 for a missing corpus: the service is not set up, which is not a refusal.
+
+    A refusal (`refused: true`) says the corpus was searched and holds nothing
+    on the question. No corpus folder means nothing was searched.
+    """
+    return HTTPException(status_code=503, detail=str(exc))
 
 
 @app.get("/api/meta")
@@ -267,7 +302,7 @@ def meta() -> dict:
         "frozen_at": datetime.fromtimestamp(EXPOSURE.stat().st_mtime, timezone.utc).isoformat(),
         "has_geometry": GEOMETRY.exists(),
         "has_context": CONTEXT.exists(),
-        "corpus_passages": len(rag.load_index().passages),
+        "corpus_passages": _corpus_passages(),
         # Whether, never what: the UI shows a token field only when approve
         # will ask for one, and the secret stays in the approver's head.
         "approve_token_required": bool(os.environ.get("FLOOD_APPROVE_TOKEN")),
@@ -426,8 +461,8 @@ def climate_periods(df: pd.DataFrame) -> list[dict]:
       against a near-zero reference discharge is unbounded, which is why this is
       a median and not a mean.
     - `members` is how many model chains the period actually has, read off the
-      table rather than assumed. Measured on `data/processed/context.parquet`
-      2026-10-25: all three periods carry **16** chains (eight simulations
+      table rather than assumed. Measured on `data/processed/context.parquet`:
+      all three periods carry **16** chains (eight simulations
       through two hydrological models) on the 1,198 regions that were measured
       at all, and 0 on the other 147. The fixture in `tests/test_api.py` that
       uses one chain for 2071-2100 exercises the branch below; it does not
@@ -591,13 +626,17 @@ def vulnerability(req: VulnerabilityRequest) -> dict:
 
 
 @app.get("/api/search")
-def search(q: str, k: int = Query(default=5, ge=1, le=rag.MAX_PASSAGES)) -> dict:
+def search(q: str = Query(max_length=2000),
+           k: int = Query(default=5, ge=1, le=rag.MAX_PASSAGES)) -> dict:
     """Retrieve supporting passages, or report the refusal.
 
     An empty `passages` with `refused: true` is a result, not an error: the corpus
     being silent is the honest answer, and the UI shows it as such.
     """
-    passages = rag.search(q, k=k)
+    try:
+        passages = rag.search(q, k=k)
+    except rag.CorpusUnavailable as exc:
+        raise _corpus_unavailable(exc) from exc
     return {"question": q, "passages": passages, "refused": not passages}
 
 
@@ -611,6 +650,25 @@ def _upstream_failure(exc: Exception) -> str:
     log.warning("model call failed", exc_info=exc)
     return (f"No model reachable ({type(exc).__name__}). Retry, or check the "
             "provider; the server log has the details.")
+
+
+def _provider_errors() -> tuple[type[Exception], ...]:
+    """The exception types a model provider can raise, and nothing else.
+
+    A bug in this service (a KeyError in pandas, say) must reach the client as a
+    500, not as "No model reachable": the status code is the only thing telling
+    an operator which side is broken. `anthropic` is imported only when
+    installed, like everywhere else in the kit.
+    """
+    import requests
+
+    errors: list[type[Exception]] = [requests.RequestException, rag.EmptyCompletion]
+    try:
+        import anthropic
+        errors.append(anthropic.APIError)
+    except ImportError:
+        pass
+    return tuple(errors)
 
 
 def _public_token_report(df: pd.DataFrame) -> dict:
@@ -651,7 +709,10 @@ def draft(req: DraftRequest) -> dict:
     that only the asker typed is not evidence.
     """
     _refuse_if_hosted("Drafting")
-    passages = rag.search(req.question, k=5)
+    try:
+        passages = rag.search(req.question, k=5)
+    except rag.CorpusUnavailable as exc:
+        raise _corpus_unavailable(exc) from exc
     if not passages:
         return {"refused": True, "draft": None, "passages": []}
 
@@ -692,21 +753,20 @@ def draft(req: DraftRequest) -> dict:
     prompt = rag.draft_prompt(req.question, f"{note}\nTABLE:\n{table}", fenced)
     try:
         text = rag.complete(prompt)
+    except rag.EmptyCompletion as exc:
+        # The provider answered with no text. Nothing was drafted, so there is
+        # nothing to verify; the status is the provider's, not this service's.
+        log.warning("empty completion", exc_info=exc)
+        raise HTTPException(
+            status_code=502,
+            detail="The model returned an empty completion. Nothing was drafted, so "
+                   "there is nothing to verify: retry, or check the provider.",
+        ) from exc
     except Exception as exc:
         # 502, not 500: the failure is upstream, and the status code is the only
         # thing telling the client it is the model that is unreachable rather
         # than this service that is broken.
         raise HTTPException(status_code=502, detail=_upstream_failure(exc)) from exc
-    if text is None:
-        # The provider can answer with message.content: null, which `rag.complete`
-        # passes straight through. Verification below runs regexes over the text,
-        # so a None would resurface as a TypeError out of grounding_score and
-        # reach the client as a 500 - our bug, for the provider's empty turn.
-        raise HTTPException(
-            status_code=502,
-            detail="The model returned an empty completion. Nothing was drafted, so "
-                   "there is nothing to verify: retry, or check the provider.",
-        )
 
     reference = f"{note}\n{table}"
     check = rag.verify(text, passages, reference)
@@ -718,6 +778,7 @@ def draft(req: DraftRequest) -> dict:
         "invalid_citations": check["invalid_citations"],
         "unsupported_numbers": check["unsupported_numbers"],
         "uncited_sentences": check["uncited_sentences"],
+        "unknown_claims": check["unknown_claims"],
         # What /api/approve needs to re-check an edit against the same sources:
         # a client sends it back with the passages and the edited text.
         "table_text": reference,
@@ -763,7 +824,7 @@ def ask(req: AskRequest) -> dict:
             answer = nlquery.ask(req.question, df)
     except nlquery.SpecError as exc:
         raise HTTPException(status_code=422, detail=f"Query refused: {exc}") from exc
-    except Exception as exc:
+    except _provider_errors() as exc:
         raise HTTPException(
             status_code=502,
             detail=_upstream_failure(exc) + " A query `spec` can still be sent without a model.",
@@ -771,8 +832,16 @@ def ask(req: AskRequest) -> dict:
     return {"question": req.question, **answer.as_dict()}
 
 
+# Cap on one approved section: generous for a brief, but a client cannot fill the
+# disk with a single request.
+MAX_APPROVED_CHARS = 50_000
+# Retrieval chunks are about `rag.TARGET_CHARS` long (one sentence can run over),
+# so a passage far past this was never produced by `/api/draft`.
+MAX_PASSAGE_CHARS = 4 * rag.TARGET_CHARS
+
+
 class TranslateRequest(BaseModel):
-    text: str = Field(min_length=1)
+    text: str = Field(min_length=1, max_length=MAX_APPROVED_CHARS)
     #: A key of `translate.LANGUAGES`, validated there rather than here so the
     #: refusal message names the languages that exist.
     language: str = Field(min_length=2, max_length=5)
@@ -828,11 +897,6 @@ def languages() -> dict:
     ]}
 
 
-# Cap on one approved section: generous for a brief, but a client cannot fill the
-# disk with a single request.
-MAX_APPROVED_CHARS = 50_000
-
-
 class ApproveRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_APPROVED_CHARS)
     #: The passages and table text the draft was written from, as `/api/draft`
@@ -842,24 +906,53 @@ class ApproveRequest(BaseModel):
     passages: list[dict] | None = Field(default=None, max_length=rag.MAX_PASSAGES)
     table_text: str = Field(default="", max_length=rag.PROMPT_CHAR_BUDGET)
 
+    @field_validator("text")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        """Refuse a text that is only whitespace: it would append an empty section."""
+        if not value.strip():
+            raise ValueError("the text to approve is empty")
+        return value
+
+    @field_validator("passages")
+    @classmethod
+    def _passages_fit(cls, value: list[dict] | None) -> list[dict] | None:
+        """Cap each passage's text and their total, as a draft never exceeds them."""
+        if value is None:
+            return value
+        sizes = [len(str(p.get("text", ""))) for p in value]
+        if any(n > MAX_PASSAGE_CHARS for n in sizes) or sum(sizes) > rag.PROMPT_CHAR_BUDGET:
+            raise ValueError(
+                f"passages are too long: at most {MAX_PASSAGE_CHARS} characters each and "
+                f"{rag.PROMPT_CHAR_BUDGET} in all, the most a draft is ever given")
+        return value
+
 
 def _in_container() -> bool:
     """True inside a Docker container (the marker file Docker creates)."""
     return Path("/.dockerenv").exists()
 
 
+def _in_kubernetes() -> bool:
+    """True inside a Kubernetes pod (the service-host variable the kubelet injects)."""
+    return bool(os.environ.get("KUBERNETES_SERVICE_HOST"))
+
+
 def _is_local_caller(host: str | None) -> bool:
-    """Loopback, or (inside Docker only) a private address.
+    """Loopback, or (inside plain Docker only) a private address.
 
     Behind Docker's port-forward every caller, the host's own browser included,
     arrives from the bridge gateway (a private address), never from loopback;
     compose publishes the port on 127.0.0.1 only, so that is this machine.
+    In a Kubernetes pod the same rule would let every other pod on the cluster
+    network approve, so there only loopback (a port-forward, a sidecar) is
+    local and anyone else needs `FLOOD_APPROVE_TOKEN`.
     """
     try:
         ip = ipaddress.ip_address(host or "")
     except ValueError:
         return host == "localhost"
-    return ip.is_loopback or (_in_container() and ip.is_private)
+    return ip.is_loopback or (_in_container() and not _in_kubernetes() and ip.is_private)
 
 
 def _check_approver(token: str | None, client_host: str | None = None) -> None:

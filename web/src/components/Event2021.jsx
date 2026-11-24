@@ -22,7 +22,7 @@ const STEPS = {
 // "51 %" must never wrap between the number and its sign.
 const nb = (text) => String(text ?? "").replace(/ %/g, " %");
 
-// A share (0–1) as a whole-percent string, in the "51 %" form the rest of the view uses.
+// A share (0 to 1) as a whole-percent string, in the "51 %" form the rest of the view uses.
 const fmtPct = (x) => (x == null ? "n/a" : `${Math.round(x * 100)} %`);
 
 // GeoJSON (Multi)Polygon in pixel units to SVG path data.
@@ -280,8 +280,8 @@ function Facts({ place }) {
           <p className="ev-small">
             That's the gap Anna plans for. It's a floor: straight-line reach ignores the flooded river
             in between, and "public building" here counts any non-residential building on safe ground
-            ({nb(fmtPct(place.shelter_gap.share_500m))} within 500 m). Count only named places —
-            schools, sports halls, civic halls — and the reach drops to{" "}
+            ({nb(fmtPct(place.shelter_gap.share_500m))} within 500 m). Count only named places,
+            schools, sports halls, civic halls, and the reach drops to{" "}
             <b>{nb(fmtPct(place.shelter_gap.share_named))}</b>.
           </p>
         </div>
@@ -355,7 +355,7 @@ function Chart({ chart }) {
   return (
     <div className="ev-chart">
       {/* A bar from the most to the least frequent flood, one notch per period
-          in the table, so the nesting reads left to right — the same control as
+          in the table, so the nesting reads left to right, the same control as
           the Europe view. */}
       <label className="rp-bar">
         <span>Return period: <b>1-in-{rp} years</b></span>
@@ -440,7 +440,7 @@ function Combined({ combined }) {
   return (
     <p className="ev-combined">
       Across the three countries the first maps reached <b>{combined.buildings_shown}</b> buildings and{" "}
-      <b>{combined.residents_shown}</b> residents — and <b>{nb(combined.share_shown)}</b> of those people lived
+      <b>{combined.residents_shown}</b> residents, and <b>{nb(combined.share_shown)}</b> of those people lived
       outside the 1-in-100-year flood zone.
     </p>
   );
@@ -466,7 +466,7 @@ function Agreement({ rows }) {
       </table>
       <p className="ev-small">
         The share of the observed flood <b>area</b> (first maps) inside the 1-in-100-year zone, in the 1-in-500
-        zone only, or outside both — the cell-weighted agreement with the JRC map. The chart above counts people;
+        zone only, or outside both, the cell-weighted agreement with the JRC map. The chart above counts people;
         this counts flooded ground, so a place with much water but few residents still shows how much the map
         missed. “Outside both” mixes flooding beyond the modelled hazard with rivers too small to be modelled
         (catchment below the ~150 km² floor).
@@ -490,7 +490,7 @@ function Recommendations({ recommendations }) {
   if (!recommendations || !recommendations.rows?.length) return null;
   return (
     <>
-      <h2 className="ev-h2"><span className="ev-kicker">What we recommend</span>Two before the rain, one by the {recommendations.review_date} plan review</h2>
+      <h2 className="ev-h2"><span className="ev-kicker">What we recommend</span>What to do before the rain, and by the {recommendations.review_date} plan review</h2>
       <table className="ev-recos">
         <thead><tr><th>Action</th><th>Who, by when</th><th>Instrument, cost</th></tr></thead>
         <tbody>
@@ -538,7 +538,7 @@ function Since({ since }) {
 }
 
 // Warn-order: who Anna alerts first. An ordered judgement (shortest lead time
-// first), not computed hours — said so in the note, since we have no per-valley
+// first), not computed hours, said so in the note, since we have no per-valley
 // lead time.
 function WarnOrder({ order }) {
   if (!order || !order.length) return null;
@@ -566,7 +566,7 @@ function WarnOrder({ order }) {
   );
 }
 
-// Who decides and who to call in each part of the border area — the cross-border
+// Who decides and who to call in each part of the border area, the cross-border
 // role made concrete.
 function CrossBorder({ rows }) {
   if (!rows || !rows.length) return null;
@@ -583,7 +583,7 @@ function CrossBorder({ rows }) {
       </table>
       <p className="ev-small">
         Public emergency structures, not phone numbers. The point: three countries, three chains of
-        command, one flood — EMRIC is the table where they meet.
+        command, one flood, EMRIC is the table where they meet.
       </p>
     </>
   );
@@ -597,7 +597,7 @@ function OnePager({ place, data }) {
   const g = place.shelter_gap;
   return (
     <section className="ev-onepager" aria-hidden="true">
-      <h1>Flood action card — {place.label}</h1>
+      <h1>Flood action card: {place.label}</h1>
       <p className="ev-op-sub">July 2021 ({place.country}) · prepared for Anna, Liège–Limburg–Aachen crisis coordination · figures from this tool, not a live forecast.</p>
       {a && (
         <>
@@ -715,7 +715,7 @@ export default function Event2021() {
                   drawn as water, and orange only when more of its water lies outside the zone than inside.
                 </p>
                 <p className="ev-small ev-trigger">
-                  <b>What to act on:</b> all of it — the water that stayed inside the zone (dark blue), the
+                  <b>What to act on:</b> all of it, the water that stayed inside the zone (dark blue), the
                   water that spilled outside it (orange), and the pale-blue 1-in-100-year zone itself. Here
                   most of the people the water reached are in the orange, outside the zone, so the zone alone
                   would have missed them. Trigger the warning on the water <i>and</i> the zone, not the map alone.

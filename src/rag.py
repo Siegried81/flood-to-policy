@@ -7,7 +7,7 @@ something no source supports". Everything here is built against that one failure
 **Why BM25 and not embeddings.** The corpus is legal and institutional text, where
 the discriminating tokens are exact: "Article 7", "preliminary flood risk
 assessment", "return period", "EMSR518". Lexical matching is strong on precisely
-that, and it needs no model download, no API key and no network — which is the
+that, and it needs no model download, no API key and no network, which is the
 real argument, because the venue Wi-Fi will fail and a jury demo that depends on
 an embedding endpoint is a demo that dies in front of the jury. Dense retrieval is
 better at paraphrase; a one-line swap is left open for it, but the offline path is
@@ -59,6 +59,23 @@ MAX_PASSAGES = 5
 _WORD_RE = re.compile(r"[^\W_]+", re.UNICODE)
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _CITATION_RE = re.compile(r"\[S(\d+)\]")
+# A marker as a model may write it: bracketed, parenthesised or in lenticular
+# brackets, with one id or a comma/semicolon separated group ("[S1, S9]", "[S1][S2]").
+_MARKER_GROUP_RE = re.compile(
+    r"[\[(【]\s*S\d+(?:\s*[,;]\s*S\d+)*\s*[\])】]")
+_MARKER_ID_RE = re.compile(r"S(\d+)")
+
+
+def normalise_citations(answer: str) -> str:
+    """Rewrite every marker spelling to the canonical `[S1]` form, one id per bracket.
+
+    The checks all count `[S<n>]`, so a model that writes `[S1, S9]`, `(S1)` or
+    `【S1】` would otherwise have its markers read as no citation at all (the
+    sentence is flagged uncited, and an out-of-range id inside a group is never
+    refused). Normalising first makes every spelling reach the same checks.
+    """
+    return _MARKER_GROUP_RE.sub(
+        lambda m: "".join(f"[S{n}]" for n in _MARKER_ID_RE.findall(m.group())), answer)
 
 # Dropped before scoring: they appear in every passage, so they carry no signal
 # and would let a question match on its connective tissue alone.
@@ -161,8 +178,23 @@ class Index:
 _INDEX: Index | None = None
 
 
+class CorpusUnavailable(RuntimeError):
+    """No passage could be loaded: the corpus folder is missing or holds nothing readable.
+
+    Its own type because "the corpus does not cover the question" (a refusal,
+    which is an answer) and "there is no corpus here" (a deployment fault) must
+    not look alike: a checkout without `data/raw/scrape` would otherwise answer
+    every question with a confident "the corpus is silent".
+    """
+
+
 def load_index(corpus_dir: Path | None = None) -> Index:
-    """Build the index once and keep it. Idempotent, so callers need not care."""
+    """Build the index once and keep it. Idempotent, so callers need not care.
+
+    Raises `CorpusUnavailable`, and caches nothing, when no passage was loaded:
+    an empty index cached after one early call would keep refusing every
+    question after the folder was filled in.
+    """
     global _INDEX
     if _INDEX is not None:
         return _INDEX
@@ -173,6 +205,12 @@ def load_index(corpus_dir: Path | None = None) -> Index:
             text = _read(path)
             if text:
                 passages.extend(chunk(text, path.name))
+    if not passages:
+        searched = ", ".join(str(f) for f in folders)
+        raise CorpusUnavailable(
+            f"No policy corpus could be loaded (searched: {searched}). Fetch it with "
+            "`python -m src.fetch`; this is a missing corpus, not a question the corpus is silent on."
+        )
     _INDEX = Index(passages)
     return _INDEX
 
@@ -275,6 +313,7 @@ def invalid_citations(answer: str, n_sources: int) -> list[int]:
     source. Catching that costs one regex and is the single most convincing
     verification to show a jury, because the failure is unambiguous.
     """
+    answer = normalise_citations(answer)
     return sorted({n for n in map(int, _CITATION_RE.findall(answer)) if not 1 <= n <= n_sources})
 
 
@@ -292,7 +331,7 @@ def grounding_score(answer: str, passages: list[dict]) -> float:
     misreading that reuses the same vocabulary. It is cheap, deterministic and
     explainable - which is why it runs on every answer rather than sometimes.
     """
-    answer_terms = set(_tokens(_CITATION_RE.sub(" ", answer)))
+    answer_terms = set(_tokens(_CITATION_RE.sub(" ", normalise_citations(answer))))
     if not answer_terms:
         return 0.0
     supported = set()
@@ -365,7 +404,7 @@ def _source_values(token: str) -> set[float]:
 
 def _figures(text: str) -> list[tuple[str, bool]]:
     """Each number in `text` as written, with whether a percent sign follows it."""
-    text = _CITATION_RE.sub(" ", text)
+    text = _CITATION_RE.sub(" ", normalise_citations(text))
     return [(m.group(1), text[m.end():m.end() + 2].lstrip("   ").startswith("%"))
             for m in _FIGURE_RE.finditer(text)]
 
@@ -418,11 +457,23 @@ _LEADING_CITATIONS = re.compile(r"^((?:\s*\[S\d+\])+)\s*")
 #: told apart from a hedge, and an unknown that reads as a finding is the worst
 #: thing a brief can carry.
 DONT_KNOW = "I DON'T KNOW: I can't answer that with the information I have."
+_CANT_ANSWER = r"I\s+CAN['’]?T\s+ANSWER\s+THAT\s+WITH\s+THE\s+INFO(?:RMATION)?\s+I\s+HAVE"
+# Anchored at both ends: only a sentence that IS the statement is exempt from the
+# citation rule. It may be introduced by a topic and a colon ("How many km were
+# rebuilt: I don't know.") and followed by what the gap is about ("... about the
+# dam"), but not by a clause with a comma, so "I don't know of any law, but
+# Article 7 requires X" is a claim and still needs its marker.
 _DONT_KNOW_RE = re.compile(
-    r"\bI\s+DON['’]?T\s+KNOW\b"
-    r"|\bI\s+CAN['’]?T\s+ANSWER\b[^.]*\bINFO(?:RMATION)?\s+I\s+HAVE\b",
+    rf"(?:[^.:;]{{0,120}}:\s*)?[\W_]*"
+    rf"(?:I\s+DON['’]?T\s+KNOW(?:\s*[:,;-]\s*{_CANT_ANSWER})?|{_CANT_ANSWER})"
+    r"(?:\s+(?:about|regarding|on|for|whether|how)\b[^,;:.]*)?[\W_]*",
     re.IGNORECASE,
 )
+
+
+def _is_dont_know(sentence: str) -> bool:
+    """Whether the sentence, markers aside, is nothing but the `DONT_KNOW` statement."""
+    return bool(_DONT_KNOW_RE.fullmatch(_CITATION_RE.sub(" ", sentence).strip()))
 
 
 def unknown_claims(answer: str) -> list[str]:
@@ -432,7 +483,7 @@ def unknown_claims(answer: str) -> list[str]:
     citation by construction, and it is information for the reader (the gap
     goes into the note of what could not be verified), not a defect.
     """
-    return [s for s in _sentences(answer) if _DONT_KNOW_RE.search(s)]
+    return [s for s in _sentences(normalise_citations(answer)) if _is_dont_know(s)]
 
 
 def _sentences(answer: str) -> list[str]:
@@ -471,9 +522,9 @@ def uncited_sentences(answer: str) -> list[str]:
     cover this" in other words is listed - it is a list for the reader, not a
     refusal.
     """
-    return [s for s in _sentences(answer)
+    return [s for s in _sentences(normalise_citations(answer))
             if not _CITATION_RE.search(s)
-            and not _DONT_KNOW_RE.search(s)
+            and not _is_dont_know(s)
             and len(_tokens(s)) >= MIN_CLAIM_WORDS]
 
 
@@ -509,8 +560,11 @@ def verdict_line(check: dict) -> str:
         parts.append(f"{len(check['unknown_claims'])} answered I DON'T KNOW")
     if check["sources_known"]:
         numbers = check["unsupported_numbers"]
-        parts.append("numbers ok" if not numbers
-                     else "unsupported numbers " + ", ".join(numbers))
+        # The passages and table come back from the client on /api/approve, so
+        # "ok" is only ever relative to what the client said the sources were.
+        parts.append("numbers ok against the sources supplied by the client" if not numbers
+                     else "unsupported numbers " + ", ".join(numbers)
+                     + " (checked against the sources supplied by the client)")
         parts.append(f"grounding {check['grounding']:.2f}")
     else:
         parts.append("sources not supplied: numbers and grounding unchecked")
@@ -650,6 +704,10 @@ def _rotates(exc: Exception) -> bool:
     """
     import requests
 
+    # An empty answer is this key's miss (`gpt-oss` answers `content: null` at
+    # random), so the next organisation's key gets a try before the local model.
+    if isinstance(exc, EmptyCompletion):
+        return True
     if not isinstance(exc, requests.HTTPError):
         return False
     status = getattr(exc.response, "status_code", None)
@@ -885,6 +943,11 @@ def _groq_then_ollama(prompt: str, system: str) -> Completion:
         if reason is None:
             raise
         return Completion(_ollama(prompt, system), "ollama", reason)
+    except EmptyCompletion as exc:
+        # Every Groq key answered with no text: not an HTTP error, but the same
+        # situation as a rate limit for the caller, so the local model answers
+        # and the reason says why.
+        return Completion(_ollama(prompt, system), "ollama", f"groq returned no text ({exc})")
 
 
 def complete(prompt: str, system: str = SYSTEM_PROMPT) -> str:
@@ -896,9 +959,26 @@ def complete(prompt: str, system: str = SYSTEM_PROMPT) -> str:
     return complete_with_provider(prompt, system).text
 
 
-# Any spelling of a closing source tag: any case, whitespace around the slash or
-# the name ("< /SOURCE >"). A case-sensitive literal match let "</SOURCE>" through.
-_CLOSING_SOURCE_RE = re.compile(r"<\s*/\s*source\s*>", re.IGNORECASE)
+# Any source tag, opening or closing, in any case, with whitespace around the
+# slash or the name and attributes allowed ("< /SOURCE >", "</source foo>",
+# a forged `<source id="S9" origin="evil">`). Zero-width characters are removed
+# beforehand, so a tag split by U+200B is one tag by the time this runs.
+_SOURCE_TAG_RE = re.compile(r"<\s*(/?)\s*source\b[^>]*>", re.IGNORECASE)
+_INVISIBLE_RE = re.compile("[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]")
+
+
+def _neutralise_source_tags(text: str) -> str:
+    r"""Defang every `<source ...>` / `</source>` tag in a passage body.
+
+    NFKC folds look-alikes such as fullwidth "＜/source＞" into ASCII, and the
+    zero-width characters that could split a tag name are dropped, so what the
+    regex sees is what the model reads. A closing tag becomes `<\/source>`; an
+    opening one keeps its text but loses the angle form, so a passage cannot
+    forge a second fenced block with an origin of its own.
+    """
+    text = _INVISIBLE_RE.sub("", unicodedata.normalize("NFKC", text))
+    return _SOURCE_TAG_RE.sub(
+        lambda m: "<\\/source>" if m.group(1) else "<\\" + m.group()[1:].lstrip(), text)
 
 
 def draft_prompt(question: str, table_block: str, fenced: str) -> str:
@@ -923,11 +1003,7 @@ def fence(passages: list[dict]) -> str:
     """
     blocks = []
     for i, passage in enumerate(passages, 1):
-        # NFKC first: it folds look-alikes such as fullwidth "＜/source＞" into
-        # plain ASCII, so they cannot slip past the regex below and be read by
-        # the model as a real closing tag.
-        body = unicodedata.normalize("NFKC", passage["text"])
-        body = _CLOSING_SOURCE_RE.sub("<\\/source>", body)
+        body = _neutralise_source_tags(passage["text"])
         # The origin is a file name or URL from the corpus, also untrusted: escaped
         # so a quote in it cannot close the attribute and inject markup.
         origin = escape(str(passage["source"]), quote=True)
