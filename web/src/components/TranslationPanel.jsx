@@ -89,7 +89,7 @@ export default function TranslationPanel() {
         <button
           type="button"
           onClick={run}
-          disabled={state === "working" || !source.trim()}
+          disabled={state === "working" || !source.trim() || languages.length === 0}
         >
           {state === "working" ? "Translating…" : "Translate"}
         </button>

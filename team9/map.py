@@ -1249,6 +1249,9 @@ document.addEventListener('DOMContentLoaded', function() {{  // run after folium
     m.get_root().script.add_child(folium.Element(js))
     m.get_root().title = "July 2021 floods, exposure and planning map"
     m.save(OUT_HTML)
+    # folium writes a bare <html>; screen readers need the page language.
+    page = OUT_HTML.read_text(encoding="utf-8")
+    OUT_HTML.write_text(page.replace("<html>", '<html lang="en">', 1), encoding="utf-8")
     print(f"Saved {OUT_HTML} ({OUT_HTML.stat().st_size / 1e6:.1f} MB): "
           f"{len(flood_w['features']):,} flood polygons, {len(hex_w['features']):,} hexagons, "
           f"{len(pop_w['features']):,} population cells, "

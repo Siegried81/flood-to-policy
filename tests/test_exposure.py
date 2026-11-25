@@ -571,3 +571,49 @@ def test_total_pop_cache_is_not_reused_for_reordered_regions(tmp_path, monkeypat
     assert first.iloc[1] == pytest.approx(3 * first.iloc[0])
     second = build_exposure.total_population(str(path), ba)
     assert second.iloc[0] == pytest.approx(3 * second.iloc[1]), "B first now, and B is the big one"
+
+
+# --- unmeasured units ----------------------------------------------------------
+
+
+def test_unmeasured_units_are_those_with_no_figure_at_any_period():
+    import pandas as pd
+
+    from src.exposure import unmeasured_units
+    table = pd.DataFrame({"nuts_id": ["A", "A", "B", "B"],
+                          "exposed_pop": [None, None, 0.0, None]})
+    assert unmeasured_units(table) == {"A"}
+
+
+def test_footprint_columns_are_masked_and_nothing_else():
+    import pandas as pd
+
+    from src.exposure import mask_unmeasured_footprint
+    context = pd.DataFrame({"nuts_id": ["A", "B"], "hospitals_flooded_rp100": [0.0, 2.0],
+                            "residual_exposed_pop_rp10": [0.0, 5.0],
+                            "pop_density_per_km2": [80.0, 90.0]})
+    out = mask_unmeasured_footprint(context, {"A"})
+    assert out.loc[0, ["hospitals_flooded_rp100", "residual_exposed_pop_rp10"]].isna().all()
+    assert out.loc[0, "pop_density_per_km2"] == 80.0
+    assert out.loc[1].tolist() == context.loc[1].tolist()
+
+
+def test_the_frozen_tables_never_report_a_zero_nobody_measured():
+    """El Hierro (ES703) was covered at 13 % and read 0 exposed at every period;
+    the overseas regions read 0 flooded hospitals in `context.parquet`."""
+    from pathlib import Path
+
+    import pandas as pd
+
+    from src.exposure import (FOOTPRINT_COLUMN_PREFIXES, MIN_HAZARD_COVERAGE,
+                              unmeasured_units)
+    processed = Path(__file__).resolve().parents[1] / "data" / "processed"
+    exposure = pd.read_parquet(processed / "exposure.parquet")
+    thin = exposure["hazard_coverage"] < MIN_HAZARD_COVERAGE
+    assert exposure.loc[thin, "exposed_pop"].isna().all()
+    unmeasured = unmeasured_units(exposure)
+    assert "ES703" in unmeasured
+    context = pd.read_parquet(processed / "context.parquet")
+    footprint = [c for c in context.columns if c.startswith(FOOTPRINT_COLUMN_PREFIXES)]
+    assert footprint, "the footprint prefixes match no context column"
+    assert context.loc[context["nuts_id"].isin(unmeasured), footprint].isna().all().all()

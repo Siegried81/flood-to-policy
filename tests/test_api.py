@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import requests
 from fastapi.testclient import TestClient
 
 import api.main as api
@@ -755,11 +756,35 @@ def test_an_unreachable_model_is_502(monkeypatch):
     from src import translate as translate_module
 
     def dead(*_a, **_k):
-        raise RuntimeError("connection refused")
+        raise requests.ConnectionError("connection refused")
     monkeypatch.setattr(translate_module, "complete", dead)
     resp = TestClient(app).post("/api/translate", json={"text": "42 [S1]", "language": "nl"})
     assert resp.status_code == 502
     assert "No model reachable" in resp.json()["detail"]
+
+
+def test_a_provider_reply_that_is_not_json_is_502_not_400(monkeypatch):
+    """`requests.JSONDecodeError` is also a ValueError, and the route used to read
+    it as the client's bad request: a 400 a client never retries."""
+    from src import translate as translate_module
+
+    def garbled(*_a, **_k):
+        raise requests.JSONDecodeError("Expecting value", "", 0)
+    monkeypatch.setattr(translate_module, "complete", garbled)
+    resp = TestClient(app).post("/api/translate", json={"text": "42 [S1]", "language": "nl"})
+    assert resp.status_code == 502
+
+
+def test_a_bug_in_the_translate_route_is_500_not_upstream(monkeypatch):
+    """Same split as `/api/ask`: only a provider error may say "No model reachable"."""
+    from src import translate as translate_module
+
+    def broken(*_a, **_k):
+        raise KeyError("a bug in this service")
+    monkeypatch.setattr(translate_module, "complete", broken)
+    resp = TestClient(app, raise_server_exceptions=False).post(
+        "/api/translate", json={"text": "42 [S1]", "language": "nl"})
+    assert resp.status_code == 500
 
 
 def test_the_react_panel_fetches_the_language_list_rather_than_restating_it():

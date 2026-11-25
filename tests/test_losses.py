@@ -514,3 +514,16 @@ def test_a_unit_whose_every_value_is_null_totals_to_null_not_zero():
     out = L.total_by_unit(L.to_frame(rows), "casualty_count", "NUTS3").set_index("admin_unit_code")
     assert out.loc["BE331", L.VALUE_COLUMN] == 3.0
     assert pd.isna(out.loc["BE332", L.VALUE_COLUMN])
+
+
+def test_a_parent_whose_children_are_all_null_has_unknown_coverage_not_zero():
+    """Children that exist with no value are unknown; only a parent with no child
+    row at all attributed nothing. `fillna(0)` used to turn both into 0 coverage."""
+    rows = [_row("BE33", "BE3", "NUTS2", 10.0),
+            _row("BE331", "BE33", "NUTS3", 1.0), _row("BE332", "BE33", "NUTS3", 1.0)]
+    for row in rows[1:]:
+        row["value_event_src_average"] = row["value_2015_event_src_average"] = None
+    out = L.level_coverage(L.to_frame(rows), "casualty_count", "NUTS3").set_index("parent_code")
+    assert out.loc["BE33", "n_children"] == 2
+    assert pd.isna(out.loc["BE33", "child_total"])
+    assert pd.isna(out.loc["BE33", "coverage_ratio"])

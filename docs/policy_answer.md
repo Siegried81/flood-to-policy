@@ -6,10 +6,17 @@ Figures are re-derived from `data/processed/event_2021_*.parquet`, `exposure.par
 and the counts move. This page records what the kit supports and names the authority
 behind each recommendation; sources are declared in `config/sources.yaml`.
 
+**In one sentence.** AI can help if every figure carries its limits: in July 2021 the
+water reached people the European map didn't cover (91 % in Eschweiler), about 25.7
+million EU-27 residents live in the 1-in-100-year zone, and three reporting fixes before
+the 22 Dec 2027 review would make the next warning comparable across borders. The AI
+part here drafts the brief from the table and the law, checks every figure and citation
+offline, and stops until a person approves.
+
 **The question.** Can AI help Europe anticipate flood risk, and how can it be used
 responsibly to help governments prepare? The core is the July 2021 flood in Belgium,
 Germany and the Netherlands, answered on the organisers' data; the EU-wide findings
-below say whether it was a one-off and give the recommendations their scale and actor.
+below give the recommendations their scale and actor.
 
 **The core, in four figures** (first Copernicus EMS maps, residents from GHS-POP E2020,
 read by `src.policy_tool.hero()` from `event_2021_*.parquet`):
@@ -38,8 +45,9 @@ map stops, not how wrong it is inside its scope.
 `exposure.parquet` holds every NUTS3 region at nine return periods; `context.parquet`
 one row per region. At the 1-in-100-year river flood (undefended): **about 25.7 million**
 EU-27 residents exposed (25,737,004 in the table), **5.8 %** of the EU-27 population
-(29,727,887 over the 37 countries). Quote it rounded: it is a modelled extent over a 1 km
-population grid, and the maps reproduce about two thirds of observed flood extents.
+(446,267,469). Over all 37 countries in the table it is 29,727,887 people (5.3 %). Quote
+it rounded: it is a modelled extent over a 1 km population grid, and the maps reproduce
+about two thirds of observed flood extents (Dottori et al. 2022).
 EU-27 exposure grows with the period (RP10 16.7 million, RP100 25.7 million, RP500 30.7
 million); extents are nested, so quote the return period with every headcount.
 
@@ -47,8 +55,8 @@ The most exposed EU-27 regions by share are Dutch, Italian, German and Hungarian
 (Zuidoost-Zuid-Holland 70.8 %, Zuidwest-Gelderland 68.9 %, Rovigo 61.1 %), and all ten
 sit behind defences: behind the PESETA IV design standards (`residual_exposed_pop_rp100`)
 at most 1.1 % of their population remains exposed. Behind the standards the leaders are
-Pisa, Trier, Vidin, Firenze, Frankenthal (Pfalz), Lucca. The standards date from 2019 and are design levels,
-not guarantees.
+Pisa, Trier, Vidin, Firenze, Frankenthal (Pfalz), Lucca. The standards date from 2019
+and are design levels, not guarantees.
 
 ## 2. Four findings, with their caveats
 
@@ -82,8 +90,8 @@ the crosswalk cannot group stay national.
 ### 2.4 The reference discharge is rising where people already live in the way
 
 EURO-CORDEX under RCP 8.5: eight bias-adjusted simulations through two hydrological
-models, 16 members per horizon. Median regional change in reference discharge is about
-+10 % (2011-2040), +20 % (2041-2070) and +27 % (2071-2100); "robust" means at least 80 %
+models, 16 members per horizon. Median regional change in reference discharge across the
+EU-27 is about +10 % (2011-2040), +21 % (2041-2070) and +28 % (2071-2100); "robust" means at least 80 %
 of members agree on the sign (IPCC AR6), with unanimity reported beside it. The 16
 members are 8 independent simulations, so 80 % means about 7 of 8. About 70 EU-27
 regions are in the top decile of exposure share today and robustly rising by 2041-2070: a

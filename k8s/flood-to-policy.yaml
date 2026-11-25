@@ -14,6 +14,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: flood-data
 spec:
+  # ReadWriteOnce mounts on one node only, and flood-app and flood-api both use
+  # it, so flood-api carries a podAffinity that puts it on flood-app's node.
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
@@ -141,6 +143,15 @@ spec:
       # Same reason as flood-app: the image runs as uid 10001 and writes to the PVC.
       securityContext:
         fsGroup: 10001
+      # flood-data is ReadWriteOnce: on a multi-node cluster this pod would stay
+      # Pending on any node other than flood-app's.
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: flood-app
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: api
           image: siegried/flood-to-policy:latest
@@ -236,9 +247,15 @@ spec:
     spec:
       containers:
         - name: ollama
-          image: ollama/ollama:latest
+          image: ollama/ollama:0.40.17   # pinned, as in docker-compose.yml
           ports:
             - containerPort: 11434
+          # llama3.2:3b needs about 3 GB; the limit stops it starving the app.
+          resources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 8Gi
           volumeMounts:
             - name: models
               mountPath: /root/.ollama

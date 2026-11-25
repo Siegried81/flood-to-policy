@@ -409,9 +409,9 @@ def test_a_claude_key_warns_that_the_demo_is_online_again():
     assert "ANTHROPIC_API_KEY" in check.fix
 
 
-@pytest.mark.parametrize("name", ["GROQ_API_KEY_2", "GROQ_API_KEY_5"])
+@pytest.mark.parametrize("name", ["GROQ_API_KEY_2"])
 def test_a_secondary_groq_key_routes_the_demo_online_too(name):
-    """`rag.groq_keys()` rotates over GROQ_API_KEY and GROQ_API_KEY_2.._5, so
+    """`rag.groq_keys()` rotates over GROQ_API_KEY and GROQ_API_KEY_2, so
     commenting out the first one alone still sends the demo to Groq."""
     check = readiness.check_generation_key({name: "gsk_x"})
     assert check.status == "WARN"

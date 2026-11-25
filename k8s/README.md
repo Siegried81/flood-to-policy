@@ -14,7 +14,7 @@ exists to practise Deployment, Service, PersistentVolumeClaim, Secret and readin
 
 The `flood-api` pod reads `FLOOD_APPROVE_TOKEN` from `flood-secrets` and does not start without
 it (the API refuses approvals without a token under Kubernetes); see `secret.example.yaml`. The
-secret is otherwise optional. The Ollama image stays on `:latest` (no tag could be verified offline).
+secret is otherwise optional. The Ollama image is pinned to `0.40.17`, the Ollama version installed on the dev machine.
 
 Service names replace Compose DNS (`http://flood-ollama:11434`). `flood-data` is
 ReadWriteOnce and mounted by two Deployments, which works only on a single node such as

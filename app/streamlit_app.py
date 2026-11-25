@@ -1,6 +1,6 @@
 """The map/dashboard deliverable, and the place the brief gets drafted.
 
-Eight tabs: the July 2021 story first, then look at the exposure, read
+Nine tabs: the Team 9 map, the July 2021 story, then look at the exposure, read
 what qualifies it, find who is most vulnerable, ask the table a question in plain
 words, draft a section against the evidence, translate it, and keep the AI log as
 you go.
@@ -195,7 +195,7 @@ def _freeze_banner(df: pd.DataFrame, key: str | None = None) -> None:
 HERO_LABELS = {
     "missed": "The map missed people",
     "harm": "The harm",
-    "europe": "Not a one-off",
+    "europe": "Across the EU",
     "when": "The window to act",
 }
 
@@ -217,6 +217,12 @@ def render_july2021(web: dict) -> None:
             st.markdown(item["line"])
             st.caption(item["small"])
 
+    # The decision-facing warnings React shows as "Before you act on these
+    # numbers": they belong right under the figures they qualify.
+    if web.get("warnings"):
+        st.warning("**Before you act on these numbers**\n\n"
+                   + "\n".join(f"- {w}" for w in web["warnings"]))
+
     st.subheader("Who the water reached")
     for col, row in zip(st.columns(len(web["strip"])), web["strip"]):
         col.metric(row["name"], f"{row['residents_shown']} reached")
@@ -231,7 +237,7 @@ def render_july2021(web: dict) -> None:
     table = ["| Country | " + " | ".join(f"1-in-{rp}" for rp in periods) + " |",
              "|" + "---|" * (len(periods) + 1)]
     for row in chart["rows"]:
-        cells = " | ".join(row["shown"].get(str(rp), "—") for rp in periods)
+        cells = " | ".join(row["shown"].get(str(rp), "n/a") for rp in periods)
         table.append(f"| {row['name']} | {cells} |")
     st.markdown("\n".join(table))
 
@@ -607,15 +613,13 @@ with map_tab:
             )
             label = f"change in river discharge, {horizon}"
 
-        # An iframe, not `st.html`: `st.html` sanitises its body with DOMPurify
-        # and the entire <svg> came back stripped, 1,345 paths enqueued, zero
-        # `stHtml` nodes in the DOM, no console error, and a caption underneath
-        # cheerfully reporting "1,338 regions coloured". Verified in the browser.
-        # An iframe renders the markup as given.
+        # An iframe, not `st.html`: `st.html` sanitises its body with DOMPurify,
+        # which strips the whole <svg> with no error while the caption below
+        # still counts the coloured regions. An iframe renders the markup as given.
         #
-        # `st.iframe`, not `st.components.v1.html`: the old call logs "will be
-        # removed after 2026-06-01", a date already behind us, and this is the
-        # map's only rendering path. A string that matches no URL pattern is
+        # `st.iframe`, not `st.components.v1.html`, which Streamlit has
+        # deprecated, and this is the map's only rendering path. A string that
+        # matches no URL pattern is
         # embedded as raw HTML, which is what the SVG is.
         #
         # `height="content"`, never a fixed pixel count. The SVG carries
@@ -677,27 +681,30 @@ with map_tab:
                 f"Ranked: {'share of residents' if ranked == 'exposed_share' else 'people'} "
                 f"exposed, 1-in-{chosen} year flood"
             )
-            st.bar_chart(
-                shares.nlargest(15, ranked)[[key, ranked]],
-                x=key, y=ranked, sort=f"-{ranked}",
-            )
+            # Labelled by region name when the boundary file is there, as in
+            # React; a bare NUTS code means nothing to most readers.
+            names = {(f.get("properties") or {}).get(key): (f.get("properties") or {}).get("name")
+                     for f in (features or [])}
+            top = shares.nlargest(15, ranked)[[key, ranked]]
+            top = top.assign(region=[f"{names[c]} ({c})" if names.get(c) else c for c in top[key]])
+            st.bar_chart(top, x="region", y=ranked, sort=f"-{ranked}")
             if ranked == "exposed_share":
                 st.caption("Share of residents exposed. Ranking by absolute count would just rank by size.")
         else:
             st.warning("No `exposed_pop` column in the frozen table, nothing to chart.")
     with right:
         st.metric("Regions covered", f"{view[key].nunique():,}")
-        # "—" rather than 0 when the column is absent: a figure the table does not
+        # "n/a" rather than 0 when the column is absent: a figure the table does not
         # carry must not arrive looking like a figure that was measured as zero.
         st.metric(
             "Exposed, total",
-            f"{view['exposed_pop'].sum():,.0f}" if has_exposure else "—",
+            f"{view['exposed_pop'].sum():,.0f}" if has_exposure else "n/a",
         )
         # Surfaced rather than hidden: a region the raster does not cover is NOT a
         # region with nobody exposed, and presenting it as safe would be a lie.
         st.metric(
             "Not measured",
-            int(view["exposed_pop"].isna().sum()) if has_exposure else "—",
+            int(view["exposed_pop"].isna().sum()) if has_exposure else "n/a",
             help="Regions with no raster coverage, not zeros.",
         )
 
@@ -762,7 +769,7 @@ with context_tab:
                 "Median change",
                 f"{summary['median_change_pct']:+.1f}%"
                 if summary["median_change_pct"] is not None
-                else "—",
+                else "n/a",
                 help="Median of the per-region ensemble medians. A direction and a "
                      "size, not a projected discharge.",
             )
@@ -897,7 +904,10 @@ with context_tab:
             columns = [c for c in ("nuts_id", "apsfr_share", "apsfr_declared",
                                    "apsfr_country_reported", "apsfr_cycle")
                        if c in context.columns]
-            st.dataframe(undeclared[columns].head(15), width="stretch")
+            shown = undeclared[columns].head(15)
+            st.caption(f"{len(shown)} of {len(undeclared):,} undeclared regions, "
+                       "in table order (not a ranking).")
+            st.dataframe(shown, width="stretch")
 
         if "shared_basin_share" in context.columns:
             st.markdown("#### Shared river basins")
@@ -1014,8 +1024,14 @@ with vuln_tab:
             width="stretch",
         )
         st.caption(
-            "Only the robust rows belong in the brief as findings. Quote an "
-            "indicative one and the first methodological question sinks it."
+            "**robust**: stays in the top n under the weight perturbation, with "
+            "every indicator measured. It says nothing about the size of the "
+            "problem: check `exposed_pop` before quoting a row as a finding. "
+            "**partial_indicators**: the rank survived, but an indicator is "
+            "missing for this region (the French overseas regions have no "
+            "exposure figure), so it is not a finding. **indicative**: the rank "
+            "moves with the weights; quote it and the first methodological "
+            "question sinks it. **not_measured**: no indicator at all."
         )
 
 # --- Ask the table --------------------------------------------------------------
@@ -1106,8 +1122,14 @@ with draft_tab:
     if hosted():
         st.info(HOSTED_REFUSAL.format(what="Drafting"))
     elif question:
-        passages = rag.search(question, k=5)
-        if not passages:
+        try:
+            passages = rag.search(question, k=5)
+        except rag.CorpusUnavailable as exc:
+            # A missing corpus is a deployment fault, not a silent corpus: say
+            # so, as the API does with a 503, instead of a traceback.
+            st.error(str(exc))
+            passages = None
+        if passages == []:
             # The refusal path, shown as a result rather than an error: a corpus
             # that is silent is an answer, and it is the honest one.
             st.error(
@@ -1115,7 +1137,7 @@ with draft_tab:
                 "this. That is the designed behaviour, not a failure, rephrase in "
                 "the documents' own wording, or accept that the corpus is silent."
             )
-        else:
+        elif passages:
             with st.expander(f"{len(passages)} passages retrieved", expanded=False):
                 for i, p in enumerate(passages, 1):
                     st.markdown(f"**[S{i}]** `{p['source']}` · score {p['score']}")

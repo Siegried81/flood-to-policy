@@ -5,6 +5,7 @@
 geopandas>=1.2.0
 rasterio>=1.5.2
 rasterstats>=0.21.0
+affine>=3.0          # imported directly by src/validate.py
 shapely>=2.2.0
 # pyogrio and pyproj are capped on purpose (newest builds a Windows Smart App Control
 # policy still lets load; see .github/dependabot.yml, which ignores both). Do not raise.
@@ -32,6 +33,7 @@ python-dotenv>=1.2.4
 
 # API for the React UI
 fastapi>=0.165.0
+pydantic>=2.14       # imported directly by api/main.py, not only through fastapi
 uvicorn>=0.54.0
 pypdf>=7.1.1          # the policy corpus includes PDFs
 pyarrow>=26.0.1       # parquet keeps dtypes; CSV loses a NUTS code's leading zero

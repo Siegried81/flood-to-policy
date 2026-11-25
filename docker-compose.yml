@@ -99,7 +99,9 @@ services:
     restart: "no"
 
   ollama:
-    image: ollama/ollama:latest
+    # Pinned: `latest` would pull a different server next month, and an Ollama
+    # update can change how the demo answers without any change here.
+    image: ollama/ollama:0.40.17
     profiles: ["local-llm"]
     volumes:
       # Starts empty: pull once with network, `docker compose --profile local-llm exec ollama ollama pull llama3.2:3b`.

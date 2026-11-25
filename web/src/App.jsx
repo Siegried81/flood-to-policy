@@ -16,6 +16,9 @@ import TeamMap from "./components/TeamMap.jsx";
 // tabs that call a language model are switched off as in the hosted demo.
 const VIEWS = ["Team 9 map", "July 2021", "Europe"];
 const STATIC_CONFIG = { hosted: true, llm_enabled: false };
+// When /api/config cannot be read the server's mode is unknown, so the model tabs
+// are switched off: enabled tabs that answer 403 would read as a broken app.
+const UNKNOWN_CONFIG = { hosted: false, llm_enabled: false, unknown: true };
 
 export default function App() {
   const [view, setView] = useState(VIEWS[0]);
@@ -23,8 +26,7 @@ export default function App() {
 
   useEffect(() => {
     if (STATIC_BUILD) return;
-    // An API without /api/config predates hosted mode: treat it as local.
-    getConfig().then(setConfig).catch(() => setConfig(null));
+    getConfig().then(setConfig).catch(() => setConfig(UNKNOWN_CONFIG));
   }, []);
 
   const hosted = STATIC_BUILD || Boolean(config?.hosted);
@@ -39,6 +41,11 @@ export default function App() {
             {hosted && (
               <span className="chip demo-chip" title="Language-model and write features are off">
                 {STATIC_BUILD ? "static demo" : "hosted demo"}
+              </span>
+            )}
+            {config?.unknown && (
+              <span className="chip" title="GET /api/config failed">
+                API settings unreadable: model features are off
               </span>
             )}
           </p>

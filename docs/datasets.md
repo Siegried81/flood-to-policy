@@ -30,7 +30,7 @@ are in [`data/processed/DATA_NOTICE.md`](../data/processed/DATA_NOTICE.md).
 | **Copernicus EMS** EMSR517 (DE), EMSR518 (BE), EMSR520 (NL) | observed July 2021 flood, 27 products | read from the organisers' public bucket and the S3 bucket of EMS; delineation vs grading products; first map and monitoring passes are separate; EMSR518 has two delineations per AOI |
 | **Wallonia aléa d'inondation** (SPW) | official hazard map | EPSG:31370; one dataset with a `CLASSEMENT` class code; CC-BY 4.0, attribution verbatim |
 | **Wallonia observed July 2021** (SPW) | second ground truth | extent layer reachable; the depth layer's URL is single-use and expired (404), so a by-hand copy is on disk and only read as an extent |
-| **GISCO NUTS 2024, LAU 2024** | boundaries | NUTS3 file: 1,345 polygons (1,165 EU-27, EFTA, candidates), EPSG:3035; terms forbid redistributing the polygons |
+| **GISCO NUTS 2024, LAU 2024** | boundaries | NUTS3 file: 1,345 polygons over 37 countries (1,165 in the EU-27, the rest EFTA and candidates), EPSG:3035; terms forbid redistributing the polygons |
 | **Eurostat** `demo_r_pjangrp3`, `ilc_li41`, `nama_10r_3gdp`, `demo_r_d3dens`, `nama_10r_2hhinc` | age, poverty, GDP, density, income | poverty and household income are NUTS2 only; density sits on NUTS 2021 codes (some 2024 regions blank); pin GDP's unit |
 | **JRC Risk Data Hub** (OGC API) | historical losses, published vulnerability | EU Login bearer token valid 10 h; rows repeat per administrative level and average several sources, so never sum unfiltered; cached under `data/processed/rdh_cache/` |
 | **HANZE v3.0.1** (Zenodo) | flood impacts 1870-2025 | traces a loss to a named event; NUTS 2024 vintage; deflate and convert currency before comparing |

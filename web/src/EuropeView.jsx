@@ -75,8 +75,8 @@ export function defaultReturnPeriod(periods = []) {
 }
 
 // The European exposure views, as they were before the July 2021 view became
-// the landing page. `config` comes from GET /api/config; null means "assume
-// the local behaviour".
+// the landing page. `config` comes from GET /api/config; null while it loads
+// means "assume the local behaviour", and App passes `unknown` when it failed.
 export default function EuropeView({ config }) {
   const modelsOff = config ? !config.llm_enabled : false;
   const [meta, setMeta] = useState(null);
@@ -190,8 +190,9 @@ export default function EuropeView({ config }) {
         <h2 className="view-title">Flood exposure across European regions</h2>
         <p className="caption">
           Frozen table · {meta.rows.toLocaleString()} rows · {meta.regions.toLocaleString()}{" "}
-          regions · {meta.corpus_passages.toLocaleString()} corpus passages. Every figure on this page and in
-          every draft comes from this one run.
+          regions · {meta.corpus_passages.toLocaleString()} corpus passages
+          {meta.frozen_at ? ` · table file dated ${meta.frozen_at.slice(0, 10)}` : ""}. Every figure
+          on this page and in every draft comes from this one run.
         </p>
       </header>
 
@@ -218,6 +219,10 @@ export default function EuropeView({ config }) {
         <section className="panel">
           <div className="refusal"><strong>{error}</strong></div>
         </section>
+      )}
+
+      {tab === "Exposure" && !exposure && !error && (
+        <section className="panel"><p className="caption">Loading…</p></section>
       )}
 
       {tab === "Exposure" && exposure && (
@@ -321,17 +326,17 @@ export default function EuropeView({ config }) {
               { label: "region", sort: (row) => row.region ?? row[exposure.key],
                 render: (row) => row.region ?? row[exposure.key] },
               { label: "country", sort: (row) => row.country_name ?? row.country,
-                render: (row) => row.country_name ?? row.country ?? "—" },
+                render: (row) => row.country_name ?? row.country ?? "n/a" },
               { label: "residents", sort: (row) => finite(row.total_pop),
                 render: (row) => (Number.isFinite(row.total_pop)
-                  ? Math.round(row.total_pop).toLocaleString() : "—") },
+                  ? Math.round(row.total_pop).toLocaleString() : "n/a") },
               { label: "people exposed", sort: (row) => finite(row.exposed_pop),
                 render: (row) => (Number.isFinite(row.exposed_pop)
                   ? Math.round(row.exposed_pop).toLocaleString() : "not measured") },
               { label: "share of residents", sort: shareOf,
                 render: (row) => {
                   const share = shareOf(row);
-                  return share === null ? "—" : (
+                  return share === null ? "n/a" : (
                     <>
                       <span className="bar" style={{ width: `${share * 100}%` }} />
                       {sharePercent(share)}

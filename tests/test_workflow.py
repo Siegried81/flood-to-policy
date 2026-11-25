@@ -384,3 +384,17 @@ def test_approving_a_refusal_does_not_write_the_refusal_text(graph, reply):
     assert final["approved"] is False
     assert final["final"] == ""
     assert "REFUSED" not in final["final"]
+
+
+def test_an_edit_that_mentions_unpublished_data_is_an_edit_not_a_refusal():
+    """"not published" is a fact about a dataset, not "do not publish". The
+    negated-approval check used to match the prefix and reject the edit."""
+    text = ("Ireland's flood maps are not published in the EU layer, so its regions "
+            "read as uncovered [S1].")
+    recorded = workflow._record(text, draft="A grounded draft [S1].")
+    assert recorded["decision"] == "edit" and recorded["final"] == text
+
+
+@pytest.mark.parametrize("decision", ["Do not publish this.", "Not approved", "never approve it"])
+def test_a_negated_approval_is_still_a_refusal(decision):
+    assert workflow._record(decision, draft="A draft [S1].")["approved"] is False

@@ -12,8 +12,8 @@ cd web && npm ci && npm run build                     # front end
 ```
 
 `requirements.txt` is runtime only (it is what the Docker image installs),
-`requirements-test.txt` adds pytest, `requirements-dev.txt` adds cdsapi, debugpy,
-playwright. The suite mocks the network, so it runs without the data bucket.
+`requirements-test.txt` adds pytest, playwright and the libraries the tests import,
+`requirements-dev.txt` adds cdsapi, debugpy and ipykernel. The suite mocks the network, so it runs without the data bucket.
 
 ## Rebuild the deliverables
 

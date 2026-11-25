@@ -364,8 +364,11 @@ def level_coverage(
         }
     )
     out = out.merge(rolled_up, on="parent_code", how="outer")
-    out["child_total"] = out["child_total"].fillna(0.0)
     out["n_children"] = out["n_children"].fillna(0).astype(int)
+    # A parent with no child rows attributed nothing (0). A parent whose children
+    # exist but are all null is unknown, not zero: filling it would read as
+    # "the children account for none of the parent's total".
+    out.loc[out["n_children"] == 0, "child_total"] = 0.0
     out["unattributed"] = out["parent_total"] - out["child_total"]
     out["coverage_ratio"] = out["child_total"] / out["parent_total"]
     out["level"] = level
