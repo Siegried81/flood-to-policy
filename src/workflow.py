@@ -285,7 +285,7 @@ _FIRST_WORD = re.compile(r"[^\W_]+", re.UNICODE)
 #: A negated approval ("do not publish this", "don't approve") is a refusal even
 #: though its first word is not one.
 _NEGATED_APPROVAL = re.compile(
-    r"\b(?:do\s+not|don['’]?t|not|never)\s+(?:approve|approved|publish)", re.IGNORECASE)
+    r"\b(?:do\s+not|don['’]?t|not|never)\s+(?:approve|approved|publish)\b", re.IGNORECASE)
 #: Replies this short are a decision, never replacement text: a real edit is a
 #: sentence with a citation, and one that has to be short uses the `edit:` form.
 _MAX_DECISION_WORDS = 3

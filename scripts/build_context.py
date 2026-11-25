@@ -54,6 +54,7 @@ from scripts.build_exposure import (  # noqa: E402
     DEFAULT_MIN_DEPTH_M,
     DEFAULT_STRIPES,
     HAZARD_DIR,
+    OUT as EXPOSURE_OUT,
     PERMANENT_WATER,
     PROTECTED_OUT,
     SPURIOUS_AREAS,
@@ -64,11 +65,23 @@ from scripts.build_exposure import (  # noqa: E402
     total_population,
 )
 from src import (  # noqa: E402
-    apsfr, assets, basins, climate, demographics, efas, environment, facilities,
-    hera, landcover, pluvial, sealing,
+    apsfr, assets, basins, climate, demographics, efas, environment, exposure,
+    facilities, hera, landcover, pluvial, sealing,
 )
 
 OUT = ROOT / "data" / "processed" / "context.parquet"
+
+
+def _mask_unmeasured(table: pd.DataFrame, key: str) -> pd.DataFrame:
+    """Footprint columns to NaN where the exposure table measured nothing.
+
+    Read off the frozen exposure table, so the two tables agree on which units
+    the hazard map covers; without it the context table is written as is.
+    """
+    if not EXPOSURE_OUT.exists():
+        return table
+    unmeasured = exposure.unmeasured_units(pd.read_parquet(EXPOSURE_OUT), key)
+    return exposure.mask_unmeasured_footprint(table, unmeasured, key)
 DOWNLOAD = ROOT / "data" / "raw" / "download"
 
 #: The return periods the facility counts are given at: frequent, the planning
@@ -389,6 +402,7 @@ def _update(admin, key, args) -> int:
     # A replaced column keeps its place, so a diff of the table shows values, not a shuffle.
     table = table[[c for c in order if c in table.columns]
                   + [c for c in table.columns if c not in order]]
+    table = _mask_unmeasured(table, key)
     partial = args.out.with_suffix(".parquet.part")
     table.to_parquet(partial, index=False)
     partial.replace(args.out)
@@ -537,6 +551,7 @@ def main() -> int:
     notes.extend(layer_notes)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    table = _mask_unmeasured(table, key)
     table.to_parquet(args.out, index=False)
     print(f"{len(table)} rows -> {_shown(args.out)} "
           f"({args.out.stat().st_size:,} B), {len(table.columns)} columns")

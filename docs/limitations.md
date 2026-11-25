@@ -34,12 +34,20 @@ changes to what a figure means in [decisions.md](decisions.md).
   it with the residual figure behind the design standards (`context.parquet`).
 - **Nine scenarios, never a sum**: return periods are nested extents. They are nested
   in intent only: each depth raster is a separate model run, so a rarer period can be
-  shallower in places and a few regions lose people from one period to the next.
+  shallower in places and 4 regions (FRG01, FRD22, DE927, RS211) lose people from one
+  period to the next.
 - **The depth threshold (0.5 m) and the masks move the headline**; so do the
   vulnerability weights. Both are value judgements the AI was not allowed to make.
 - **`exposed_pop` carries an extrapolation, `exposed_pop_observed` does not**; a handful
   of regions have no measured figure or `hazard_coverage` below 1.0
-  ([`src/exposure.py`](../src/exposure.py) `exposed_population` docstring).
+  ([`src/exposure.py`](../src/exposure.py) `exposed_population` docstring). A unit
+  the hazard layer covers below half (`MIN_HAZARD_COVERAGE`) is not measured either:
+  that is ES703 (El Hierro), covered at 13 %. In the EU-27 seven regions have no
+  figure (the five French outermost regions, the Azores and El Hierro, about 2.6
+  million people), and their footprint columns in `context.parquet` (flooded
+  hospitals, residual exposure, built-up) are empty too, not 0. They still sit in
+  the population the 5.8 % divides by; over the measured regions only it is 5.80 %
+  instead of 5.77 %.
 - **A population cell is wholly in or out of a region**: the error scales with
   perimeter over area, a few percent for a commune, far more for a statistical sector.
   Nothing smaller than a commune should be read off this pipeline.
@@ -83,7 +91,7 @@ changes to what a figure means in [decisions.md](decisions.md).
 - **The sensitivity test moves the weights, nothing else.** The top ten hold up to a
   ±20 % change in weights (9 of 10 stay at RP100), but not to a change of scaling or of
   indicators: with percentile ranks instead of min-max only 1 of 10 stays, and dropping
-  one indicator keeps 4 to 6. Under min-max, `exposed_pop` (median about 14,000, maximum
+  one indicator keeps 4 to 6. Under min-max, `exposed_pop` (median about 8,800, maximum
   610,216) barely moves the score, so a region with 15 exposed people can rank in the
   top ten. Read a "robust" label as "robust to the weights".
 - **Rows scored on fewer indicators rank beside complete ones.** The index averages
@@ -110,12 +118,15 @@ changes to what a figure means in [decisions.md](decisions.md).
   - It checks the footprint, not the headline: the model counts as wet any depth above
     0, while the 25.7 million counts people under more than 0.5 m.
   - The truth decides the score: the RP100 hit rate in Wallonia is 0.18, 0.44, 0.61 or
-    0.87 depending on the observed map (`decisions.md`, 2026-10-25). Quote the range.
+    0.87 depending on the observed map (`decisions.md`, 2026-10-25). Quote the range,
+    and say that the 0.87 is on the JRC observed layer, a 5.7 km² cluster holding 116
+    residents (1.8 % of the 320.8 km² Wallonia recorded).
   - Hit rate alone rewards a bigger map, and it barely moves from RP10 (0.84) to RP500
     (0.88) against the JRC observed layer, so it does not show July 2021 was a
     100-year event. Report it with the false alarm ratio and the CSI.
-  - The false alarm ratio is high (0.90 to 0.98) partly because a snapshot is not the
-    peak.
+  - The false alarm ratio runs from 0.70 to 0.98 depending on the truth (0.70 against
+    the extent Wallonia recorded, 0.98 against the JRC observed layer). Against the
+    satellite maps it is high partly because a snapshot is not the peak.
 - **Reported events are a probe, never evidence**: news coverage is biased by attention
   and language; nothing from `src/events.py` enters a ranking.
 

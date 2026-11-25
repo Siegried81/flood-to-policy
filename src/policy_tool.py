@@ -336,7 +336,7 @@ def hero(products: pd.DataFrame, countries: pd.DataFrame,
          "small": (f"Copernicus damage grading, first maps only; later maps of the same areas "
                    f"bring it to {fmt_count(destroyed_later)}. Only German areas were graded.")},
         {"id": "europe", "big": fmt_millions(eu), "raw": eu,
-         "line": "people in the EU live inside the 1-in-100-year river flood zone. July 2021 was not a one-off risk.",
+         "line": "people in the EU live inside the 1-in-100-year river flood zone.",
          "small": "JRC hazard map without dikes, GHS-POP 2025 (E2025, 1 km) population, all EU-27 regions."},
         {"id": "when", "big": PLAN_REVIEW_DATE_SHORT, "raw": None,
          "line": "is when every Member State must review its flood risk management plans: the deadline for recommendation 3.",
@@ -1175,7 +1175,7 @@ var first=document.querySelector('.places button');if(first)pick(first.getAttrib
 
 def _hero_html(args: Sequence[dict[str, Any]]) -> str:
     steps = {"missed": "The map missed people", "harm": "The harm",
-             "europe": "Not a one-off", "when": "The plan deadline"}
+             "europe": "Across the EU", "when": "The plan deadline"}
     return '<section class="hero" aria-label="Why act">' + "".join(
         f'<div class="arg arg-{esc(a["id"])}"><div class="step">{i}. {steps.get(a["id"], "")}</div>'
         f'<div class="big" data-hero="{esc(a["id"])}" data-value="{"" if a["raw"] is None else repr(a["raw"])}">'

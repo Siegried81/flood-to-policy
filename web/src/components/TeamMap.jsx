@@ -27,7 +27,9 @@ export default function TeamMap() {
         const size = Number(r.headers.get("content-length"));
         setMissing(!r.ok || (Number.isFinite(size) && size > 0 && size < MIN_MAP_BYTES));
       })
-      .catch(() => {});
+      // An unreachable host is not a missing map, so the frame stays, but the
+      // failure is logged rather than swallowed.
+      .catch((e) => console.warn("Team 9 map: HEAD request failed", e));
   }, []);
 
   return (

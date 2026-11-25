@@ -3,8 +3,10 @@ name: publish images
 # Builds every image listed in the matrix below, starts it, checks that its UI and
 # API actually answer, and only then pushes it to two registries. A push to main
 # publishes only after the `tests` workflow has finished green for that commit
-# (workflow_run), so a red main never moves :latest. A v* tag publishes directly:
-# tag a commit that is already green on main.
+# (workflow_run), so a red main never moves :latest. Only a run started by a push
+# to this repository counts: a fork's pull request from a branch it named `main`
+# also reports head_branch=main, and must never reach `packages: write`. A v* tag
+# publishes only if the `tests` workflow already passed on the tagged commit.
 #
 #   - GitHub Container Registry: ghcr.io/siegried81/<image>
 #     Uses the built-in GITHUB_TOKEN, so it works with zero setup.
@@ -27,6 +29,7 @@ on:
 permissions:
   contents: read
   packages: write
+  actions: read     # the tag gate lists the tests runs of the tagged commit
 
 # A newer push to the same ref makes the running publish obsolete.
 concurrency:
@@ -35,8 +38,12 @@ concurrency:
 
 jobs:
   publish:
-    # For workflow_run, go on only when the tests passed.
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    # For workflow_run, go on only when the tests passed on a push to this repository.
+    if: >-
+      github.event_name != 'workflow_run' || (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false    # one broken image must not block the others
@@ -59,6 +66,18 @@ jobs:
         with:
           lfs: true
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # A tag has no workflow_run of its own, so check here that the suite already
+      # passed on this exact commit. A tag on a red or untested commit stops here.
+      - name: tests passed on the tagged commit
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh run list -R "${{ github.repository }}" --workflow ci.yml --commit "${{ github.sha }}"                 --status success --json databaseId --jq length)
+          if [ "${n:-0}" -eq 0 ]; then
+            echo "no green tests run for ${{ github.sha }}: push it to main first"; exit 1
+          fi
 
       # Buildx is required for the GitHub Actions layer cache below.
       - uses: docker/setup-buildx-action@v4

@@ -437,9 +437,9 @@ def test_groq_keys_reports_names_in_order_and_skips_the_unset(monkeypatch):
     in a caption is a key in a screenshot."""
     for name in rag.GROQ_KEY_VARS:
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("GROQ_API_KEY_3", "fake")
+    monkeypatch.setenv("GROQ_API_KEY_2", "fake")
     monkeypatch.setenv("GROQ_API_KEY", "fake")
-    assert rag.groq_keys() == ["GROQ_API_KEY", "GROQ_API_KEY_3"]
+    assert rag.groq_keys() == ["GROQ_API_KEY", "GROQ_API_KEY_2"]
     assert all(name.startswith("GROQ_API_KEY") for name in rag.groq_keys())
 
 
@@ -615,19 +615,58 @@ def test_only_text_blocks_are_the_answer(claude):
     _claude_answer(_text("   ")),
     _claude_answer(SimpleNamespace(type="thinking", thinking="")),
 ])
-def test_a_claude_answer_with_no_text_raises(claude, reply):
+def test_a_claude_answer_with_no_text_falls_back_and_says_why(claude, monkeypatch, reply):
+    """An empty Claude answer never reaches the brief, and, like an empty Groq
+    answer, it hands the prompt to the next provider instead of a 502."""
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_x")
     claude.messages.reply = reply
-    with pytest.raises(rag.EmptyCompletion, match="anthropic"):
-        rag.complete_with_provider("prompt")
-    assert claude.urls == []
+    claude.replies["api.groq.com"] = _groq_answer("Remote answer [S1].")
+
+    answer = rag.complete_with_provider("prompt")
+
+    assert claude.urls == [GROQ_URL]
+    assert answer.provider == "groq"
+    assert "anthropic returned no usable text" in answer.fallback_reason
 
 
-def test_a_refusal_raises_instead_of_reaching_the_brief(claude):
-    """A decline is HTTP 200, so nothing at the transport level would stop it."""
-    claude.messages.reply = _claude_answer(stop_reason="refusal")
-    with pytest.raises(rag.EmptyCompletion, match="refusal"):
-        rag.complete_with_provider("prompt")
-    assert claude.urls == []
+@pytest.mark.parametrize("stop_reason, expected", [
+    ("refusal", "refusal"), ("max_tokens", "token limit")])
+def test_a_refused_or_cut_claude_answer_never_reaches_the_brief(claude, stop_reason, expected):
+    """A decline and a cut-off answer are both HTTP 200, so nothing at the
+    transport level would stop them. With no other provider configured, the
+    local model answers and the reason names Claude's miss."""
+    claude.messages.reply = _claude_answer(_text("Half a sentence"), stop_reason=stop_reason)
+    claude.replies["11434"] = _ollama_answer("Local answer [S1].")
+
+    answer = rag.complete_with_provider("prompt")
+
+    assert claude.urls == [OLLAMA_URL]
+    assert answer.provider == "ollama" and expected in answer.fallback_reason
+
+
+def test_a_groq_answer_cut_at_the_token_limit_is_not_a_draft(monkeypatch, transcript):
+    urls, replies = transcript
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_x")
+    replies["api.groq.com"] = _Response(payload={"choices": [
+        {"message": {"content": "Half a sentence"}, "finish_reason": "length"}]})
+    replies["11434"] = _ollama_answer("Local answer [S1].")
+
+    answer = rag.complete_with_provider("prompt")
+
+    assert urls == [GROQ_URL, OLLAMA_URL]
+    assert answer.provider == "ollama" and "token limit" in answer.fallback_reason
+
+
+def test_ollama_gets_a_context_window_the_draft_prompt_fits_in(monkeypatch, transcript):
+    """Ollama truncates a prompt longer than `num_ctx` without an error, and its
+    default (2,048 or 4,096 tokens) is shorter than a full draft prompt."""
+    sent = []
+    monkeypatch.setattr(requests, "post", lambda url, **kw: sent.append(kw["json"])
+                        or _ollama_answer("Local [S1]."))
+    rag.complete_with_provider("x" * rag.PROMPT_CHAR_BUDGET)
+    options = sent[0]["options"]
+    assert options["num_ctx"] * 2 > rag.PROMPT_CHAR_BUDGET + len(rag.SYSTEM_PROMPT)
+    assert options["temperature"] == 0.2 and "seed" in options
 
 
 @pytest.mark.parametrize("error, expected", [
@@ -748,15 +787,13 @@ def test_no_real_key_or_tracing_flag_survives_into_a_test():
     assert leaked == []
 
 
-def test_every_groq_key_set_is_tried_not_only_the_first_five(monkeypatch):
-    """A sixth key sat in .env and was never tried because the list stopped at
-    `_5`. Every `GROQ_API_KEY_N` set, up to nine, joins the rotation in order."""
-    for name in rag.GROQ_KEY_VARS:
-        monkeypatch.delenv(name, raising=False)
-    for name in ("GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_6"):
+def test_at_most_two_groq_keys_join_the_rotation(monkeypatch):
+    """Two keys, two per-minute budgets; past that the local model answers. A
+    third key left in .env is ignored rather than spread across organisations."""
+    for name in ("GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"):
         monkeypatch.setenv(name, "gsk_test")
-    assert rag.groq_keys() == ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_6"]
-    assert rag.GROQ_KEY_VARS[-1] == "GROQ_API_KEY_9"
+    assert rag.groq_keys() == ["GROQ_API_KEY", "GROQ_API_KEY_2"]
+    assert rag.GROQ_KEY_VARS == ("GROQ_API_KEY", "GROQ_API_KEY_2")
 
 
 # --- numbers and per-sentence citations -----------------------------------------
@@ -845,6 +882,22 @@ def test_an_honest_i_dont_know_is_listed_apart_not_as_an_uncited_claim():
     check = rag.verify(text, [{"text": "Wallonia planned bank works on the Vesdre."}])
     assert len(check["unknown_claims"]) == 2
     assert "2 answered I DON'T KNOW" in rag.verdict_line(check)
+
+
+@pytest.mark.parametrize("sentence", [
+    "Article 7 applies everywhere in Belgium: I don't know.",
+    "Eschweiler has many people exposed and Article 7 applies everywhere in Belgium: I don't know.",
+])
+def test_a_claim_written_before_the_colon_still_needs_its_marker(sentence):
+    """Only a question or a short label may lead into the statement. A claim in
+    front of the colon used to pass as an honest gap with no citation."""
+    assert rag.unknown_claims(sentence) == []
+    assert rag.uncited_sentences(sentence) == [sentence]
+
+
+def test_a_short_label_can_still_introduce_the_statement():
+    assert rag.unknown_claims("Gileppe dam works: I don't know.") == [
+        "Gileppe dam works: I don't know."]
 
 
 def test_a_hedge_in_other_words_is_still_an_uncited_claim():

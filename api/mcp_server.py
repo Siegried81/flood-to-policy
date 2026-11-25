@@ -160,7 +160,8 @@ def profile_regions(region_ids: list[str]) -> str:
     and, when it has been built, their context: future river discharge, exposed
     built-up surface, shared basins. Up to 10 region ids (NUTS3 codes).
     """
-    wanted = [r.strip().upper() for r in region_ids if r.strip()]
+    # Deduplicated, so a repeated id is not counted twice in `regions=`.
+    wanted = list(dict.fromkeys(r.strip().upper() for r in region_ids if r.strip()))
     if not wanted:
         raise ToolError("Give at least one region id, e.g. ['BE332'].")
     if len(wanted) > MAX_PROFILED:

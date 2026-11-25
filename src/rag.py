@@ -459,12 +459,19 @@ _LEADING_CITATIONS = re.compile(r"^((?:\s*\[S\d+\])+)\s*")
 DONT_KNOW = "I DON'T KNOW: I can't answer that with the information I have."
 _CANT_ANSWER = r"I\s+CAN['’]?T\s+ANSWER\s+THAT\s+WITH\s+THE\s+INFO(?:RMATION)?\s+I\s+HAVE"
 # Anchored at both ends: only a sentence that IS the statement is exempt from the
-# citation rule. It may be introduced by a topic and a colon ("How many km were
-# rebuilt: I don't know.") and followed by what the gap is about ("... about the
-# dam"), but not by a clause with a comma, so "I don't know of any law, but
-# Article 7 requires X" is a claim and still needs its marker.
+# citation rule. It may be introduced by a short topic and a colon ("How many km
+# were rebuilt: I don't know.") and followed by what the gap is about ("... about
+# the dam"), but not by a clause with a comma, so "I don't know of any law, but
+# Article 7 requires X" is a claim and still needs its marker. The topic is either
+# a question ("How many...", "Whether...") or a label of at most four words
+# ("Gileppe dam works:"). A statement before the colon ("Article 7 applies
+# everywhere in Belgium: I don't know.") is a claim, and letting it through would
+# show an uncited claim as an honest gap.
+_QUESTION_WORDS = (r"how|what|which|when|where|who|whom|whose|why|whether|is|are|was|"
+                   r"were|does|do|did|can|could|has|have|had|will|would|should")
 _DONT_KNOW_RE = re.compile(
-    rf"(?:[^.:;]{{0,120}}:\s*)?[\W_]*"
+    rf"(?:(?:(?:{_QUESTION_WORDS})\b[^.:;,]{{0,120}}|(?:[^\s.:;,]+\s+){{0,3}}[^\s.:;,]+)"
+    rf"\s*:\s*)?[\W_]*"
     rf"(?:I\s+DON['’]?T\s+KNOW(?:\s*[:,;-]\s*{_CANT_ANSWER})?|{_CANT_ANSWER})"
     r"(?:\s+(?:about|regarding|on|for|whether|how)\b[^,;:.]*)?[\W_]*",
     re.IGNORECASE,
@@ -625,19 +632,16 @@ def _text_or_raise(content: object, provider: str) -> str:
     )
 
 
-#: The key variables this module will try, in order. Measured against the live
-#: endpoint: the five keys in this project's `.env` belong to five
-#: DIFFERENT Groq organisations, and the per-minute budget is per organisation
-#: per model - each one reported `Limit 8000` under its own `org_...` id. So
-#: rotating keys really does multiply the requests available in a minute.
+#: The key variables this module will try, in order: two at most. The per-minute
+#: budget is per Groq organisation (`Limit 8000` tokens on the on-demand tier),
+#: so a second key gives a second budget when the first is rate-limited. More
+#: keys across more organisations would mean working around the provider's
+#: limits; past two, the local Ollama model is the fallback, and it has no
+#: per-minute budget at all.
 #:
-#: What it does NOT do is let a bigger prompt through: one request is still
-#: capped at 8,000 tokens whichever key carries it. See `_groq_once`.
-#:
-#: Up to nine names, not five: the list is a ceiling, and `groq_keys` keeps only
-#: the ones set. A sixth key existed and was silently never tried because the
-#: tuple stopped at `_5`.
-GROQ_KEY_VARS = ("GROQ_API_KEY", *(f"GROQ_API_KEY_{n}" for n in range(2, 10)))
+#: A second key never lets a bigger prompt through: one request is still capped
+#: at 8,000 tokens whichever key carries it. See `_groq_once`.
+GROQ_KEY_VARS = ("GROQ_API_KEY", "GROQ_API_KEY_2")
 
 #: The local model when `OLLAMA_MODEL` is unset or blank: the one the demo laptop
 #: pulls. Named here so the offline-readiness check imports it rather than
@@ -681,9 +685,14 @@ def _groq_once(prompt: str, system: str, key_var: str) -> str:
     response.raise_for_status()
     payload = response.json()
     try:
-        content = payload["choices"][0]["message"]["content"]
+        choice = payload["choices"][0]
+        content = choice["message"]["content"]
     except (KeyError, IndexError) as exc:
         raise EmptyCompletion("groq sent a response with no choices in it") from exc
+    # A draft cut at the token limit still parses and can pass the number checks
+    # with its last claim missing, so it is treated as no answer.
+    if choice.get("finish_reason") == "length":
+        raise EmptyCompletion("groq stopped at the token limit (finish_reason: length)")
     return _text_or_raise(content, "groq")
 
 
@@ -705,7 +714,7 @@ def _rotates(exc: Exception) -> bool:
     import requests
 
     # An empty answer is this key's miss (`gpt-oss` answers `content: null` at
-    # random), so the next organisation's key gets a try before the local model.
+    # random), so the second key gets a try before the local model.
     if isinstance(exc, EmptyCompletion):
         return True
     if not isinstance(exc, requests.HTTPError):
@@ -717,9 +726,8 @@ def _rotates(exc: Exception) -> bool:
 def _groq(prompt: str, system: str) -> str:
     """One answer from Groq, trying each configured key in turn.
 
-    N keys in N organisations give N per-minute budgets, which is the
-    difference between a demo that survives a jury asking for three drafts in a
-    row and one that does not. The rotation is deliberately narrow - see
+    A second key gives a second per-minute budget, so a jury asking for two
+    drafts in a row still gets a remote answer before the local model takes over. The rotation is deliberately narrow - see
     `_rotates` - because the failure that actually blocked this app was an
     oversized prompt, and retrying that on every key would only have made the
     error slower to arrive.
@@ -749,6 +757,15 @@ def _groq(prompt: str, system: str) -> str:
     raise last
 
 
+#: Sent with every local call. Ollama's default context is 2,048 tokens (4,096 on
+#: newer builds) and it truncates a longer prompt without an error, while a draft
+#: prompt reaches `PROMPT_CHAR_BUDGET` (11,000 characters, about 5,400 tokens of
+#: TOON at 2.05 characters per token) plus the system prompt. Truncation drops the
+#: start of the prompt, which is where the cite-every-claim rule sits. Temperature
+#: matches Groq's 0.2, and a fixed seed makes the offline demo repeatable.
+OLLAMA_OPTIONS = {"num_ctx": 8192, "temperature": 0.2, "seed": 0}
+
+
 def _ollama(prompt: str, system: str) -> str:
     """One call to a local Ollama. A missing model 404s, and that stays loud:
     "the model you asked for is not pulled" must never look like a quiet success.
@@ -764,6 +781,7 @@ def _ollama(prompt: str, system: str) -> str:
             "model": os.getenv("OLLAMA_MODEL", "").strip() or OLLAMA_DEFAULT_MODEL,
             "messages": _messages(prompt, system),
             "stream": False,
+            "options": OLLAMA_OPTIONS,
         },
         timeout=180,
     )
@@ -809,6 +827,8 @@ def _anthropic(prompt: str, system: str) -> str:
     )
     if response.stop_reason == "refusal":
         raise EmptyCompletion("anthropic declined the request (stop_reason: refusal)")
+    if response.stop_reason == "max_tokens":
+        raise EmptyCompletion("anthropic stopped at the token limit (stop_reason: max_tokens)")
     text = "".join(block.text for block in response.content if block.type == "text")
     return _text_or_raise(text, "anthropic")
 
@@ -828,6 +848,11 @@ def _anthropic_fallback_reason(exc: Exception) -> str | None:
     """
     import anthropic
 
+    # No text (a refusal, a cut-off answer): Groq's empty answer already falls
+    # back to the next provider, and Claude's must too, or one provider's miss
+    # reads as "No model reachable" with two others configured.
+    if isinstance(exc, EmptyCompletion):
+        return f"anthropic returned no usable text ({exc})"
     if isinstance(exc, anthropic.BadRequestError) and "credit balance" in str(exc).lower():
         return "anthropic refused the request: the credit balance is too low (HTTP 400)"
     if isinstance(exc, anthropic.RateLimitError):
@@ -931,7 +956,7 @@ def _groq_then_ollama(prompt: str, system: str) -> Completion:
     import requests
 
     # `groq_keys()`, not `GROQ_API_KEY` alone: a machine configured with only
-    # `GROQ_API_KEY_3` set has a working remote provider, and checking the first
+    # `GROQ_API_KEY_2` set has a working remote provider, and checking the first
     # name would have sent it straight to the local model.
     if not groq_keys():
         return Completion(_ollama(prompt, system), "ollama")

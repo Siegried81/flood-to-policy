@@ -81,7 +81,8 @@ answers "how many got wet"; vulnerability answers "who needs help first".
   `exposure_protected.parquet`, carried into `context.parquet` as
   `residual_exposed_pop_rp*`. Quote it as "behind the design standards", never "after
   protection". The parts of a run are parked in `data/processed/exposure_parts/`.
-- **Return periods are nested**: the 100-year extent contains the 10-year one, so
+- **Return periods are nested**: the 100-year extent contains the 10-year one by
+  design (each depth raster is its own model run, so 4 regions break this slightly), and
   periods are never added. A 100-year flood has a 1 % chance each year and about 63 %
   over a century; it is not "once a century". Quote the period with every headcount.
   `/api/exposure` narrows to one period and says so in `defaulted_return_period`.
@@ -137,7 +138,7 @@ demo needs the network. Doc figures are held to the code by
 
 | Fact | Where it comes from |
 |---|---|
-| <!-- numbers:tests_collected -->1,223<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
+| <!-- numbers:tests_collected -->1,244<!-- /numbers --> tests in `tests/` | `scripts/docs_numbers.py --write` (`pytest tests --collect-only`) |
 | <!-- numbers:sources_declared -->93<!-- /numbers --> declared inputs, <!-- numbers:sources_verified -->74<!-- /numbers --> verified, <!-- numbers:sources_licensed -->43<!-- /numbers --> licensed | `config/sources.yaml` entries |
 
 ## 8. Repository layout
@@ -161,8 +162,8 @@ demo needs the network. Doc figures are held to the code by
   block the native DLLs of rasterio, pyogrio, rasterstats and tiktoken, on some days and
   not others. Re-measure before believing either state; the WSL2 venv or the image is
   the route that does not depend on it. `pyogrio` and `pyproj` are capped for the same
-  reason (`.github/dependabot.yml` ignores them). CI runs Python 3.12 like the image;
-  the local venv is cp314.
+  reason (`.github/dependabot.yml` ignores them). CI gates on Python 3.12 like the image
+  and also runs 3.14, the local venv's version, as a non-blocking job.
 - **Targets** (`Dockerfile`): `app` (code, small data files), `test` (+ pytest),
   `portable` (+ the whole `data/`, for an offline laptop).
 - **Memory**: the default `--stripes 10` reached 15.7 GB resident during RP100 against a

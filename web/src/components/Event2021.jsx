@@ -15,7 +15,7 @@ import { getEvent2021, getInteractive, getInteractiveIndex } from "../api.js";
 const STEPS = {
   missed: "The map missed people",
   harm: "The harm",
-  europe: "Not a one-off",
+  europe: "Across the EU",
   when: "The window to act",
 };
 
@@ -334,6 +334,12 @@ function Locator({ locator, current, selectable, onPick }) {
               d={d}
               className={`ev-loc-aoi${pick ? " pick" : ""}${key === current ? " on" : ""}`}
               onClick={pick ? () => onPick(key) : undefined}
+              role={pick ? "button" : undefined}
+              tabIndex={pick ? 0 : undefined}
+              aria-label={pick ? `Show ${key}` : undefined}
+              onKeyDown={pick ? (e) => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(key); }
+              } : undefined}
             >
               <title>{key}</title>
             </path>

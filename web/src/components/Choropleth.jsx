@@ -107,7 +107,7 @@ const plain = (v) => v.toLocaleString();
 export default function Choropleth({ geojson, values, valueKey, idKey, label, format = plain }) {
   const [hover, setHover] = useState(null);
 
-  const { paths, breaks, bounds, offFrame } = useMemo(() => {
+  const { paths, breaks, bounds, offFrame, maxValue } = useMemo(() => {
     const features = geojson?.features ?? [];
     const numbers = features.map((f) => values.get(f.properties?.[idKey]));
     const breaks = quantileBreaks(numbers, RAMP.length);
@@ -145,7 +145,9 @@ export default function Choropleth({ geojson, values, valueKey, idKey, label, fo
         .join(" ");
       return { id, d, value: values.get(id), name: feature.properties?.name ?? id };
     });
-    return { paths, breaks, offFrame, bounds: [minX, -maxY, maxX - minX, maxY - minY] };
+    const finite = numbers.filter(Number.isFinite);
+    const maxValue = finite.length ? Math.max(...finite) : null;
+    return { paths, breaks, offFrame, maxValue, bounds: [minX, -maxY, maxX - minX, maxY - minY] };
   }, [geojson, values, idKey]);
 
   if (!geojson) return null;
@@ -172,7 +174,13 @@ export default function Choropleth({ geojson, values, valueKey, idKey, label, fo
         <span className="legend">
           {RAMP.map((colour, i) => (
             <span key={colour} className="swatch" style={{ background: colour }}>
-              <em>{i < breaks.length ? `≤${format(breaks[i])}` : "max"}</em>
+              {/* A break equal to the one before adds no class: its label is left
+                  blank rather than repeating "≤0" down the legend. */}
+              <em>
+                {i < breaks.length
+                  ? (i > 0 && breaks[i] === breaks[i - 1] ? "" : `≤${format(breaks[i])}`)
+                  : (maxValue == null ? "max" : `≤${format(maxValue)}`)}
+              </em>
             </span>
           ))}
           <span className="swatch" style={{ background: NO_DATA }}>

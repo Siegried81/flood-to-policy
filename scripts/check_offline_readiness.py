@@ -551,7 +551,7 @@ def check_generation_key(env: dict[str, str] | None = None) -> Check:
             "out of .env so the local model is the one that answers",
         )
     # Every name `rag.groq_keys()` rotates over, not only the first: commenting
-    # out GROQ_API_KEY alone still leaves GROQ_API_KEY_2.._5 routing to Groq.
+    # out GROQ_API_KEY alone still leaves GROQ_API_KEY_2 routing to Groq.
     groq_set = [name for name in GROQ_KEY_VARS if env.get(name, "").strip()]
     if groq_set:
         return Check(

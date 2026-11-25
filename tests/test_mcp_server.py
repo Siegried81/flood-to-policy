@@ -100,6 +100,11 @@ def test_profile_reports_unknown_regions_instead_of_dropping_them(frozen):
     assert "unknown=XX99" in out and "regions=1" in out
 
 
+def test_a_repeated_region_id_counts_once(frozen):
+    out = mcp_tools.profile_regions(["BE31", "be31", "XX99"])
+    assert "regions=1" in out and _rows(out, "context") == ["BE31"]
+
+
 def test_profile_without_context_table_still_answers(frozen, tmp_path, monkeypatch):
     monkeypatch.setattr(main, "CONTEXT", tmp_path / "absent.parquet")
     assert "context[" not in mcp_tools.profile_regions(["BE31"])

@@ -6,9 +6,19 @@
 floods over the European flood hazard map, count who the water reached outside the mapped
 zone, and turn those counts into a policy brief that a person approves before it goes out.
 
-**What it found.** In Eschweiler, 91 % of the 1,213 residents the water reached lived
-outside the 1-in-100-year flood zone. Across the EU-27, about 25.7 million people live
-inside it.
+**The question.** Can AI help Europe see flood risk early, and use it responsibly?
+
+**What it found.** In Eschweiler, 91 % of the 1,213 residents the July 2021 water reached
+lived outside the 1-in-100-year flood zone: the town sits on a river smaller than the
+European map covers, so the map never looked there. Across the EU-27, about 25.7 million
+people (5.8 %) live in the undefended 1-in-100-year river flood zone (JRC hazard maps,
+GHS-POP E2025).
+
+**What it asks.** Three changes for the Floods Directive review, none needing a new law:
+make the Article 5 flood-risk declaration comparable across States (DG Environment, R1),
+get Ireland and Lithuania into the published layer and show a missing report as missing
+(EEA, R2), and test Article 8(5) on the Meuse: one State reports what it can't resolve
+with its neighbours, and the Commission has six months to answer (R3).
 
 **Built with.** Python (rasterio, GeoPandas, pandas) over about 7 GiB of open data,
 FastAPI, an MCP server for agents, Streamlit and React front ends, LLM drafting with
@@ -21,6 +31,9 @@ regional brief for the Liège-Limburg-Aachen crisis coordinator
 recommendations for the Floods Directive review ([`docs/policy_answer.md`](docs/policy_answer.md)).
 
 **Live demo (no install):** https://huggingface.co/spaces/flood-to-policy-team/flood-to-policy-team9
+(the hosted demo runs with `HOSTED=1`, so drafting and translation are switched off there).
+To run it all locally, `docker compose up --build` and open http://localhost:8501. No API
+key is needed for the maps and tables.
 
 [![Warn-order, the shelter gap and who to call across the border](docs/screenshots/react_anna_decision.png)](docs/screenshots/react_anna_decision.png)
 
@@ -46,13 +59,16 @@ The 1-in-100-year map scored against the first Copernicus EMS flood maps of each
 | Germany | 16 | 65.7 | 0.57 | 0.92 | 38 % |
 | Netherlands | 1 | 12.0 | 0.93 | 0.90 | 12 % |
 
-Hit rate is the share of the water seen that the map had. False alarm ratio is the share
-of the mapped zone that looked dry. A satellite image comes after the peak and misses
-water under trees and in narrow streets, so a high false alarm ratio is expected and does
-not prove the map is too wide. This is one event, scored on where the map puts any water,
-not on the 0.5 m depth behind the 25.7 million. The truth matters too: in Wallonia the
-hit rate runs from 0.18 to 0.87 depending on which observed map you score against
-([`limitations.md`](docs/limitations.md)). The Belgian 12 % is a floor: radar maps stop
+Read the hit rate first. It's the share of the water seen that the map had. The false
+alarm ratio (the share of the mapped zone that looked dry) is high by construction: the
+map is built for 1-in-100-year planning, not to match one event, and a satellite image
+comes after the peak and misses water under trees and in narrow streets. So it doesn't
+prove the map is too wide. This is one event, scored on where the map puts any water,
+not on the 0.5 m depth behind the 25.7 million.
+
+The truth you score against matters too. In Wallonia the hit rate runs from 0.18 to 0.87
+depending on the observed map, and the 0.87 comes from a 5.7 km² cluster holding 116
+residents ([`limitations.md`](docs/limitations.md)). The Belgian 12 % is a floor: radar maps stop
 at walls and miss streets, and against the extent Wallonia recorded on the ground, 40 to
 51 % of the residents reached were outside the zone.
 
@@ -112,15 +128,15 @@ python -m pytest -q                       # tests/ and team9/tests, offline
 cd web && npm ci && npm run build         # front end
 ```
 
-CI runs the suite on Python 3.12 (as the Docker image; the local Windows venv is cp314),
-builds `web/` and the image. `requirements-dev.txt` adds local tools (cdsapi, debugpy). Playwright is in
+CI runs the suite on Python 3.12 (the Docker image's version, and the one that gates a
+release) and on 3.14 (the local Windows venv's) as a warning, then builds `web/` and the image. `requirements-dev.txt` adds local tools (cdsapi, debugpy, ipykernel). Playwright is in
 `requirements-test.txt`: CI installs Chromium and runs the Team 9 browser tests on the LFS map.
 
 ## Docs
 
 [`policy_answer.md`](docs/policy_answer.md) (findings, recommendations), [`technical_deep_dive.md`](docs/technical_deep_dive.md),
 [`datasets.md`](docs/datasets.md), [`limitations.md`](docs/limitations.md), [`responsible_ai.md`](docs/responsible_ai.md),
-[`workflow.md`](docs/workflow.md), [`power_bi.md`](docs/power_bi.md),
+[`workflow.md`](docs/workflow.md), [`power_bi.md`](docs/power_bi.md), [`legal_quotes.md`](docs/legal_quotes.md),
 [`decisions.md`](docs/decisions.md) (dated record of what each figure means).
 
 ## Licence and data credits

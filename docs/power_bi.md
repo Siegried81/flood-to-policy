@@ -1,4 +1,4 @@
-# Power BI: the same figures, in the tool a ministry already has
+# Power BI: the same figures, for readers who work in Power BI
 
 `bi/FloodToPolicy.pbip` is a Power BI project in text form (semantic model in TMDL,
 report in PBIR: one JSON file per page and visual), so changes show up as diffs. Save it

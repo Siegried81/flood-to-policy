@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { getContext } from "../api.js";
 import SortableTable from "./SortableTable.jsx";
 
+// A missing bound reads "n/a", never "undefined%".
+const pct = (value) => (value == null ? "n/a" : `${value.toFixed(1)}%`);
+
 /**
  * What qualifies an exposure figure, without being one.
  *
@@ -249,11 +252,11 @@ export default function ContextPanel({ names = new Map() }) {
             columns={[
               ...regionColumns,
               { label: "Median", sort: (row) => row[medianColumn],
-                render: (row) => `${row[medianColumn]?.toFixed(1)}%` },
+                render: (row) => pct(row[medianColumn]) },
               { label: "Min", sort: (row) => row[`change_pct_ensemble_min_${suffix}`],
-                render: (row) => `${row[`change_pct_ensemble_min_${suffix}`]?.toFixed(1)}%` },
+                render: (row) => pct(row[`change_pct_ensemble_min_${suffix}`]) },
               { label: "Max", sort: (row) => row[`change_pct_ensemble_max_${suffix}`],
-                render: (row) => `${row[`change_pct_ensemble_max_${suffix}`]?.toFixed(1)}%` },
+                render: (row) => pct(row[`change_pct_ensemble_max_${suffix}`]) },
             ]}
           />
         </>
@@ -293,7 +296,11 @@ export default function ContextPanel({ names = new Map() }) {
           <p>
             Areas of Potential Significant Flood Risk, designated under Article 5
             of the Floods Directive. Every other layer here measures what the
-            water does; this one measures what a government said about it.
+            water does; this one measures what a government said about it.{" "}
+            <strong>The share is comparable within a country, not between two</strong>:
+            the Directive leaves the geometry to the Member State, so the declared
+            share of national territory runs from 99.9% (BE, one polygon over the
+            whole country) to 0.004% (ES, CY, river reaches reported as ribbons).
           </p>
           {uncovered.length > 0 && (
             // The caveat that stops a false accusation: the layer carries 26
@@ -313,7 +320,8 @@ export default function ContextPanel({ names = new Map() }) {
             {declaredRows.length.toLocaleString()} covered regions intersect no
             declared area. That is a question, not a verdict: a State may have
             assessed the area and concluded the risk is not significant, which the
-            Directive allows.
+            Directive allows. The table shows {Math.min(15, undeclared.length)} of
+            them in table order, not a ranking.
           </p>
           {/* The UNDECLARED regions, not the most-declared ones. Sorting by
               share descending fills the table with regions a State covered

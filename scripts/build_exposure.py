@@ -71,7 +71,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src import demographics  # noqa: E402
-from src.exposure import exposed_population  # noqa: E402
+from src.exposure import MIN_HAZARD_COVERAGE, exposed_population  # noqa: E402
 
 HAZARD_DIR = ROOT / "data" / "raw" / "download" / "jrc_flood_hazard"
 POP_ZIP = ROOT / "data" / "raw" / "download" / "ghsl_pop_europe.zip"
@@ -587,8 +587,9 @@ def _exposure_one_period(
             "exposed_pop": scaled,
         }
     )
-    # A unit no window ever covered is NOT a measured zero.
-    unmeasured = frame["hazard_coverage"].isna() | (frame["hazard_coverage"] <= 0)
+    # A unit no window ever covered is NOT a measured zero, and neither is one
+    # covered below MIN_HAZARD_COVERAGE (see src/exposure.py).
+    unmeasured = frame["hazard_coverage"].isna() | (frame["hazard_coverage"] < MIN_HAZARD_COVERAGE)
     frame.loc[unmeasured, "exposed_pop"] = np.nan
     frame.loc[frame["cells_counted"] == 0, "hazard_coverage"] = np.nan
     return frame

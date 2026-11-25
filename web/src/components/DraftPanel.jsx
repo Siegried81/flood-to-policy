@@ -40,6 +40,9 @@ export default function DraftPanel({ returnPeriod, approveTokenRequired = false 
 
   const send = async () => {
     setError(null);
+    // Cleared first: a chip from an earlier approval must not sit beside this
+    // attempt's error.
+    setApproved(null);
     try {
       // The edited text is sent exactly as the human left it. It is deliberately
       // never passed back through the model to polish, which would hand the last

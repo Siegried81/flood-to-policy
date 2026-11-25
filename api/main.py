@@ -865,16 +865,19 @@ def translate_section(req: TranslateRequest) -> dict:
     _refuse_if_hosted("Translation")
     try:
         result = translate.translate(req.text, req.language)
+    except translate.TranslationFailed as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except _provider_errors() as exc:
+        # Upstream, like `/api/draft`: the model is unreachable, not this service.
+        # Caught before ValueError: a provider reply that is not JSON raises
+        # `requests.JSONDecodeError`, which is also a ValueError, and is the
+        # provider's fault, not the client's.
+        raise HTTPException(status_code=502, detail=_upstream_failure(exc)) from exc
     except ValueError as exc:
         # A language nobody offers, or nothing to translate. The client sent a bad
         # request; 400 rather than 422 so it is distinguishable from a translation
-        # that was produced and rejected.
+        # that was produced and rejected. Anything else is a bug here and is a 500.
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except translate.TranslationFailed as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except Exception as exc:
-        # Upstream, like `/api/draft`: the model is unreachable, not this service.
-        raise HTTPException(status_code=502, detail=_upstream_failure(exc)) from exc
     return {
         "text": result.text,
         "language": result.language,

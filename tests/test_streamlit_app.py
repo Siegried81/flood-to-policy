@@ -605,8 +605,8 @@ def test_a_missing_exposure_column_shows_a_dash_not_a_zero():
     app_test = _run(_nested_table().drop(columns=["exposed_pop"]))
     assert app_test.exception == []
     totals = {m.label: m.value for m in app_test.metric}
-    assert totals["Exposed, total"] == "—"
-    assert totals["Not measured"] == "—"
+    assert totals["Exposed, total"] == "n/a"
+    assert totals["Not measured"] == "n/a"
 
 
 def test_an_unknown_column_rides_along_without_changing_a_figure():
@@ -1542,3 +1542,22 @@ def test_the_approval_stamp_is_utc():
     different times in one file."""
     source = APP.read_text(encoding="utf-8")
     assert "datetime.now(timezone.utc):%Y-%m-%d %H:%M" in source
+
+
+def test_a_missing_corpus_is_an_error_not_a_traceback(monkeypatch):
+    """On the image and a fresh clone there is no scraped corpus. The API answers
+    503; the Draft tab raised `CorpusUnavailable` as a raw traceback."""
+    table = _nested_table()
+
+    def missing(*_a, **_k):
+        raise rag.CorpusUnavailable("No policy corpus could be loaded.")
+
+    with _frozen(table), _stubbed_model(monkeypatch, "A sentence [S1].") as seen:
+        monkeypatch.setattr(rag, "search", missing)
+        app_test = AppTest.from_file(str(APP), default_timeout=60).run()
+        box = next(t for t in app_test.text_input if "decision-maker" in t.label)
+        box.set_value("flood risk plans?").run()
+
+    assert app_test.exception == []
+    assert any("No policy corpus" in e.value for e in app_test.error)
+    assert "prompt" not in seen

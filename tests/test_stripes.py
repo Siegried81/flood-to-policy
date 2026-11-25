@@ -148,9 +148,10 @@ def test_a_window_the_hazard_misses_still_owns_its_population(tmp_path):
         tmp_path / "pop.tif", np.full((12, 12), 1000.0),
         transform=from_origin(0, 12_000, 1000, 1000), nodata=-200.0,
     )
-    # Hazard over the top three population rows only: a quarter of the grid.
+    # Hazard over the top nine population rows: three quarters of the grid, above
+    # MIN_HAZARD_COVERAGE so the unit is measured and its figure can be compared.
     hazard = _raster(
-        tmp_path / "haz.tif", np.full((3, 12), 2.0),
+        tmp_path / "haz.tif", np.full((9, 12), 2.0),
         transform=from_origin(0, 12_000, 1000, 1000), nodata=-9999.0,
     )
     admin = gpd.GeoDataFrame(
@@ -167,7 +168,7 @@ def test_a_window_the_hazard_misses_still_owns_its_population(tmp_path):
             f"{column} depends on the window count: {dict(zip(runs, values))}"
         )
     assert float(runs[1]["cells_counted"].iat[0]) == 144
-    assert float(runs[1]["hazard_coverage"].iat[0]) == pytest.approx(0.25)
+    assert float(runs[1]["hazard_coverage"].iat[0]) == pytest.approx(0.75)
 
 
 def test_binary_mode_is_not_extrapolated_by_the_build(tmp_path):
@@ -192,3 +193,24 @@ def test_binary_mode_is_not_extrapolated_by_the_build(tmp_path):
     assert float(built["exposed_pop"].iat[0]) == pytest.approx(
         float(direct["exposed_pop"].iat[0])
     )
+
+
+def test_a_unit_the_hazard_covers_below_the_floor_is_not_measured(tmp_path):
+    """El Hierro (ES703) was covered at 13 % and read 0 exposed: a zero
+    extrapolated from a corner of the unit. Below MIN_HAZARD_COVERAGE the build
+    writes NaN, and keeps the coverage so the reason is visible."""
+    pop = _raster(
+        tmp_path / "pop.tif", np.full((12, 12), 1000.0),
+        transform=from_origin(0, 12_000, 1000, 1000), nodata=-200.0,
+    )
+    hazard = _raster(
+        tmp_path / "haz.tif", np.full((3, 12), 2.0),
+        transform=from_origin(0, 12_000, 1000, 1000), nodata=-9999.0,
+    )
+    admin = gpd.GeoDataFrame(
+        {"id": ["whole"]}, geometry=[box(0, 0, 12_000, 12_000)], crs="EPSG:3035"
+    )
+    frame = _exposure_one_period(hazard, pop, admin, stripes=1,
+                                 min_depth_m=0.5, mode="fraction", masks=[])
+    assert float(frame["hazard_coverage"].iat[0]) == pytest.approx(0.25)
+    assert np.isnan(float(frame["exposed_pop"].iat[0]))

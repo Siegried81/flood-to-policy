@@ -27,6 +27,9 @@ venv/
 .env.*
 !.env.example
 .streamlit/secrets.toml
+# The filled-in Kubernetes Secret (k8s/secret.example.yaml says to copy it there).
+k8s/*secret*.yaml
+!k8s/secret.example.yaml
 
 # OS
 .DS_Store

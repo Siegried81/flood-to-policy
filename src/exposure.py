@@ -465,3 +465,39 @@ def expected_annual_exposure(table: gpd.GeoDataFrame, key: str = "lau_id") -> "g
             )
         rows.append(row)
     return pd.DataFrame(rows)
+
+
+#: Below this share of a unit covered by the hazard layer, the unit is NOT
+#: measured. ES703 (El Hierro) was covered at 13 % and read 0 exposed at every
+#: return period: a zero extrapolated from an eighth of an island is an all-clear
+#: nobody measured. Every other covered EU unit is at 0.92 or above, so the floor
+#: separates that one case without touching any measured figure.
+MIN_HAZARD_COVERAGE = 0.5
+
+#: Context columns measured inside the hazard footprint. Where the footprint was
+#: never measured they are unknown, not 0: "no hospital flooded" in a region the
+#: hazard map does not cover is the same false all-clear as a 0 exposed.
+FOOTPRINT_COLUMN_PREFIXES = (
+    "exposed_built_m2_", "built_share_exposed_", "natura2000_flooded_",
+    "residual_exposed_pop_", "exposed_pop_2010_", "hospitals_flooded",
+    "hospitals_cap_beds_flooded", "schools_flooded", "imperviousness_rp",
+    "imperviousness_share_in_rp", "corine_rp",
+)
+
+
+def unmeasured_units(exposure, key: str = "nuts_id") -> set:
+    """The units whose `exposed_pop` is NaN at every return period."""
+    measured = exposure.groupby(key)["exposed_pop"].apply(lambda s: s.notna().any())
+    return set(measured.index[~measured])
+
+
+def mask_unmeasured_footprint(context, unmeasured: set, key: str = "nuts_id"):
+    """`context` with every footprint column set to NaN for the unmeasured units.
+
+    Only the footprint columns move: a unit the hazard map does not cover still
+    has a population density, a climate signal and a basin share.
+    """
+    out = context.copy()
+    columns = [c for c in out.columns if c.startswith(FOOTPRINT_COLUMN_PREFIXES)]
+    out.loc[out[key].isin(unmeasured), columns] = np.nan
+    return out

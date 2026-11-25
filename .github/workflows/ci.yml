@@ -17,10 +17,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # CI runs Python 3.12 (as the Docker image does); the local Windows venv is cp314.
-  # Wheels differ per version, so a green CI does not cover cp314-only breakage.
+  # Python 3.12 is the gate (the Docker image runs it). 3.14 is the local Windows
+  # venv's version: wheels and stdlib behaviour differ per version, so it runs too,
+  # but as a warning, because a 3.14-only wheel gap must not block a release.
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    continue-on-error: ${{ matrix.python != '3.12' }}
     steps:
       # lfs: the Team 9 browser tests open web/public/team9/flood_map.html, which is
       # stored in Git LFS (a pointer file is skipped, not tested).
@@ -29,7 +35,7 @@ jobs:
           lfs: true
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python }}
           cache: pip
           cache-dependency-path: requirements*.txt
       - run: pip install -r requirements-test.txt
@@ -46,7 +52,11 @@ jobs:
       run:
         working-directory: web
     steps:
+      # lfs: the build ships web/public/team9/flood_map.html, which is in Git LFS;
+      # without it the bundle carries a 130-byte pointer instead of the map.
       - uses: actions/checkout@v7
+        with:
+          lfs: true
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
